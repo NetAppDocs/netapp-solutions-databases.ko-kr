@@ -1,0 +1,21 @@
+---
+sidebar: sidebar 
+permalink: mssql/tr-4467.html 
+keywords:  
+summary:  
+---
+= TR-4467: Windows에서 Microsoft SQL Server를 사용하는 SAP - NetApp Clustered Data ONTAP 및 SnapCenter 사용한 모범 사례
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+마르코 쇼엔, NetApp
+
+[role="lead"]
+TR-4467은 Windows 환경의 Microsoft SQL Server에서 실행되는 SAP Business Suite 솔루션을 지원하는 클러스터형 NetApp Data ONTAP 배포하기 위한 모범 사례를 고객과 파트너에게 제공합니다.
+
+link:https://www.netapp.com/pdf.html?item=/media/16865-tr-4467pdf.pdf["TR-4467: Windows에서 Microsoft SQL Server를 사용하는 SAP - NetApp Clustered Data ONTAP 및 SnapCenter 사용한 모범 사례"^]

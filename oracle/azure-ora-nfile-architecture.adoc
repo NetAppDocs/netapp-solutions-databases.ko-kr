@@ -1,0 +1,31 @@
+---
+sidebar: sidebar 
+permalink: oracle/azure-ora-nfile-architecture.html 
+summary: 이 섹션에서는 Azure 가상 머신과 Azure NetApp Files 저장소를 사용한 Oracle 데이터베이스 배포 및 데이터 보호 솔루션 아키텍처를 설명합니다. 
+keywords: architecture, database, Oracle, Azure, Azure NetApp Files 
+---
+= 솔루션 아키텍처
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+다음 아키텍처 다이어그램은 Azure VM 인스턴스와 Azure NetApp Files 저장소에 고가용성 Oracle 데이터베이스를 배포하는 방식을 보여줍니다.
+
+환경 내에서 Oracle 컴퓨팅 인스턴스는 Azure 서비스 VM 콘솔을 통해 배포됩니다.  콘솔에서 사용할 수 있는 Azure 인스턴스 유형은 여러 가지가 있습니다.  NetApp 예상 작업 부하를 충족하는 데이터베이스 중심 Azure VM 인스턴스를 배포할 것을 권장합니다.
+
+반면, Oracle 데이터베이스 저장소는 Azure 콘솔에서 사용할 수 있는 Azure NetApp Files 서비스를 통해 배포됩니다.  이후 Oracle 바이너리, 데이터 또는 로그 볼륨이 제공되어 Azure VM 인스턴스 Linux 호스트에 마운트됩니다.
+
+image:db-ora-azure-anf-architecture.png["이 이미지는 기본 사이트, 대기 사이트 및 각 사이트의 vNet 피어링 간의 관계를 보여줍니다.  이렇게 하면 4개의 별도 가상 네트워크가 형성됩니다."]
+
+여러 측면에서 Azure 클라우드에서 Azure NetApp Files 구현하는 방식은 RAID 및 이중 컨트롤러와 같은 많은 기본 중복성을 갖춘 온프레미스 ONTAP 데이터 스토리지 아키텍처와 매우 유사합니다.  재해 복구를 위해 여러 지역에 대기 사이트를 설정하고 애플리케이션 수준 복제(예: Oracle Data Guard)를 사용하여 데이터베이스를 기본 사이트와 동기화할 수 있습니다.
+
+Oracle 데이터베이스 배포 및 데이터 보호에 대한 테스트 검증에서 Oracle 데이터베이스는 다음 다이어그램에 표시된 대로 단일 Azure VM에 배포됩니다.
+
+image:db-ora-azure-anf-architecture2.png["이 이미지는 vNet 피어링을 사용하여 단일 Azure VM을 구성하여 두 개의 별도 가상 네트워크를 만드는 방식을 보여줍니다."]
+
+Azure Oracle 환경은 NetApp 에서 제공하는 데이터베이스 배포, 백업, 복구 및 데이터베이스 마이그레이션 도구 키트를 사용하여 자동화를 위한 Ansible 컨트롤러 노드로 관리할 수 있습니다.  Oracle Azure VM 인스턴스 운영 체제 커널에 대한 모든 업데이트나 Oracle 패치는 기본 및 대기 데이터베이스를 동기화 상태로 유지하기 위해 병렬로 수행할 수 있습니다.  실제로, 초기 툴킷은 필요할 경우 일상적인 Oracle 작업을 수행하도록 쉽게 확장될 수 있습니다.  CLI Ansible 컨트롤러를 설정하는 데 도움이 필요하면 다음을 참조하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^] 시작하려면.

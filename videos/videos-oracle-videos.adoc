@@ -1,0 +1,62 @@
+---
+sidebar: sidebar 
+permalink: videos/videos-oracle-videos.html 
+summary: NetApp 솔루션의 다양한 기능을 논의하는 일련의 비디오 및 데모 
+keywords: netapp, solutions, videos, demos 
+---
+= NetApp 사용한 Oracle 데이터베이스 솔루션에 대한 비디오와 데모를 시청하세요
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NetApp 의 Oracle용 데이터베이스 솔루션을 소개하는 NetApp의 포괄적인 비디오 라이브러리를 살펴보세요.  각 컬렉션은 기업 워크로드를 위한 실용적인 솔루션, 통합 모범 사례, 최신 데이터베이스 관리를 강조합니다.
+
+
+
+== 배포 및 자동화
+
+.NFS를 사용한 Azure NetApp Files 에서의 간소화되고 자동화된 Oracle 배포
+video::d1c859b6-e45a-44c7-8361-b10f012fc89b[panopto,width=360]
+.iSCSI를 통해 Amazon FSx ONTAP 에서 간소화되고 자동화된 Oracle 배포
+video::81e389a0-d9b8-495c-883b-b0d701710847[panopto,width=360]
+.iSCSI를 사용한 NetApp ASA 에서의 간소화되고 자동화된 Oracle 배포
+video::79095731-6b02-41d5-9fa1-b0c00100d055[panopto,width=360]
+.ASM을 사용하여 GCNV에서 DataGuard 대기에서 자동화된 Oracle DB 복제
+video::74062c18-b120-45b7-9bf9-b2db00f73675[panopto,width=360]
+.Ansible을 사용하여 FlexPod 에 Oracle 19c RAC 자동 배포
+video::VcQMJIRzhoY[youtube,width=360]
+
+
+== 백업, 복구 및 복제
+
+.SnapCenter 사용한 ANF에서의 Oracle 데이터베이스 백업, 복구 및 복제
+video::960fb370-c6e0-4406-b6d5-b110014130e8[panopto,width=360]
+.4a 부분 - SnapCenter UI를 사용한 Dev/Test용 데이터베이스 복제본(복제된 대기 복사본)
+video::2f731d7c-0873-4a4d-8491-b01200f90a82[panopto,width=360]
+.4부 b - SnapCenter UI를 사용한 데이터베이스 백업, 복원, 복제
+video::97790d62-ff19-40e0-9784-b01200f920ed[panopto,width=360]
+.4c 부분 - BlueXP SaaS 앱 백업 및 복구를 통한 데이터베이스 백업, 복원
+video::4b0fd212-7641-46b8-9e55-b01200f9383a[panopto,width=360]
+.스토리지 스냅샷을 사용한 Oracle 멀티 테넌트 플러그형 데이터베이스 복제
+video::krzMWjrrMb0[youtube,width=360]
+
+
+== 현대화와 이주
+
+.1부 - AWS 및 FSx ONTAP 에서 하이브리드 클라우드를 활용한 Oracle 현대화
+video::b1a7bb05-caea-44a0-bd9a-b01200f372e9[panopto,width=360]
+.2a부 - 최대 가용성을 갖춘 자동 PDB 재배치를 사용하여 온프레미스에서 AWS로 데이터베이스 마이그레이션
+video::bb088a3e-bbfb-4927-bf44-b01200f38b17[panopto,width=360]
+.2부 b - SnapMirror 통한 BlueXP 콘솔을 사용하여 온프레미스에서 AWS로 데이터베이스 마이그레이션
+video::c0df32f8-d6d3-4b79-b0bd-b01200f3a2e8[panopto,width=360]
+
+
+== 고가용성, 재해 복구 및 복제
+
+.3부 - 자동화된 데이터베이스 HA/DR 복제 설정, 장애 조치, 재동기화
+video::5fd03759-a691-4007-9748-b01200f3b79c[panopto,width=360]

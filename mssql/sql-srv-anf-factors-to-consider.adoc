@@ -1,0 +1,130 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-srv-anf-factors-to-consider.html 
+keywords: performance, redundancy, high availability, storage configuration, continuously available shares, validation, 
+summary: 이 섹션에서는 클라우드에서 SQL Server와 함께 Azure NetApp Files 사용할 때 고려해야 할 다양한 문제에 대해 설명합니다. 
+---
+= 고려해야 할 요소
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 섹션에서는 클라우드에서 SQL Server와 함께 Azure NetApp Files 사용할 때 고려해야 할 다양한 문제에 대해 설명합니다.
+
+
+
+== VM 성능
+
+퍼블릭 클라우드에서 관계형 데이터베이스의 성능을 최적화하려면 적절한 VM 크기를 선택하는 것이 중요합니다.  Microsoft에서는 온-프레미스 서버 환경에서 SQL Server에 적용 가능한 동일한 데이터베이스 성능 조정 옵션을 계속 사용할 것을 권장합니다.  사용 https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-memory["메모리 최적화"^] SQL Server 워크로드의 최적 성능을 위한 VM 크기입니다.  기존 배포의 성능 데이터를 수집하여 RAM 및 CPU 사용률을 파악하고 적절한 인스턴스를 선택합니다.  대부분의 배치에서는 D, E 또는 M 시리즈 중에서 선택합니다.
+
+*참고사항:*
+
+* SQL Server 워크로드의 성능을 극대화하려면 메모리 최적화된 VM 크기를 사용하세요.
+* NetApp 과 Microsoft에서는 적절한 메모리 대 vCore 비율로 인스턴스 유형을 선택하기 전에 스토리지 성능 요구 사항을 파악할 것을 권장합니다.  이는 또한 VM의 스토리지 처리량 제한을 극복하기 위해 적절한 네트워크 대역폭을 갖춘 하위 인스턴스 유형을 선택하는 데 도움이 됩니다.
+
+
+
+
+== VM 중복성
+
+중복성과 고가용성을 높이려면 SQL Server VM이 동일해야 합니다. https://docs.microsoft.com/en-us/azure/virtual-machines/availability-set-overview["가용성 집합"^] 또는 다르다 https://docs.microsoft.com/en-us/azure/availability-zones/az-overview["가용성 영역"^] .  Azure VM을 만들 때는 가용성 집합과 가용성 영역 중에서 하나를 선택해야 합니다. Azure VM은 두 가지 모두에 참여할 수 없습니다.
+
+
+
+== 고가용성
+
+고가용성을 위해서는 SQL Server AOAG 또는 Always On 장애 조치(Failover) 클러스터 인스턴스(FCI)를 구성하는 것이 가장 좋은 옵션입니다.  AOAG의 경우 여기에는 가상 네트워크의 Azure Virtual Machines에 있는 여러 SQL Server 인스턴스가 포함됩니다.  데이터베이스 수준에서 고가용성이 필요한 경우 SQL Server 가용성 그룹을 구성하는 것을 고려하세요.
+
+
+
+== 스토리지 구성
+
+Microsoft SQL Server는 SMB 파일 공유를 저장 옵션으로 배포할 수 있습니다.  SQL Server 2012부터 시스템 데이터베이스(master, model, msdb 또는 tempdb)와 사용자 데이터베이스를 SMB(Server Message Block) 파일 서버를 저장소 옵션으로 설치할 수 있습니다.  이는 SQL Server 독립 실행형과 SQL Server FCI 모두에 적용됩니다.
+
+
+NOTE: SQL Server 데이터베이스의 파일 공유 저장소는 지속적으로 사용 가능한 속성을 지원해야 합니다.  이를 통해 파일 공유 데이터에 중단 없이 액세스할 수 있습니다.
+
+Azure NetApp Files 까다로운 작업 부하를 충족할 수 있는 고성능 파일 저장소를 제공하며, 블록 저장소 솔루션과 비교했을 때 SQL Server의 TCO를 줄여줍니다.  블록 스토리지를 사용하면 VM이 디스크 작업에 대한 I/O 및 대역폭에 제한을 두는 반면, Azure NetApp Files 에는 네트워크 대역폭 제한만 적용됩니다.  즉, Azure NetApp Files 에는 VM 수준 I/O 제한이 적용되지 않습니다.  이러한 I/O 제한이 없으면 Azure NetApp Files 에 연결된 작은 VM에서 실행되는 SQL Server는 훨씬 더 큰 VM에서 실행되는 SQL Server만큼 좋은 성능을 발휘할 수 있습니다.  Azure NetApp Files 컴퓨팅 및 소프트웨어 라이선스 비용을 줄여 SQL Server 배포 비용을 절감합니다.  SQL Server 배포를 위해 Azure NetApp Files 사용하는 것에 대한 자세한 비용 분석 및 성능 이점은 다음을 참조하세요. https://docs.microsoft.com/en-us/azure/azure-netapp-files/solutions-benefits-azure-netapp-files-sql-server["SQL Server 배포에 Azure NetApp Files 사용하는 이점"^] .
+
+
+
+=== 이익
+
+SQL Server에 Azure NetApp Files 사용하면 다음과 같은 이점이 있습니다.
+
+* Azure NetApp Files 사용하면 더 작은 인스턴스를 사용할 수 있으므로 컴퓨팅 비용을 줄일 수 있습니다.
+* Azure NetApp Files 소프트웨어 라이선스 비용도 줄여서 전반적인 TCO를 낮춥니다.
+* 볼륨 재구성 및 동적 서비스 수준 기능은 안정적인 작업 부하에 맞춰 크기를 조정하고 과도한 프로비저닝을 방지하여 비용을 최적화합니다.
+
+
+*참고사항:*
+
+* 중복성과 고가용성을 높이려면 SQL Server VM이 동일해야 합니다. https://docs.microsoft.com/en-us/azure/virtual-machines/availability-set-overview["가용성 집합"^] 또는 다르게 https://docs.microsoft.com/en-us/azure/availability-zones/az-overview["가용성 영역"^] .  사용자 정의 데이터 파일이 필요한 경우 파일 경로 요구 사항을 고려하세요. 이 경우 SQL AOAG보다 SQL FCI를 선택하세요.
+* 다음 UNC 경로가 지원됩니다. file:///\\ANFSMB-b4ca.anf.test\SQLDB%20and%20\\ANFSMB-b4ca.anf.test\SQLDB\["\\ANFSMB-b4ca.anf.test\SQLDB 및 \\ANFSMB-b4ca.anf.test\SQLDB\"^] .
+* 루프백 UNC 경로는 지원되지 않습니다.
+* 크기 조정을 위해 온프레미스 환경의 과거 데이터를 활용하세요.  OLTP 워크로드의 경우 평균 및 최대 시간의 워크로드와 디스크 읽기/초 및 디스크 쓰기/초 성능 카운터를 사용하여 목표 IOPS를 성능 요구 사항에 맞게 조정합니다.  데이터웨어하우스 및 보고 워크로드의 경우 평균 및 피크 시간의 워크로드와 디스크 읽기 바이트/초, 디스크 쓰기 바이트/초를 사용하여 대상 처리량을 일치시킵니다.  평균값은 볼륨 재조정 기능과 함께 사용될 수 있습니다.
+
+
+
+
+== 지속적으로 사용 가능한 공유 만들기
+
+Azure Portal이나 Azure CLI를 사용하여 지속적으로 사용 가능한 공유를 만듭니다.  포털에서 Enable Continuous Availability 속성 옵션을 선택합니다. Azure CLI의 경우 다음을 사용하여 공유를 지속적으로 사용 가능한 공유로 지정합니다. `az netappfiles volume create with the smb-continuously-avl` 옵션 설정 `$True` .  새로운 연속 가용성 지원 볼륨을 만드는 방법에 대해 자세히 알아보려면 다음을 참조하세요. https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-create-volumes-smb["지속적으로 사용 가능한 공유 만들기"^] .
+
+*참고사항:*
+
+* 다음 이미지에 표시된 것처럼 SMB 볼륨에 대한 지속적인 가용성을 활성화합니다.
+* 관리자가 아닌 도메인 계정을 사용하는 경우 해당 계정에 필요한 보안 권한이 할당되어 있는지 확인하세요.
+* 공유 수준에서 적절한 권한을 설정하고 파일 수준 권한도 적절히 설정합니다.
+* 기존 SMB 볼륨에서는 지속적으로 사용 가능한 속성을 활성화할 수 없습니다.  기존 볼륨을 지속적으로 사용 가능한 공유를 사용하도록 변환하려면 NetApp Snapshot 기술을 사용하세요. 자세한 내용은 다음을 참조하세요. link:https://learn.microsoft.com/en-us/azure/azure-netapp-files/enable-continuous-availability-existing-smb["기존 SMB 볼륨을 변환하여 연속 가용성을 사용합니다."^] .
+
+
+image:sql-srv-anf-001.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+
+
+== 성능
+
+Azure NetApp Files Standard(테라바이트당 16MBps), Premium(테라바이트당 64MBps), Ultra(테라바이트당 128MBps)의 세 가지 서비스 수준을 지원합니다.  최적의 데이터베이스 작업 부하 성능을 위해서는 적절한 볼륨 크기를 프로비저닝하는 것이 중요합니다.  Azure NetApp Files 사용하면 볼륨 성능과 처리량 제한은 다음 요소의 조합에 따라 결정됩니다.
+
+* 볼륨이 속한 용량 풀의 서비스 수준
+* 볼륨에 할당된 할당량
+* 용량 풀의 서비스 품질(QoS) 유형(자동 또는 수동)
+
+
+자세한 내용은 다음을 참조하세요.  https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-service-levels["Azure NetApp Files 의 서비스 수준"^] .
+
+image:sql-srv-anf-002.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+
+
+== 성능 검증
+
+모든 배포와 마찬가지로 VM과 스토리지를 테스트하는 것이 중요합니다.  저장소 검증을 위해 HammerDB, Apploader 또는 적절한 읽기/쓰기 혼합이 적용된 사용자 정의 스크립트나 FIO와 같은 도구를 사용해야 합니다.  하지만 대부분의 SQL Server 작업 부하, 심지어 바쁜 OLTP 작업 부하라도 80%~90%는 읽기이고 10%~20%는 쓰기라는 점을 명심하세요.
+
+성능을 보여주기 위해 프리미엄 서비스 수준을 사용하여 볼륨에 대한 빠른 테스트를 수행했습니다.  이 테스트에서는 애플리케이션 액세스가 중단되지 않고 데이터 마이그레이션도 전혀 없이 볼륨 크기가 100GB에서 2TB로 즉시 증가했습니다.
+
+image:sql-srv-anf-003.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+이 논문에서 다루는 배포에 대해 HammerDB를 사용하여 수행한 실시간 성능 테스트의 또 다른 예는 다음과 같습니다.  이 테스트를 위해 8개의 vCPU, 500GB 프리미엄 SSD, 500GB SMB Azure NetApp Files 볼륨이 있는 작은 인스턴스를 사용했습니다.  HammerDB는 80개의 웨어하우스와 8명의 사용자로 구성되었습니다.
+
+다음 차트는 Azure NetApp Files 비슷한 크기의 볼륨(500GB)을 사용했을 때 4배 더 낮은 대기 시간으로 분당 2.6배 더 많은 트랜잭션을 처리할 수 있었음을 보여줍니다.
+
+32x vCPU와 16TB Azure NetApp Files 볼륨을 갖춘 더 큰 인스턴스로 크기를 조정하여 추가 테스트를 수행했습니다.  1ms의 일관된 지연 시간으로 분당 거래량이 크게 증가했습니다.  이 테스트를 위해 HammerDB는 80개의 웨어하우스와 64명의 사용자로 구성되었습니다.
+
+image:sql-srv-anf-004.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+
+
+== 비용 최적화
+
+Azure NetApp Files 사용하면 중단 없이 투명한 볼륨 크기 조정이 가능하며, 가동 중지 시간 없이 서비스 수준을 변경할 수 있으며 애플리케이션에 영향을 미치지 않습니다.  이는 피크 메트릭에 따라 데이터베이스 크기를 조정할 필요 없이 동적 비용 관리를 가능하게 하는 고유한 기능입니다.  오히려 안정 상태의 작업 부하를 사용하면 사전 비용을 피할 수 있습니다.  볼륨 재구성 및 동적 서비스 수준 변경을 통해 I/O를 일시 중지하지 않고도 데이터 액세스를 유지하면서 Azure NetApp Files 볼륨의 대역폭과 서비스 수준을 필요에 따라 거의 즉시 조정할 수 있습니다.
+
+LogicApp이나 Functions와 같은 Azure PaaS 제품을 사용하면 특정 웹후크나 알림 규칙 트리거에 따라 볼륨 크기를 쉽게 조정하여 작업 부하 수요를 충족하는 동시에 비용을 동적으로 처리할 수 있습니다.
+
+예를 들어, 정상 상태 작업에 250MBps가 필요한 데이터베이스를 생각해 보겠습니다. 하지만 최대 처리량도 400MBps가 필요합니다.  이 경우, 안정적인 성능 요구 사항을 충족하기 위해 프리미엄 서비스 수준 내에서 4TB 볼륨으로 배포를 수행해야 합니다.  최대 작업 부하를 처리하려면 Azure 함수를 사용하여 해당 기간 동안 볼륨 크기를 7TB로 늘린 다음 볼륨 크기를 줄여 배포 비용을 효율적으로 만듭니다.  이 구성을 사용하면 저장소의 과도한 프로비저닝을 방지할 수 있습니다.

@@ -1,0 +1,63 @@
+---
+sidebar: sidebar 
+permalink: automation/marketing-overview.html 
+keywords: Linux, RHEL Oracle19c, NFS, ONTAP, Ansible 
+summary: 이 페이지에서는 NetApp ONTAP 스토리지에 Oracle19c를 배포하는 자동화된 방법을 설명합니다. 
+---
+= 솔루션 개요
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 페이지에서는 NetApp ONTAP 스토리지에 Oracle19c를 배포하는 자동화된 방법을 설명합니다.
+
+
+
+== NFS에서 Oracle19c for ONTAP 자동 배포
+
+조직에서는 효율성을 높이고, 배포를 가속화하고, 수동 작업을 줄이기 위해 환경을 자동화하고 있습니다.  Ansible과 같은 구성 관리 도구는 엔터프라이즈 데이터베이스 운영을 간소화하는 데 사용되고 있습니다.  이 솔루션에서는 Ansible을 사용하여 NetApp ONTAP 통해 Oracle 19c의 프로비저닝과 구성을 자동화하는 방법을 보여드립니다.  스토리지 관리자, 시스템 관리자, DBA가 지속적이고 신속하게 새로운 스토리지를 배포하고, 데이터베이스 서버를 구성하고, Oracle 19c 소프트웨어를 설치할 수 있도록 하면 다음과 같은 이점을 얻을 수 있습니다.
+
+* 설계 복잡성과 인적 오류를 제거하고 반복 가능한 일관된 배포 및 모범 사례를 구현합니다.
+* 스토리지 프로비저닝, DB 호스트 구성 및 Oracle 설치 시간 단축
+* 데이터베이스 관리자, 시스템 및 스토리지 관리자 생산성 향상
+* 스토리지와 데이터베이스의 확장을 쉽게 활성화하세요
+
+
+NetApp 고객에게 검증된 Ansible 모듈과 역할을 제공하여 Oracle 데이터베이스 환경의 배포, 구성 및 수명 주기 관리를 가속화합니다.  이 솔루션은 다음을 수행하는 데 도움이 되는 지침과 Ansible 플레이북 코드를 제공합니다.
+
+* Oracle Database를 위한 ONTAP NFS 스토리지 생성 및 구성
+* RedHat Enterprise Linux 7/8 또는 Oracle Linux 7/8에 Oracle 19c 설치
+* ONTAP NFS 스토리지에 Oracle 19c 구성
+
+
+자세한 내용을 보거나 시작하려면 아래의 개요 영상을 시청하세요.
+
+
+
+=== AWX/타워 배포
+
+1부: 시작하기, 요구 사항, 자동화 세부 정보 및 초기 AWX/타워 구성
+
+.AWX 배포
+video::d844a9c3-4eb3-4512-bf21-b01200f09f66[panopto]
+2부: 변수와 플레이북 실행
+
+.AWX 플레이북 실행
+video::6da1b960-e1c9-4950-b750-b01200f0bdfa[panopto]
+
+
+=== CLI 배포
+
+1부: 시작하기, 요구 사항, 자동화 세부 정보 및 Ansible Control 호스트 설정
+
+.CLI 배포
+video::373e7f2a-c101-4292-a3e4-b01200f0d078[panopto]
+2부: 변수와 플레이북 실행
+
+.CLI 플레이북 실행
+video::d58ebdb0-8bac-4ef9-b4d1-b01200f95047[panopto]

@@ -1,0 +1,460 @@
+---
+sidebar: sidebar 
+permalink: oracle/snapctr-svcs-ora.html 
+keywords: Oracle, Database, SnapCenter, SnapShot, FlexClone, BlueXP, Database Backup, Database Restore, Database Clone 
+summary: 이 솔루션은 Azure 클라우드의 BlueXP 콘솔을 사용하여 NetApp SnapCenter SaaS를 사용하여 Oracle 데이터베이스 백업, 복원, 복제에 대한 개요와 세부 정보를 제공합니다. 
+---
+= TR-4964: SnapCenter 서비스를 사용한 Oracle 데이터베이스 백업, 복원 및 복제 - AWS
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 솔루션은 Azure 클라우드의 BlueXP 콘솔을 사용하여 NetApp SnapCenter SaaS를 사용하여 Oracle 데이터베이스 백업, 복원, 복제에 대한 개요와 세부 정보를 제공합니다.
+
+Allen Cao, Niyaz Mohamed, NetApp
+
+
+
+== 목적
+
+SnapCenter Services는 NetApp BlueXP 클라우드 관리 콘솔을 통해 사용할 수 있는 기존 SnapCenter 데이터베이스 관리 UI 도구의 SaaS 버전입니다.  이는 NetApp 클라우드 스토리지에서 실행되는 Oracle 및 HANA와 같은 데이터베이스를 위한 NetApp 클라우드 백업 및 데이터 보호 제품의 필수적인 부분입니다.  이 SaaS 기반 서비스는 일반적으로 Windows 도메인 환경에서 작동하는 Windows 서버가 필요한 기존 SnapCenter 독립형 서버 배포를 간소화합니다.
+
+이 문서에서는 Amazon FSx ONTAP 스토리지와 EC2 컴퓨팅 인스턴스에 배포된 Oracle 데이터베이스를 백업, 복원 및 복제하기 위해 SnapCenter 서비스를 설정하는 방법을 보여줍니다.  SnapCenter Services는 설정과 사용이 훨씬 쉽지만, 기존 SnapCenter UI 도구에서 사용할 수 있는 주요 기능을 제공합니다.
+
+이 솔루션은 다음과 같은 사용 사례를 해결합니다.
+
+* Amazon FSx ONTAP 에 호스팅된 Oracle 데이터베이스에 대한 스냅샷을 사용한 데이터베이스 백업
+* 장애 발생 시 Oracle 데이터베이스 복구
+* 개발/테스트 환경 또는 기타 사용 사례를 위한 기본 데이터베이스의 빠르고 저장 효율적인 복제
+
+
+
+
+== 대상
+
+이 솔루션은 다음과 같은 대상 고객을 대상으로 합니다.
+
+* Amazon FSx ONTAP 스토리지에서 실행되는 Oracle 데이터베이스를 관리하는 DBA
+* 퍼블릭 AWS 클라우드에서 Oracle 데이터베이스 백업, 복원 및 복제를 테스트하는 데 관심이 있는 솔루션 아키텍트
+* Amazon FSx ONTAP 스토리지를 지원하고 관리하는 스토리지 관리자
+* Amazon FSx ONTAP 스토리지에 배포된 애플리케이션을 소유한 애플리케이션 소유자
+
+
+
+
+== 솔루션 테스트 및 검증 환경
+
+이 솔루션의 테스트와 검증은 최종 배포 환경과 일치하지 않을 수 있는 AWS FSx 및 EC2 환경에서 수행되었습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
+
+
+
+=== 아키텍처
+
+image:snapctr-svcs-architecture.png["이 이미지는 UI, 커넥터, 관리하는 리소스를 포함하여 BlueXP 콘솔 내 애플리케이션의 BlueXP backup and recovery 대한 자세한 그림을 제공합니다."]
+
+이 이미지는 UI, 커넥터, 관리하는 리소스를 포함하여 BlueXP 콘솔 내 애플리케이션의 BlueXP backup and recovery 대한 자세한 그림을 제공합니다.
+
+
+
+=== 하드웨어 및 소프트웨어 구성 요소
+
+*하드웨어*
+
+[cols="33%, 33%, 33%"]
+|===
+
+
+| FSx ONTAP 스토리지 | AWS에서 제공하는 현재 버전 | 동일한 VPC 및 가용성 영역에 있는 하나의 FSx HA 클러스터 
+
+
+| 컴퓨팅을 위한 EC2 인스턴스 | t2.xlarge/4vCPU/16G | 두 개의 EC2 T2 xlarge EC2 인스턴스(하나는 기본 DB 서버로, 다른 하나는 복제 DB 서버로 사용) 
+|===
+*소프트웨어*
+
+[cols="33%, 33%, 33%"]
+|===
+
+
+| 레드햇 리눅스 | RHEL-8.6.0_HVM-20220503-x86_64-2-시간별2-GP2 | 테스트를 위해 RedHat 구독을 배포했습니다. 
+
+
+| 오라클 그리드 인프라 | 버전 19.18 | RU 패치 p34762026_190000_Linux-x86-64.zip이 적용되었습니다. 
+
+
+| 오라클 데이터베이스 | 버전 19.18 | RU 패치 p34765931_190000_Linux-x86-64.zip을 적용했습니다. 
+
+
+| 오라클 OPatch | 버전 12.2.0.1.36 | 최신 패치 p6880880_190000_Linux-x86-64.zip 
+
+
+| SnapCenter 서비스 | 버전 | v2.3.1.2324 
+|===
+
+
+=== 배포 고려사항의 핵심 요소
+
+* *데이터베이스와 FSx와 동일한 VPC에 배포되는 커넥터.*  가능하다면 커넥터는 동일한 AWS VPC에 배포해야 합니다. 이를 통해 FSx 스토리지와 EC2 컴퓨팅 인스턴스에 연결할 수 있습니다.
+* * SnapCenter 커넥터에 대해 생성된 AWS IAM 정책입니다.*  JSON 형식의 정책은 자세한 SnapCenter 서비스 문서에서 확인할 수 있습니다.  BlueXP 콘솔로 커넥터 배포를 시작하면 JSON 형식으로 필요한 권한에 대한 세부 정보와 함께 필수 구성 요소를 설정하라는 메시지도 표시됩니다.  정책은 커넥터를 소유한 AWS 사용자 계정에 할당되어야 합니다.
+* *AWS 계정 액세스 키와 AWS 계정에 생성된 SSH 키 쌍.*  SSH 키 쌍은 커넥터 호스트에 로그인한 다음 EC2 DB 서버 호스트에 데이터베이스 플러그인을 배포하기 위해 ec2-user에 할당됩니다.  액세스 키는 위의 IAM 정책에 따라 필요한 커넥터를 프로비저닝할 수 있는 권한을 부여합니다.
+* * BlueXP 콘솔 설정에 자격 증명이 추가되었습니다.*  Amazon FSx ONTAP BlueXP 작업 환경에 추가하려면 BlueXP 콘솔 설정에서 BlueXP Amazon FSx ONTAP 에 액세스할 수 있는 권한을 부여하는 자격 증명을 설정해야 합니다.
+* *EC2 데이터베이스 인스턴스 호스트에 java-11-openjdk가 설치되었습니다.*  SnapCenter 서비스를 설치하려면 Java 버전 11이 필요합니다.  플러그인 배포를 시도하기 전에 애플리케이션 호스트에 설치해야 합니다.
+
+
+
+
+== 솔루션 구축
+
+클라우드 기반 애플리케이션 데이터를 보호하는 데 도움이 되는 광범위한 NetApp 문서가 있습니다.  이 문서의 목적은 Amazon FSx ONTAP 과 EC2 컴퓨팅 인스턴스에 배포된 Oracle 데이터베이스를 보호하기 위해 BlueXP 콘솔을 사용하여 SnapCenter 서비스를 배포하는 단계별 절차를 제공하는 것입니다.  이 문서는 보다 일반적인 지침에서 누락되었을 수 있는 특정 세부 정보를 채웁니다.
+
+시작하려면 다음 단계를 완료하세요.
+
+* 일반 지침을 읽어보세요link:https://docs.netapp.com/us-en/bluexp-backup-recovery/["클라우드 네이티브 애플리케이션 데이터를 보호하세요"^] Oracle 및 Amazon FSx ONTAP 과 관련된 섹션입니다.
+* 다음 비디오 연습을 시청해 보세요.
+
+
+.솔루션 배포
+video::4b0fd212-7641-46b8-9e55-b01200f9383a[panopto]
+
+
+=== SnapCenter 서비스 배포를 위한 필수 구성 요소
+
+[%collapsible%open]
+====
+배포에는 다음과 같은 전제 조건이 필요합니다.
+
+. EC2 인스턴스에 Oracle 데이터베이스가 완전히 배포되어 실행되는 기본 Oracle 데이터베이스 서버입니다.
+. 위의 데이터베이스 볼륨을 호스팅하는 AWS에 배포된 Amazon FSx ONTAP 클러스터입니다.
+. 개발/테스트 워크로드나 프로덕션 Oracle 데이터베이스의 전체 데이터 세트가 필요한 사용 사례를 지원하기 위해 Oracle 데이터베이스를 대체 호스트에 복제하는 것을 테스트하는 데 사용할 수 있는 EC2 인스턴스의 선택적 데이터베이스 서버입니다.
+. Amazon FSx ONTAP 및 EC2 컴퓨팅 인스턴스에서 Oracle 데이터베이스 배포를 위한 위의 필수 조건을 충족하는 데 도움이 필요한 경우 다음을 참조하세요.link:aws-ora-fsx-ec2-iscsi-asm.html["iSCSI/ASM을 사용한 AWS FSx/EC2에서의 Oracle 데이터베이스 배포 및 보호"^] 또는 백서link:aws-ora-fsx-ec2-deploy-intro.html["EC2 및 FSx에 대한 Oracle 데이터베이스 배포 모범 사례"^]
+
+
+====
+
+
+=== BlueXP 준비에 대한 온보딩
+
+[%collapsible%open]
+====
+. 링크를 사용하세요link:https://console.bluexp.netapp.com/["NetApp BlueXP"] BlueXP 콘솔 액세스에 가입하세요.
+. AWS 계정에 로그인하여 적절한 권한이 있는 IAM 정책을 만들고 BlueXP 커넥터 배포에 사용될 AWS 계정에 정책을 할당합니다.
++
+image:snapctr-svcs-connector-001-policy.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
++
+정책은 NetApp 문서에서 제공되는 JSON 문자열로 구성해야 합니다.  커넥터 프로비저닝이 시작되고 필수 구성 요소 권한 할당을 묻는 메시지가 표시되면 해당 페이지에서 JSON 문자열을 검색할 수도 있습니다.
+
+. 커넥터 프로비저닝을 위해서는 AWS VPC, 서브넷, 보안 그룹, AWS 사용자 계정 액세스 키와 비밀번호, ec2-user용 SSH 키 등도 준비해야 합니다.
+
+
+====
+
+
+=== SnapCenter 서비스를 위한 커넥터 배포
+
+[%collapsible%open]
+====
+. BlueXP 콘솔에 로그인합니다.  공유 계정의 경우 *계정* > *계정 관리* > *작업 공간*을 클릭하여 새 작업 공간을 추가하여 개별 작업 공간을 만드는 것이 가장 좋습니다.
++
+image:snapctr-svcs-connector-002-wspace.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 커넥터 프로비저닝 워크플로를 시작하려면 *커넥터 추가*를 클릭하세요.
+
+
+image:snapctr-svcs-connector-003-add.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 클라우드 공급자(이 경우 *Amazon Web Services*)를 선택하세요.
+
+
+image:snapctr-svcs-connector-004-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. AWS 계정에 이미 *권한*, *인증*, *네트워킹* 단계가 설정되어 있다면 해당 단계를 건너뜁니다.  그렇지 않은 경우 계속 진행하기 전에 이를 구성해야 합니다.  여기에서 이전 섹션에서 참조된 AWS 정책에 대한 권한을 검색할 수도 있습니다.<<BlueXP 준비에 대한 온보딩>> ."
+
+
+image:snapctr-svcs-connector-005-remind.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. *액세스 키*와 *비밀 키*를 사용하여 AWS 계정 인증을 입력하세요.
++
+image:snapctr-svcs-connector-006-auth.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 커넥터 인스턴스의 이름을 지정하고 *세부 정보*에서 *역할 만들기*를 선택합니다.
+
+
+image:snapctr-svcs-connector-007-details.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 커넥터 액세스를 위해 적절한 *VPC*, *서브넷* 및 SSH *키 쌍*으로 네트워킹을 구성합니다.
++
+image:snapctr-svcs-connector-008-network.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 커넥터에 대한 *보안 그룹*을 설정합니다.
++
+image:snapctr-svcs-connector-009-security.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 요약 페이지를 검토하고 *추가*를 클릭하여 커넥터 생성을 시작하세요.  일반적으로 배포를 완료하는 데 약 10분이 걸립니다.  완료되면 커넥터 인스턴스가 AWS EC2 대시보드에 나타납니다.
+
+
+image:snapctr-svcs-connector-010-review.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+====
+
+
+=== AWS 리소스 액세스를 위해 BlueXP 에서 자격 증명을 정의합니다.
+
+[%collapsible%open]
+====
+. 먼저 AWS EC2 콘솔에서 *Identity and Access Management(IAM)* 메뉴 *역할*, *역할 만들기*에서 역할을 만들어 역할 생성 워크플로를 시작합니다.
++
+image:snapctr-svcs-credential-001-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. *신뢰할 수 있는 엔터티 선택* 페이지에서 *AWS 계정*, *다른 AWS 계정*을 선택하고 BlueXP 콘솔에서 검색할 수 있는 BlueXP 계정 ID를 붙여넣습니다.
++
+image:snapctr-svcs-credential-002-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. fsx로 권한 정책을 필터링하고 역할에 *권한 정책*을 추가합니다.
++
+image:snapctr-svcs-credential-003-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. *역할 세부 정보* 페이지에서 역할 이름을 지정하고 설명을 추가한 다음 *역할 만들기*를 클릭합니다.
++
+image:snapctr-svcs-credential-004-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. BlueXP 콘솔로 돌아가서 콘솔의 오른쪽 상단에 있는 설정 아이콘을 클릭하여 *계정 자격 증명* 페이지를 열고, *자격 증명 추가*를 클릭하여 자격 증명 구성 워크플로를 시작합니다.
++
+image:snapctr-svcs-credential-005-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 자격 증명 위치를 - *Amazon Web Services - BlueXP*로 선택하세요.
++
+image:snapctr-svcs-credential-006-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 1단계에서 생성한 AWS IAM 역할에서 검색할 수 있는 적절한 *역할 ARN*으로 AWS 자격 증명을 정의합니다.  1단계에서 AWS IAM 역할을 생성하는 데 사용되는 BlueXP *계정 ID*입니다.
++
+image:snapctr-svcs-credential-007-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 검토하고 *추가*합니다.image:snapctr-svcs-credential-008-aws.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+
+====
+
+
+=== SnapCenter 서비스 설정
+
+[%collapsible%open]
+====
+커넥터가 배포되고 자격 증명이 추가되면 이제 다음 절차에 따라 SnapCenter 서비스를 설정할 수 있습니다.
+
+. *내 작업 환경*에서 *작업 환경 추가*를 클릭하여 AWS에 배포된 FSx를 찾아보세요.
+
+
+image:snapctr-svcs-setup-001.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 위치로 *Amazon Web Services*를 선택하세요.
+
+
+image:snapctr-svcs-setup-002.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. * Amazon FSx ONTAP* 옆에 있는 *기존 항목 검색*을 클릭합니다.
+
+
+image:snapctr-svcs-setup-003.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 이전 섹션에서 만든 *자격 증명 이름*을 선택하여 BlueXP FSx ONTAP 관리하는 데 필요한 권한을 부여합니다.  자격 증명을 추가하지 않은 경우 BlueXP 콘솔의 오른쪽 상단에 있는 *설정* 메뉴에서 추가할 수 있습니다.
++
+image:snapctr-svcs-setup-004.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. Amazon FSx ONTAP 배포된 AWS 지역을 선택하고, Oracle 데이터베이스를 호스팅하는 FSx 클러스터를 선택한 다음 추가를 클릭합니다.
+
+
+image:snapctr-svcs-setup-005.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 검색된 Amazon FSx ONTAP 인스턴스가 이제 작업 환경에 나타납니다.
+
+
+image:snapctr-svcs-setup-006.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. fsxadmin 계정 자격 증명을 사용하여 FSx 클러스터에 로그인할 수 있습니다.
+
+
+image:snapctr-svcs-setup-007.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. Amazon FSx ONTAP 에 로그인한 후 데이터베이스 스토리지 정보(예: 데이터베이스 볼륨)를 검토합니다.
+
+
+image:snapctr-svcs-setup-008.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 콘솔의 왼쪽 사이드바에서 보호 아이콘 위에 마우스를 올려놓고 *보호* > *응용 프로그램*을 클릭하면 응용 프로그램 시작 페이지가 열립니다.  *애플리케이션 검색*을 클릭하세요.
+
+
+image:snapctr-svcs-setup-009.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 애플리케이션 소스 유형으로 *클라우드 네이티브*를 선택합니다.
+
+
+image:snapctr-svcs-setup-010.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 애플리케이션 유형으로 *Oracle*을 선택하세요.
+
+
+image:snapctr-svcs-setup-013.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. AWS EC2 Oracle 애플리케이션 호스트 세부 정보를 입력합니다.  한 단계로 플러그인을 설치하고 데이터베이스를 검색하려면 *호스트 설치 유형*으로 *SSH 사용*을 선택하세요.  그런 다음 *SSH 개인 키 추가*를 클릭합니다.
++
+image:snapctr-svcs-setup-014.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 데이터베이스 EC2 호스트의 ec2-user SSH 키를 붙여넣고 *검증*을 클릭하여 계속 진행합니다.
++
+image:snapctr-svcs-setup-014-a.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 계속하려면 *지문 확인* 메시지가 표시됩니다.
++
+image:snapctr-svcs-setup-014-b.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. *다음*을 클릭하여 Oracle 데이터베이스 플러그인을 설치하고 EC2 호스트에서 Oracle 데이터베이스를 검색합니다.  발견된 데이터베이스는 *애플리케이션*에 추가됩니다.  데이터베이스 *보호 상태*는 처음 발견되었을 때 *보호되지 않음*으로 표시됩니다.
++
+image:snapctr-svcs-setup-017.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+
+
+이것으로 Oracle용 SnapCenter 서비스의 초기 설정이 완료되었습니다.  이 문서의 다음 세 섹션에서는 Oracle 데이터베이스 백업, 복원 및 복제 작업을 설명합니다.
+
+====
+
+
+=== Oracle 데이터베이스 백업
+
+[%collapsible%open]
+====
+. 데이터베이스 *보호 상태* 옆에 있는 세 개의 점을 클릭한 다음, *정책*을 클릭하면 Oracle 데이터베이스를 보호하는 데 적용할 수 있는 기본 사전 로드된 데이터베이스 보호 정책을 볼 수 있습니다.
+
+
+image:snapctr-svcs-bkup-001.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 사용자 정의 백업 빈도와 백업 데이터 보존 기간을 설정하여 고유한 정책을 만들 수도 있습니다.
+
+
+image:snapctr-svcs-bkup-002.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 정책 구성에 만족하면 원하는 정책을 할당하여 데이터베이스를 보호할 수 있습니다.
+
+
+image:snapctr-svcs-bkup-003.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 데이터베이스에 할당할 정책을 선택합니다.
+
+
+image:snapctr-svcs-bkup-004.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 정책이 적용된 후, 데이터베이스 보호 상태가 녹색 확인 표시와 함께 *보호됨*으로 변경되었습니다.
+
+
+image:snapctr-svcs-bkup-005.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 데이터베이스 백업은 미리 정의된 일정에 따라 실행됩니다.  아래에 표시된 것처럼 일회성 주문형 백업을 실행할 수도 있습니다.
+
+
+image:snapctr-svcs-bkup-006.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 데이터베이스 백업 세부 정보는 메뉴 목록에서 *세부 정보 보기*를 클릭하면 볼 수 있습니다.  여기에는 백업 이름, 백업 유형, SCN, 백업 날짜가 포함됩니다.  백업 세트는 데이터 볼륨과 로그 볼륨 모두에 대한 스냅샷을 포함합니다.  로그 볼륨 스냅샷은 데이터베이스 볼륨 스냅샷 바로 뒤에 생성됩니다.  긴 목록에서 특정 백업을 찾으려면 필터를 적용할 수 있습니다.
+
+
+image:snapctr-svcs-bkup-007.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+====
+
+
+=== Oracle 데이터베이스 복원 및 복구
+
+[%collapsible%open]
+====
+. 데이터베이스 복원의 경우 SCN이나 백업 시간에 따라 올바른 백업을 선택하세요.  데이터베이스 데이터 백업에서 세 개의 점을 클릭한 다음, *복원*을 클릭하여 데이터베이스 복원 및 복구를 시작합니다.
+
+
+image:snapctr-svcs-restore-001.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 복원 설정을 선택하세요.  백업 후 물리적 데이터베이스 구조에 아무것도 변경되지 않았다고 확신하는 경우(예: 데이터 파일이나 디스크 그룹 추가) 일반적으로 더 빠른 *강제 복원* 옵션을 사용할 수 있습니다.  그렇지 않은 경우 이 상자를 선택하지 마세요.
+
+
+image:snapctr-svcs-restore-002.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. 데이터베이스 복원 및 복구를 검토하고 시작합니다.
+
+
+image:snapctr-svcs-restore-003.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+. *작업 모니터링* 탭에서는 복원 작업의 상태와 작업이 실행되는 동안의 모든 세부 정보를 볼 수 있습니다.
+
+
+image:snapctr-svcs-restore-005.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+image:snapctr-svcs-restore-004.png["GUI에서 이 단계를 보여주는 스크린샷입니다."]
+
+====
+
+
+=== Oracle 데이터베이스 복제
+
+[%collapsible%open]
+====
+데이터베이스를 복제하려면 동일한 데이터베이스 백업 세부 정보 페이지에서 복제 워크플로를 시작합니다.
+
+. 올바른 데이터베이스 백업 사본을 선택하고 세 개의 점을 클릭하여 메뉴를 보고 *복제* 옵션을 선택합니다.
+
+
+image:snapctr-svcs-clone-002.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+. 복제된 데이터베이스 매개변수를 변경할 필요가 없는 경우 *기본* 옵션을 선택하세요.
+
+
+image:snapctr-svcs-clone-003.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+. 또는 *사양 파일*을 선택하면 현재 init 파일을 다운로드하고 변경한 다음 작업에 다시 업로드할 수 있습니다.
+
+
+image:snapctr-svcs-clone-003-a.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+. 작업을 검토하고 시작합니다.
+
+
+image:snapctr-svcs-clone-004.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+. *작업 모니터링* 탭에서 복제 작업 상태를 모니터링합니다.
+
+
+image:snapctr-svcs-clone-007-status.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+. EC2 인스턴스 호스트에서 복제된 데이터베이스를 검증합니다.
+
+
+image:snapctr-svcs-clone-008-crs.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+image:snapctr-svcs-clone-008-db.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+====
+
+
+== 추가 정보
+
+이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.
+
+* BlueXP 설정 및 관리
+
+
+link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/index.html["https://docs.netapp.com/us-en/cloud-manager-setup-admin/index.html"^]
+
+* BlueXP backup and recovery 문서
+
+
+link:https://docs.netapp.com/us-en/cloud-manager-backup-restore/index.html["https://docs.netapp.com/us-en/cloud-manager-backup-restore/index.html"^]
+
+* Amazon FSx ONTAP
+
+
+link:https://aws.amazon.com/fsx/netapp-ontap/["https://aws.amazon.com/fsx/netapp-ontap/"^]
+
+* 아마존 EC2
+
+
+link:https://aws.amazon.com/pm/ec2/?trk=36c6da98-7b20-48fa-8225-4784bced9843&sc_channel=ps&s_kwcid=AL!4422!3!467723097970!e!!g!!aws%20ec2&ef_id=Cj0KCQiA54KfBhCKARIsAJzSrdqwQrghn6I71jiWzSeaT9Uh1-vY-VfhJixF-xnv5rWwn2S7RqZOTQ0aAh7eEALw_wcB:G:s&s_kwcid=AL!4422!3!467723097970!e!!g!!aws%20ec2["https://aws.amazon.com/pm/ec2/?trk=36c6da98-7b20-48fa-8225-4784bced9843&sc_channel=ps&s_kwcid=AL!4422!3!467723097970!e!!g!!aws%20ec2&ef_id=Cj0KCQiA54KfBhCKARIsAJzSrdqwQrghn6I71jiWzSeaT9Uh1-vY-VfhJixF-xnv5rWwn2S7RqZOTQ0aAh7eEALw_wcB:G:s&s_kwcid=AL!4422!3!467723097970!e!!g!!aws%20ec2"^]

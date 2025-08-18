@@ -1,0 +1,21 @@
+---
+sidebar: sidebar 
+permalink: oracle/tr-4794.html 
+keywords:  
+summary:  
+---
+= TR-4794: NetApp EF 시리즈의 Oracle 데이터베이스
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+미치 블랙번, 에빈 카다비, NetApp
+
+[role="lead"]
+TR-4794는 스토리지 관리자와 데이터베이스 관리자가 NetApp EF 시리즈 스토리지에 Oracle을 성공적으로 배포하는 데 도움을 주기 위해 고안되었습니다.
+
+link:https://www.netapp.com/pdf.html?item=/media/17248-tr4794pdf.pdf["TR-4794: NetApp EF 시리즈의 Oracle 데이터베이스"^]

@@ -1,0 +1,45 @@
+---
+sidebar: sidebar 
+permalink: dbops/hybrid-dbops-sc-gs.html 
+summary: 이 섹션에서는 이전 섹션에서 설명한 전제 조건을 충족하기 위해 완료해야 하는 작업에 대한 요약을 제공합니다.  다음 섹션에서는 온프레미스 및 퍼블릭 클라우드 운영을 위한 상위 수준의 작업 목록을 제공합니다.  자세한 프로세스와 절차는 해당 링크를 클릭하면 확인할 수 있습니다. 
+keywords: introduction, workflow 
+---
+= 시작하기 개요
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 섹션에서는 이전 섹션에서 설명한 전제 조건을 충족하기 위해 완료해야 하는 작업에 대한 요약을 제공합니다.  다음 섹션에서는 온프레미스 및 퍼블릭 클라우드 운영을 위한 상위 수준의 작업 목록을 제공합니다.  자세한 프로세스와 절차는 해당 링크를 클릭하면 확인할 수 있습니다.
+
+
+
+== 온프레미스
+
+* SnapCenter 에서 데이터베이스 관리자 사용자 설정
+* SnapCenter 플러그인 설치 필수 조건
+* SnapCenter 호스트 플러그인 설치
+* DB 리소스 검색
+* 스토리지 클러스터 피어링 및 DB 볼륨 복제 설정
+* SnapCenter 에 CVO 데이터베이스 스토리지 SVM 추가
+* SnapCenter 에서 데이터베이스 백업 정책 설정
+* 데이터베이스를 보호하기 위한 백업 정책 구현
+* 백업 검증
+
+
+
+
+== AWS 퍼블릭 클라우드
+
+* 비행 전 점검
+* AWS에 Cloud Manager 및 Cloud Volumes ONTAP 배포하는 단계
+* 데이터베이스 워크로드를 위한 EC2 컴퓨팅 인스턴스 배포
+
+
+자세한 내용을 보려면 다음 링크를 클릭하세요.
+
+link:hybrid-dbops-sc-gs-onprem.html["온프레미스"],link:hybrid-dbops-sc-gs-aws.html["퍼블릭 클라우드 - AWS"]

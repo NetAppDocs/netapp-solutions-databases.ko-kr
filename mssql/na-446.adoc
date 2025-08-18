@@ -1,0 +1,19 @@
+---
+sidebar: sidebar 
+permalink: mssql/na-446.html 
+keywords:  
+summary:  
+---
+= Microsoft SQL Server 환경 현대화
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+사내 또는 클라우드에서 운영을 최적화하고 데이터의 힘을 활용하세요.
+
+link:https://www.netapp.com/pdf.html?item=/media/15613-na-446.pdf["Microsoft SQL Server 환경 현대화"^]

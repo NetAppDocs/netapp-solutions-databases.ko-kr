@@ -1,0 +1,32 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-srv-anf-conclusion.html 
+keywords: takeaways, hybrid-cloud 
+summary: 스트레치 데이터베이스를 갖춘 전체 클라우드 또는 하이브리드 클라우드를 타겟으로 삼는지 여부에 관계없이 Azure NetApp Files 데이터 요구 사항을 애플리케이션 계층에 원활하게 전달하여 TCO를 줄이는 동시에 데이터베이스 워크로드를 배포하고 관리할 수 있는 탁월한 옵션을 제공합니다. 
+---
+= 결론
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+스트레치 데이터베이스를 갖춘 전체 클라우드 또는 하이브리드 클라우드를 타겟으로 삼는지 여부에 관계없이 Azure NetApp Files 데이터 요구 사항을 애플리케이션 계층에 원활하게 전달하여 TCO를 줄이는 동시에 데이터베이스 워크로드를 배포하고 관리할 수 있는 탁월한 옵션을 제공합니다.
+
+이 문서에서는 Azure NetApp Files 사용하여 Microsoft SQL Server 배포를 계획, 설계, 최적화 및 확장하기 위한 권장 사항을 다루며, 이는 구현에 따라 크게 달라질 수 있습니다.  올바른 솔루션은 구현에 대한 기술적 세부 사항과 프로젝트를 추진하는 비즈니스 요구 사항 모두에 따라 달라집니다.
+
+
+
+== 테이크아웃
+
+이 문서의 주요 내용은 다음과 같습니다.
+
+* 이제 Azure NetApp Files 사용하여 SQL Server 클러스터에 대한 데이터베이스와 파일 공유 감시를 호스팅할 수 있습니다.
+* 애플리케이션 응답 시간을 높이고 99.9999%의 가용성을 제공하여 필요할 때 필요한 위치에서 SQL Server 데이터에 액세스할 수 있도록 할 수 있습니다.
+* 간단하고 즉각적인 크기 조정을 통해 RAID 스트라이핑과 같은 SQL Server 배포 및 지속적인 관리의 전반적인 복잡성을 간소화할 수 있습니다.
+* 지능형 운영 기능을 활용하면 SQL Server 데이터베이스를 몇 분 안에 배포하고 개발 주기를 단축할 수 있습니다.
+* Azure Cloud가 대상인 경우 Azure NetApp Files 최적화된 배포를 위한 적합한 스토리지 솔루션입니다.
+

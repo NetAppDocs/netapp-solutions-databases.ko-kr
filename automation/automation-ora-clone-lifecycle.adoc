@@ -1,0 +1,218 @@
+---
+sidebar: sidebar 
+permalink: automation/automation-ora-clone-lifecycle.html 
+keywords: Database, Oracle, DataGuard, AWS, FSx ONTAP, Azure, ANF, 
+summary: 이 솔루션은 기본 데이터베이스에서 Oracle 복제 데이터베이스를 설정, 복제 및 새로 고치기 위한 Ansible 기반 자동화 툴킷을 제공합니다.  기본 데이터베이스는 Oracle Data Guard 구성에서 물리적인 대기 DB가 될 수 있습니다.  이 솔루션은 NFS 또는 ASM 구성의 FSx ONTAP 스토리지가 있는 프라이빗 데이터 센터나 AWS 클라우드, 또는 NFS 구성의 Azure NetApp Files 스토리지가 있는 Azure 클라우드에 적용할 수 있습니다. 
+---
+= SnapCenter Oracle 복제 수명 주기 자동화
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+Allen Cao, Niyaz Mohamed, NetApp
+
+[role="lead"]
+이 솔루션은 기본 데이터베이스에서 Oracle 복제 데이터베이스를 설정, 복제 및 새로 고치기 위한 Ansible 기반 자동화 툴킷을 제공합니다.  기본 데이터베이스는 Oracle Data Guard 구성에서 물리적인 대기 DB가 될 수 있습니다.  이 솔루션은 NFS 또는 ASM 구성의 FSx ONTAP 스토리지가 있는 프라이빗 데이터 센터나 AWS 클라우드, 또는 NFS 구성의 Azure NetApp Files 스토리지가 있는 Azure 클라우드에 적용할 수 있습니다.
+
+
+
+== 목적
+
+고객들은 NetApp ONTAP 스토리지의 FlexClone 기능을 좋아합니다. 이 기능은 프라이빗 데이터 센터나 퍼블릭 클라우드에서 특정 스토리지 제품에 씬 클론 기능이 활성화된 경우 몇 분 만에 대규모 데이터베이스를 복제하고 스토리지 공간을 추가로 절약할 수 있습니다.  Ansible 기반 툴킷은 NetApp SnapCenter 명령줄 유틸리티를 사용하여 복제된 Oracle 데이터베이스의 설정, 복제 및 새로 고침을 일정에 맞춰 자동화하여 간소화된 수명 주기 관리를 제공합니다.  이 툴킷은 온프레미스 또는 퍼블릭 클라우드(AWS 또는 Azure)의 ONTAP 스토리지에 배포된 Oracle 데이터베이스에 적용되며 NetApp SnapCenter UI 도구로 관리됩니다.
+
+이 솔루션은 다음과 같은 사용 사례를 해결합니다.
+
+* Oracle 데이터베이스 복제 사양 구성 파일을 설정합니다.
+* 사용자가 정의한 일정에 따라 Oracle 데이터베이스 복제본을 만들고 새로 고칩니다.
+
+
+
+
+== 대상
+
+이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
+
+* SnapCenter 사용하여 Oracle 데이터베이스를 관리하는 DBA입니다.
+* SnapCenter 사용하여 ONTAP 스토리지를 관리하는 스토리지 관리자입니다.
+* SnapCenter UI에 액세스할 수 있는 애플리케이션 소유자입니다.
+
+
+
+
+== 특허
+
+이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
+
+
+NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 및/또는 공유하는 데에는 특정 제한이 있습니다.  콘텐츠를 사용하기 전에 라이선스 조건을 꼭 읽어보세요.  모든 약관에 동의하지 않을 경우, 이 저장소의 콘텐츠에 접근하거나 다운로드하거나 사용하지 마십시오.
+
+
+
+== 솔루션 구축
+
+
+
+=== 배포를 위한 전제 조건
+
+[%collapsible%open]
+====
+배포에는 다음과 같은 전제 조건이 필요합니다.
+
+....
+Ansible controller:
+  Ansible v.2.10 and higher
+  ONTAP collection 21.19.1
+  Python 3
+  Python libraries:
+    netapp-lib
+    xmltodict
+    jmespath
+....
+....
+SnapCenter server:
+  version 5.0 and up, 6.1 for Azure NetApp Files
+  backup policy configured
+  Source database protected with a backup policy
+....
+....
+Oracle servers:
+  Source server managed by SnapCenter (In Data Guard, this would be the physical standby serer)
+  Target server managed by SnapCenter (clone DB host)
+....
+
+NOTE: 단순화를 위해 복제 대상 Oracle 서버는 Oracle 소프트웨어 스택 및 Oracle Home의 디렉토리 레이아웃 등을 스탠바이 Oracle 서버와 동일하게 구성해야 합니다.
+
+====
+
+
+=== 툴킷을 다운로드하세요
+
+[%collapsible%open]
+====
+[source, cli]
+----
+git clone https://bitbucket.ngage.netapp.com/scm/ns-bb/na_oracle_clone_lifecycle.git
+----
+
+NOTE: 현재 이 툴킷은 bitbucket 액세스 권한이 있는 NetApp 내부 사용자만 액세스할 수 있습니다.  관심 있는 외부 사용자는 계정 팀에 액세스를 요청하거나 NetApp 솔루션 엔지니어링 팀에 문의하세요.
+
+====
+
+
+=== Ansible 대상 호스트 파일 구성
+
+[%collapsible%open]
+====
+툴킷에는 Ansible 플레이북이 실행되는 대상을 정의하는 호스트 파일이 포함되어 있습니다.  일반적으로 대상 Oracle 복제 호스트입니다.  다음은 예시 파일입니다.  호스트 항목에는 대상 호스트 IP 주소는 물론, 관리자가 호스트에 액세스하여 복제 또는 새로 고침 명령을 실행할 수 있는 SSH 키도 포함됩니다.
+
+#Oracle 복제 호스트
+
+....
+[clone_1]
+ora_04.cie.netapp.com ansible_host=10.61.180.29 ansible_ssh_private_key_file=ora_04.pem
+....
+ [clone_2]
+ [clone_3]
+====
+
+
+=== 전역 변수 구성
+
+[%collapsible%open]
+====
+Ansible 플레이북은 여러 변수 파일에서 변수 입력을 받습니다.  아래는 전역 변수 파일 vars.yml의 예입니다.
+
+ # ONTAP specific config variables
+ # SnapCtr specific config variables
+....
+snapctr_usr: xxxxxxxx
+snapctr_pwd: 'xxxxxxxx'
+....
+ backup_policy: 'Oracle Full offline Backup'
+ # Linux specific config variables
+ # Oracle specific config variables
+====
+
+
+=== 호스트 변수 구성
+
+[%collapsible%open]
+====
+호스트 변수는 {{host_name}}.yml이라는 이름의 host_vars 디렉토리에 정의됩니다.  아래는 일반적인 구성을 보여주는 대상 Oracle 호스트 변수 파일 ora_04.cie.netapp.com.yml의 예입니다.
+
+ # User configurable Oracle clone db host specific parameters
+....
+# Source database to clone from
+source_db_sid: NTAP1
+source_db_host: ora_03.cie.netapp.com
+....
+....
+# Clone database
+clone_db_sid: NTAP1DEV
+....
+ snapctr_obj_id: '{{ source_db_host }}\{{ source_db_sid }}'
+====
+
+
+=== 추가 복제 대상 Oracle 서버 구성
+
+[%collapsible%open]
+====
+복제 대상 Oracle 서버에는 소스 Oracle 서버와 동일한 Oracle 소프트웨어 스택이 설치되고 패치되어야 합니다.  Oracle 사용자 .bash_profile에 $ORACLE_BASE 및 $ORACLE_HOME이 구성되어 있습니다.  또한 $ORACLE_HOME 변수는 소스 Oracle 서버 설정과 일치해야 합니다.  다음은 예입니다.
+
+ # .bash_profile
+....
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+....
+....
+# User specific environment and startup programs
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/NTAP1
+....
+====
+
+
+=== 플레이북 실행
+
+[%collapsible%open]
+====
+SnapCenter CLI 유틸리티를 사용하여 Oracle 데이터베이스 복제 수명 주기를 실행하는 플레이북은 총 3개가 있습니다.
+
+. Ansible 컨트롤러 필수 구성 요소를 한 번만 설치하세요.
++
+[source, cli]
+----
+ansible-playbook -i hosts ansible_requirements.yml
+----
+. 클론 사양 파일 설정 - 한 번만 실행됩니다.
++
+[source, cli]
+----
+ansible-playbook -i hosts clone_1_setup.yml -u admin -e @vars/vars.yml
+----
+. 쉘 스크립트를 사용하여 crontab에서 정기적으로 복제 데이터베이스를 만들고 새로 고쳐 플레이북을 호출합니다.
++
+[source, cli]
+----
+0 */4 * * * /home/admin/na_oracle_clone_lifecycle/clone_1_refresh.sh
+----
+
+
+
+NOTE: SnapCenter 구성을 위해 사용자 이름을 sudo 사용자로 변경합니다.
+
+추가 복제 데이터베이스의 경우, clone_n_setup.yml과 clone_n_refresh.yml, 그리고 clone_n_refresh.sh를 별도로 만듭니다.  Ansible 대상 호스트와 host_vars 디렉토리의 hostname.yml 파일을 이에 따라 구성합니다.
+
+====
+
+
+== 추가 정보를 찾을 수 있는 곳
+
+NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

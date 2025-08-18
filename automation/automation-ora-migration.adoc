@@ -1,0 +1,181 @@
+---
+sidebar: sidebar 
+permalink: automation/automation-ora-migration.html 
+keywords: Oracle, AWS, FSx ONTAP, Database Migration, Oracle 19c, 
+summary: 이 솔루션은 최대 가용성 방법론을 사용하여 PDB를 이전하여 Oracle 데이터베이스를 마이그레이션하기 위한 Ansible 기반 자동화 툴킷을 제공합니다.  마이그레이션은 소스 또는 타겟으로 온프레미스와 클라우드를 조합하여 이루어질 수 있습니다. 
+---
+= 자동화된 Oracle 마이그레이션
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+NetApp 솔루션 엔지니어링 팀
+
+[role="lead"]
+이 솔루션은 최대 가용성 방법론을 사용하여 PDB를 이전하여 Oracle 데이터베이스를 마이그레이션하기 위한 Ansible 기반 자동화 툴킷을 제공합니다.  마이그레이션은 소스 또는 타겟으로 온프레미스와 클라우드를 조합하여 이루어질 수 있습니다.
+
+
+
+== 목적
+
+이 툴킷은 FSx ONTAP 스토리지와 EC2 컴퓨팅 인스턴스를 대상 인프라로 사용하여 온프레미스에서 AWS 클라우드로 Oracle 데이터베이스를 자동으로 마이그레이션합니다.  이는 고객이 이미 CDB/PDB 모델에 온프레미스 Oracle 데이터베이스를 구축했다고 가정합니다.  이 툴킷을 사용하면 고객은 최대 가용성 옵션이 포함된 Oracle PDB 재배치 절차를 사용하여 Oracle 호스트의 컨테이너 데이터베이스에서 지정된 PDB를 재배치할 수 있습니다.  즉, 온프레미스 스토리지 어레이의 소스 PDB가 최소한의 서비스 중단으로 새로운 컨테이너 데이터베이스로 이전됩니다.  Oracle 이전 절차는 데이터베이스가 온라인 상태인 동안 Oracle 데이터 파일을 이동합니다.  이후 모든 데이터 파일이 AWS 클라우드로 이전될 때 온프레미스에서 이전된 데이터베이스 서비스로 사용자 세션을 다시 라우팅합니다.  밑줄 친 기술은 검증된 Oracle PDB 핫 클론 방법론입니다.
+
+
+NOTE: 마이그레이션 툴킷은 AWS 클라우드 인프라에서 개발 및 검증되었지만 Oracle 애플리케이션 수준 솔루션을 기반으로 구축되었습니다.  따라서 이 툴킷은 Azure, GCP 등 다른 퍼블릭 클라우드 플랫폼에도 적용할 수 있습니다.
+
+이 솔루션은 다음과 같은 사용 사례를 해결합니다.
+
+* 마이그레이션 사용자를 생성하고 온프레미스 소스 DB 서버에서 필요한 권한을 부여합니다.
+* 소스 PDB가 전환될 때까지 온라인 상태를 유지하는 동안 온프레미스 CDB에서 클라우드의 대상 CDB로 PDB를 이전합니다.
+
+
+
+
+== 대상
+
+이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
+
+* 온프레미스에서 AWS 클라우드로 Oracle 데이터베이스를 마이그레이션하는 DBA입니다.
+* 온프레미스에서 AWS 클라우드로 Oracle 데이터베이스를 마이그레이션하는 데 관심이 있는 데이터베이스 솔루션 아키텍트입니다.
+* Oracle 데이터베이스를 지원하는 AWS FSx ONTAP 스토리지를 관리하는 스토리지 관리자입니다.
+* 온프레미스에서 AWS 클라우드로 Oracle 데이터베이스를 마이그레이션하려는 애플리케이션 소유자입니다.
+
+
+
+
+== 특허
+
+이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
+
+
+NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 및/또는 공유하는 데에는 특정 제한이 있습니다.  콘텐츠를 사용하기 전에 라이선스 조건을 꼭 읽어보세요.  모든 약관에 동의하지 않을 경우, 이 저장소의 콘텐츠에 접근하거나 다운로드하거나 사용하지 마십시오.
+
+
+
+== 솔루션 구축
+
+
+
+=== 배포를 위한 전제 조건
+
+[%collapsible%open]
+====
+배포에는 다음과 같은 전제 조건이 필요합니다.
+
+....
+Ansible v.2.10 and higher
+ONTAP collection 21.19.1
+Python 3
+Python libraries:
+  netapp-lib
+  xmltodict
+  jmespath
+....
+....
+Source Oracle CDB with PDBs on-premises
+Target Oracle CDB in AWS hosted on FSx and EC2 instance
+Source and target CDB on same version and with same options installed
+....
+....
+Network connectivity
+  Ansible controller to source CDB
+  Ansible controller to target CDB
+  Source CDB to target CDB on Oracle listener port (typical 1521)
+....
+====
+
+
+=== 툴킷을 다운로드하세요
+
+[%collapsible%open]
+====
+[source, cli]
+----
+git clone https://github.com/NetApp/na_ora_aws_migration.git
+----
+====
+
+
+=== 호스트 변수 구성
+
+[%collapsible%open]
+====
+호스트 변수는 {{host_name}}.yml이라는 이름의 host_vars 디렉토리에 정의됩니다.  일반적인 구성을 보여주기 위해 호스트 변수 파일 host_name.yml의 예가 포함되어 있습니다.  주요 고려 사항은 다음과 같습니다.
+
+....
+Source Oracle CDB - define host specific variables for the on-prem CDB
+  ansible_host: IP address of source database server host
+  source_oracle_sid: source Oracle CDB instance ID
+  source_pdb_name: source PDB name to migrate to cloud
+  source_file_directory: file directory of source PDB data files
+  target_file_directory: file directory of migrated PDB data files
+....
+....
+Target Oracle CDB - define host specific variables for the target CDB including some variables for on-prem CDB
+  ansible_host: IP address of target database server host
+  target_oracle_sid: target Oracle CDB instance ID
+  target_pdb_name: target PDB name to be migrated to cloud (for max availability option, the source and target PDB name must be the same)
+  source_oracle_sid: source Oracle CDB instance ID
+  source_pdb_name: source PDB name to be migrated to cloud
+  source_port: source Oracle CDB listener port
+  source_oracle_domain: source Oracle database domain name
+  source_file_directory: file directory of source PDB data files
+  target_file_directory: file directory of migrated PDB data files
+....
+====
+
+
+=== DB 서버 호스트 파일 구성
+
+[%collapsible%open]
+====
+AWS EC2 인스턴스는 기본적으로 호스트 명명에 IP 주소를 사용합니다.  Ansible의 호스트 파일에 다른 이름을 사용하는 경우, 소스 및 대상 서버 모두에 대해 /etc/hosts 파일에 호스트 이름 확인을 설정합니다.  다음은 예입니다.
+
+....
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+172.30.15.96 source_db_server
+172.30.15.107 target_db_server
+....
+====
+
+
+=== 플레이북 실행 - 순서대로 실행
+
+[%collapsible%open]
+====
+. Ansible 컨트롤러 필수 구성 요소를 설치합니다.
++
+[source, cli]
+----
+ansible-playbook -i hosts requirements.yml
+----
++
+[source, cli]
+----
+ansible-galaxy collection install -r collections/requirements.yml --force
+----
+. 온프레미스 서버에 대해 사전 마이그레이션 작업을 실행합니다. 이때 관리자는 sudo 권한을 사용하여 온프레미스 Oracle 호스트에 연결하는 ssh 사용자라고 가정합니다.
++
+[source, cli]
+----
+ansible-playbook -i hosts ora_pdb_relocate.yml -u admin -k -K -t ora_pdb_relo_onprem
+----
+. AWS EC2 인스턴스의 온프레미스 CDB에서 대상 CDB로 Oracle PDB 이전을 실행합니다. 이때 EC2 DB 인스턴스 연결에는 ec2-user를 사용하고, ec2-user ssh 키 쌍과 함께 db1.pem을 사용합니다.
++
+[source, cli]
+----
+ansible-playbook -i hosts ora_pdb_relocate.yml -u ec2-user --private-key db1.pem -t ora_pdb_relo_primary
+----
+
+
+====
+
+
+== 추가 정보를 찾을 수 있는 곳
+
+NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

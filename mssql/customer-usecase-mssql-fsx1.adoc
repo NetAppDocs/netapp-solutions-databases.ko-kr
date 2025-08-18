@@ -1,0 +1,63 @@
+---
+sidebar: sidebar 
+permalink: mssql/customer-usecase-mssql-fsx1.html 
+keywords: SQL Server, WSFC, AWS, FSx ONTAP, EC2, SnapCenter 
+summary: 이 실제 고객 사용 사례는 비용을 절감하기 위해 온프레미스에서 Amazon FSx ONTAP 으로 SQL 서버 워크로드를 마이그레이션하는 과정에서 발생하는 과제, 솔루션 및 결과를 보여줍니다. 
+---
+= 의료 제품 회사, 비용 절감 위해 온프레미스 SQL 워크로드를 Amazon FSx ONTAP 으로 마이그레이션
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+NetApp 솔루션 엔지니어링 팀
+
+[role="lead"]
+이 실제 고객 사용 사례는 비용을 절감하기 위해 온프레미스에서 Amazon FSx ONTAP 으로 SQL 서버 워크로드를 마이그레이션하는 과정에서 발생하는 과제, 솔루션 및 결과를 보여줍니다.
+
+
+
+== 도전
+
+* 해당 고객은 제3자가 호스팅하는 개인 데이터 센터에서 SQL 서버 워크로드를 실행하고 있었습니다.  증가하는 호스팅 비용이 문제가 되었습니다.
+* 아웃소싱과 직원 이탈로 인해 애플리케이션 아키텍처와 기존 인프라에 대한 부족적 지식이 부족했습니다.
+* NetApp ONTAP 관리하는 데 있어 경험이 거의 또는 전혀 없었습니다.
+* 기존 인프라에 대한 갱신 결정을 앞두고 촉박한 일정에 쫓기고 있습니다.
+* SQL Server 환경은 규모가 크고(100TB) 두 데이터 센터 간의 HA를 SQL Always On을 통해 구현하는 것이 복잡합니다.  AppSync를 사용하여 보조 데이터 복사본을 생성하고 매일/매주 데이터를 새로 고침하여 세 개의 임시 환경을 만들었습니다.  프로덕션 데이터를 새로 고칠 때마다 SQL 스크립트를 통해 전용 데이터 플래그를 변경해야 합니다.
+
+
+image:customer-usecase-mssql-fsx1-before.png["이 이미지는 마이그레이션 전 고객 환경 구성에 대한 자세한 그림을 제공합니다."]
+
+
+
+== 해결책
+
+* 온프레미스 호스팅 Dell Unity SAN 및 AppSync 환경에서 NetApp SnapCenter 갖춘 AWS Amazon FSx ONTAP 으로 마이그레이션합니다.
+* Amazon FSx ONTAP 씬 클론 기능은 스토리지 비용을 줄이는 데 도움이 되는 동시에 완전히 자동화된 SnapCenter 클론 수명 주기 관리를 통해 다른 모든 일시적 환경 요구 사항을 충족합니다.
+* AWS EBS에 기본 SQL Server DB를 배포하고 단일 AZ Amazon FSx ONTAP 에 보조 복사본을 복제했습니다.
+* PoC는 SnapCenter AppSync를 대체하기에 적합하다는 것을 입증했습니다.
+* 설정, 마이그레이션 및 지속적인 지원을 위한 신뢰할 수 있고 경험이 풍부한 파트너입니다.  자세한 솔루션 구현 가이드는 Amazon FSx ONTAP 및 SnapCenter 처음 사용하거나 경험이 부족한 사용자에게 도움이 되었습니다.
+
+
+image:customer-usecase-mssql-fsx1-after.png["이 이미지는 마이그레이션 후 고객 환경 구성에 대한 자세한 그림을 제공합니다."]
+
+
+
+== 결과
+
+* 개인 데이터 센터에서 계속 호스팅하는 것보다 비용이 40% 절감됩니다.
+* 300개 고객을 지원하기 위해 SnapCenter 탑재한 완전 관리형 Amazon FSx ONTAP 서비스입니다.
+* PreProd, UAT 및 QA 환경에 대한 거의 즉각적인 씬 프로비저닝 복제본을 자동화하는 기능을 유지했습니다.
+* 정시 마이그레이션, 갱신 비용 회피, 불만스러운 공급업체 관계에서 퍼블릭 클라우드에서 보람 있는 경험으로의 전환.
+* Amazon FSx 의 SQL Server는 성능을 유지하는 동시에 추가적인 데이터 중복성 계층을 달성했습니다.
+* 향후 지역 간 재해 복구를 쉽게 구현할 수 있는 기능.
+
+
+
+
+== 추가 정보를 찾을 수 있는 곳
+
+NetApp 엔터프라이즈 데이터베이스 솔루션에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions/databases/index.html["NetApp 엔터프라이즈 데이터베이스 솔루션"^]

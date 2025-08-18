@@ -1,0 +1,365 @@
+---
+sidebar: sidebar 
+permalink: automation/cli-automation.html 
+keywords: Linux, RHEL Oracle19c, NFS, ONTAP 
+summary: 이 페이지에서는 NetApp ONTAP 스토리지에 Oracle19c를 배포하는 자동화된 방법을 설명합니다. 
+---
+= 단계별 배포 절차
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 문서에서는 자동화 명령줄 인터페이스(CLI)를 사용하여 Oracle 19c를 배포하는 방법에 대해 자세히 설명합니다.
+
+
+
+== CLI 배포 Oracle 19c 데이터베이스
+
+이 섹션에서는 CLI를 사용하여 Oracle19c 데이터베이스를 준비하고 배포하는 데 필요한 단계를 다룹니다.  검토했는지 확인하십시오.link:getting-started-requirements.html["시작하기 및 요구 사항 섹션"] 그리고 그에 따라 환경을 준비하세요.
+
+
+
+=== Oracle19c 리포 다운로드
+
+. Ansible 컨트롤러에서 다음 명령을 실행하세요.
++
+[source, cli]
+----
+git clone https://github.com/NetApp-Automation/na_oracle19c_deploy.git
+----
+. 저장소를 다운로드한 후 디렉토리를 na_oracle19c_deploy <cd na_oracle19c_deploy>로 변경합니다.
+
+
+
+
+=== 호스트 파일을 편집하세요
+
+배포 전에 다음을 완료하세요.
+
+. na_oracle19c_deploy 디렉토리의 호스트 파일을 편집합니다.
+. [ontap]에서 IP 주소를 클러스터 관리 IP로 변경합니다.
+. [oracle] 그룹에서 oracle 호스트 이름을 추가합니다.  호스트 이름은 DNS나 호스트 파일을 통해 IP 주소로 확인되거나 호스트에 지정되어야 합니다.
+. 이러한 단계를 완료한 후 변경 사항을 저장하세요.
+
+
+다음 예는 호스트 파일을 보여줍니다.
+
+[source, shell]
+----
+#ONTAP Host
+
+[ontap]
+
+"10.61.184.183"
+
+#Oracle hosts
+
+[oracle]
+
+"rtpora01"
+
+"rtpora02"
+----
+이 예제에서는 플레이북을 실행하고 두 개의 Oracle DB 서버에 Oracle 19c를 동시에 배포합니다.  단 하나의 DB 서버로 테스트할 수도 있습니다.  그런 경우에는 호스트 변수 파일을 하나만 구성하면 됩니다.
+
+
+NOTE: 플레이북은 배포한 Oracle 호스트와 데이터베이스의 수에 관계없이 동일한 방식으로 실행됩니다.
+
+
+
+=== host_vars 아래의 host_name.yml 파일을 편집하세요.
+
+각 Oracle 호스트에는 호스트 이름으로 식별되는 호스트 변수 파일이 있으며, 이 파일에는 호스트별 변수가 들어 있습니다.  호스트에 원하는 이름을 지정할 수 있습니다.  편집하고 복사하세요 `host_vars` 호스트 VARS 구성 섹션에서 원하는 위치에 붙여넣습니다. `host_name.yml` 파일.
+
+
+NOTE: 파란색 항목은 환경에 맞게 변경해야 합니다.
+
+
+
+=== 호스트 VARS 구성
+
+[source, shell]
+----
+######################################################################
+##############      Host Variables Configuration        ##############
+######################################################################
+
+# Add your Oracle Host
+ansible_host: "10.61.180.15"
+
+# Oracle db log archive mode: true - ARCHIVELOG or false - NOARCHIVELOG
+log_archive_mode: "true"
+
+# Number of pluggable databases per container instance identified by sid. Pdb_name specifies the prefix for container database naming in this case cdb2_pdb1, cdb2_pdb2, cdb2_pdb3
+oracle_sid: "cdb2"
+pdb_num: "3"
+pdb_name: "{{ oracle_sid }}_pdb"
+
+# CDB listener port, use different listener port for additional CDB on same host
+listener_port: "1523"
+
+# CDB is created with SGA at 75% of memory_limit, MB. Consider how many databases to be hosted on the node and how much ram to be allocated to each DB. The grand total SGA should not exceed 75% available RAM on node.
+memory_limit: "5464"
+
+# Set "em_configuration: DBEXPRESS" to install enterprise manager express and choose a unique port from 5500 to 5599 for each sid on the host.
+# Leave them black if em express is not installed.
+em_configuration: "DBEXPRESS"
+em_express_port: "5501"
+
+# {{groups.oracle[0]}} represents first Oracle DB server as defined in Oracle hosts group [oracle]. For concurrent multiple Oracle DB servers deployment, [0] will be incremented for each additional DB server. For example,  {{groups.oracle[1]}}" represents DB server 2, "{{groups.oracle[2]}}" represents DB server 3 ... As a good practice and the default, minimum three volumes is allocated to a DB server with corresponding /u01, /u02, /u03 mount points, which store oracle binary, oracle data, and oracle recovery files respectively. Additional volumes can be added by click on "More NFS volumes" but the number of volumes allocated to a DB server must match with what is defined in global vars file by volumes_nfs parameter, which dictates how many volumes are to be created for each DB server.
+host_datastores_nfs:
+  - {vol_name: "{{groups.oracle[0]}}_u01", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+  - {vol_name: "{{groups.oracle[0]}}_u02", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+  - {vol_name: "{{groups.oracle[0]}}_u03", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+----
+
+
+=== vars.yml 파일을 편집하세요
+
+그만큼 `vars.yml` 이 파일은 Oracle 배포를 위한 모든 환경별 변수(ONTAP, Linux 또는 Oracle)를 통합합니다.
+
+. VARS 섹션에서 변수를 편집하고 복사하여 이 변수를 붙여넣습니다. `vars.yml` 파일.
+
+
+[source, shell]
+----
+#######################################################################
+###### Oracle 19c deployment global user configuration variables ######
+######  Consolidate all variables from ontap, linux and oracle   ######
+#######################################################################
+
+###########################################
+### Ontap env specific config variables ###
+###########################################
+
+#Inventory group name
+#Default inventory group name - 'ontap'
+#Change only if you are changing the group name either in inventory/hosts file or in inventory groups in case of AWX/Tower
+hosts_group: "ontap"
+
+#CA_signed_certificates (ONLY CHANGE to 'true' IF YOU ARE USING CA SIGNED CERTIFICATES)
+ca_signed_certs: "false"
+
+#Names of the Nodes in the ONTAP Cluster
+nodes:
+ - "AFF-01"
+ - "AFF-02"
+
+#Storage VLANs
+#Add additional rows for vlans as necessary
+storage_vlans:
+   - {vlan_id: "203", name: "infra_NFS", protocol: "NFS"}
+More Storage VLANsEnter Storage VLANs details
+
+#Details of the Data Aggregates that need to be created
+#If Aggregate creation takes longer, subsequent tasks of creating volumes may fail.
+#There should be enough disks already zeroed in the cluster, otherwise aggregate create will zero the disks and will take long time
+data_aggregates:
+  - {aggr_name: "aggr01_node01"}
+  - {aggr_name: "aggr01_node02"}
+
+#SVM name
+svm_name: "ora_svm"
+
+# SVM Management LIF Details
+svm_mgmt_details:
+  - {address: "172.21.91.100", netmask: "255.255.255.0", home_port: "e0M"}
+
+# NFS storage parameters when data_protocol set to NFS. Volume named after Oracle hosts name identified by mount point as follow for oracle DB server 1. Each mount point dedicates to a particular Oracle files: u01 - Oracle binary, u02 - Oracle data, u03 - Oracle redo. Add additional volumes by click on "More NFS volumes" and also add the volumes list to corresponding host_vars as host_datastores_nfs variable. For multiple DB server deployment, additional volumes sets needs to be added for additional DB server. Input variable "{{groups.oracle[1]}}_u01", "{{groups.oracle[1]}}_u02", and "{{groups.oracle[1]}}_u03" as vol_name for second DB server. Place volumes for multiple DB servers alternatingly between controllers for balanced IO performance, e.g. DB server 1 on controller node1, DB server 2 on controller node2 etc. Make sure match lif address with controller node.
+
+volumes_nfs:
+  - {vol_name: "{{groups.oracle[0]}}_u01", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+  - {vol_name: "{{groups.oracle[0]}}_u02", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+  - {vol_name: "{{groups.oracle[0]}}_u03", aggr_name: "aggr01_node01", lif: "172.21.94.200", size: "25"}
+
+#NFS LIFs IP address and netmask
+
+nfs_lifs_details:
+  - address: "172.21.94.200" #for node-1
+    netmask: "255.255.255.0"
+  - address: "172.21.94.201" #for node-2
+    netmask: "255.255.255.0"
+
+#NFS client match
+
+client_match: "172.21.94.0/24"
+
+###########################################
+### Linux env specific config variables ###
+###########################################
+
+#NFS Mount points for Oracle DB volumes
+
+mount_points:
+  - "/u01"
+  - "/u02"
+  - "/u03"
+
+# Up to 75% of node memory size divided by 2mb. Consider how many databases to be hosted on the node and how much ram to be allocated to each DB.
+# Leave it blank if hugepage is not configured on the host.
+
+hugepages_nr: "1234"
+
+# RedHat subscription username and password
+
+redhat_sub_username: "xxx"
+redhat_sub_password: "xxx"
+
+####################################################
+### DB env specific install and config variables ###
+####################################################
+
+db_domain: "your.domain.com"
+
+# Set initial password for all required Oracle passwords. Change them after installation.
+
+initial_pwd_all: "netapp123"
+----
+
+
+=== 플레이북을 실행하세요
+
+필수 환경 전제 조건을 완료하고 변수를 복사한 후 `vars.yml` 그리고 `your_host.yml` 이제 플레이북을 배포할 준비가 되었습니다.
+
+
+NOTE: <username>은 환경에 맞게 변경해야 합니다.
+
+. 올바른 태그와 ONTAP 클러스터 사용자 이름을 전달하여 ONTAP 플레이북을 실행합니다.  ONTAP 클러스터의 비밀번호를 입력하고, 메시지가 표시되면 vsadmin을 입력합니다.
++
+[source, cli]
+----
+ansible-playbook -i hosts all_playbook.yml -u username -k -K -t ontap_config -e @vars/vars.yml
+----
+. Linux 플레이북을 실행하여 배포의 Linux 부분을 실행합니다.  관리자 ssh 비밀번호와 sudo 비밀번호를 입력하세요.
++
+[source, cli]
+----
+ansible-playbook -i hosts all_playbook.yml -u username -k -K -t linux_config -e @vars/vars.yml
+----
+. Oracle 플레이북을 실행하여 배포의 Oracle 부분을 실행합니다.  관리자 ssh 비밀번호와 sudo 비밀번호를 입력하세요.
++
+[source, cli]
+----
+ansible-playbook -i hosts all_playbook.yml -u username -k -K -t oracle_config -e @vars/vars.yml
+----
+
+
+
+
+=== 동일한 Oracle 호스트에 추가 데이터베이스 배포
+
+플레이북의 Oracle 부분은 실행 당 Oracle 서버에 단일 Oracle 컨테이너 데이터베이스를 생성합니다.  동일한 서버에 추가 컨테이너 데이터베이스를 만들려면 다음 단계를 완료하세요.
+
+. host_vars 변수를 수정합니다.
++
+.. 3단계로 돌아가서 편집하세요. `host_name.yml` 아래에 파일 `host_vars` .
+.. Oracle SID를 다른 명명 문자열로 변경합니다.
+.. 리스너 포트를 다른 번호로 변경합니다.
+.. EM Express를 설치한 경우 EM Express 포트를 다른 번호로 변경하세요.
+.. 수정된 호스트 변수를 Oracle 호스트 변수 파일에 복사하여 붙여넣습니다. `host_vars` .
+
+
+. 플레이북을 실행하세요 `oracle_config` 위에 표시된 태그<<플레이북을 실행하세요>> .
+
+
+
+
+=== Oracle 설치 검증
+
+. Oracle 사용자로 Oracle 서버에 로그인하고 다음 명령을 실행합니다.
++
+[source, cli]
+----
+ps -ef | grep ora
+----
++
+
+NOTE: 예상대로 설치가 완료되고 Oracle DB가 시작되면 Oracle 프로세스가 나열됩니다.
+
+. 데이터베이스에 로그인하여 다음 명령 세트로 생성된 db 구성 설정과 PDB를 확인하세요.
++
+[source, cli]
+----
+[oracle@localhost ~]$ sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu May 6 12:52:51 2021
+Version 19.8.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.8.0.0.0
+
+SQL>
+
+SQL> select name, log_mode from v$database;
+NAME      LOG_MODE
+--------- ------------
+CDB2      ARCHIVELOG
+
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+         3 CDB2_PDB1                      READ WRITE NO
+         4 CDB2_PDB2                      READ WRITE NO
+         5 CDB2_PDB3                      READ WRITE NO
+
+col svrname form a30
+col dirname form a30
+select svrname, dirname, nfsversion from v$dnfs_servers;
+
+SQL> col svrname form a30
+SQL> col dirname form a30
+SQL> select svrname, dirname, nfsversion from v$dnfs_servers;
+
+SVRNAME                        DIRNAME                        NFSVERSION
+------------------------------ ------------------------------ ----------------
+172.21.126.200                 /rhelora03_u02                 NFSv3.0
+172.21.126.200                 /rhelora03_u03                 NFSv3.0
+172.21.126.200                 /rhelora03_u01                 NFSv3.0
+----
++
+이는 dNFS가 제대로 작동하고 있음을 확인합니다.
+
+. 다음 명령을 사용하여 리스너를 통해 데이터베이스에 연결하여 Oracle 리스너 구성을 확인합니다.  적절한 리스너 포트와 데이터베이스 서비스 이름으로 변경합니다.
++
+[source, cli]
+----
+[oracle@localhost ~]$ sqlplus system@//localhost:1523/cdb2_pdb1.cie.netapp.com
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu May 6 13:19:57 2021
+Version 19.8.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+Enter password:
+Last Successful login time: Wed May 05 2021 17:11:11 -04:00
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.8.0.0.0
+
+SQL> show user
+USER is "SYSTEM"
+SQL> show con_name
+CON_NAME
+CDB2_PDB1
+----
++
+이는 Oracle 리스너가 제대로 작동하고 있음을 확인합니다.
+
+
+
+
+
+=== 도움을 받으려면 어디로 가야 하나요?
+
+툴킷 사용에 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 슬랙 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.

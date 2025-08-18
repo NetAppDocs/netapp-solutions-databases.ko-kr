@@ -1,0 +1,31 @@
+---
+sidebar: sidebar 
+permalink: oracle/aws-ora-fsx-ec2-architecture.html 
+summary: 이 섹션에서는 맞춤형 Oracle RDS 및 FSx ONTAP 스토리지를 갖춘 RDS Oracle 맞춤형 배포 솔루션 아키텍처를 설명합니다. 
+keywords: architecture, Oracle RDS, RDS, FSx ONTAP, FSx, AWS, Oracle, HA, DR 
+---
+= 솔루션 아키텍처
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+다음 아키텍처 다이어그램은 FSx 스토리지 서비스를 사용하여 AWS EC2 인스턴스에 고가용성 Oracle 데이터베이스를 배포하는 방식을 보여줍니다.  유사한 배포 계획을 다른 지역에 대기시켜 재해 복구를 위해 설정할 수 있습니다.
+
+해당 환경 내에서 Oracle 컴퓨팅 인스턴스는 AWS EC2 인스턴스 콘솔을 통해 배포됩니다.  콘솔에서 사용할 수 있는 EC2 인스턴스 유형은 여러 가지가 있습니다.  NetApp RedHat Enterprise Linux 8과 최대 10Gbps의 네트워크 대역폭을 갖춘 m5 Ami 이미지와 같은 데이터베이스 지향 EC2 인스턴스 유형을 배포할 것을 권장합니다.
+
+반면, FSx 볼륨의 Oracle 데이터베이스 스토리지는 AWS FSx 콘솔이나 CLI를 통해 배포됩니다.  이후 Oracle 바이너리, 데이터 또는 로그 볼륨이 제공되어 EC2 인스턴스 Linux 호스트에 마운트됩니다.  각 데이터 또는 로그 볼륨에는 사용된 기본 저장 프로토콜에 따라 여러 개의 LUN이 할당될 수 있습니다.
+
+image:aws-ora-fsx-ec2-arch.png["이 이미지는 기본 HA 클러스터, 대기 HA 클러스터, 관리 노드 및 관련 연결 노드를 포함하는 샘플 아키텍처 다이어그램을 보여줍니다."]
+
+FSx 스토리지 클러스터는 이중 중복성을 갖도록 설계되어 기본 스토리지 클러스터와 대기 스토리지 클러스터가 서로 다른 두 개의 가용성 영역에 배포됩니다.  데이터베이스 볼륨은 사용자가 구성한 간격으로 모든 Oracle 바이너리, 데이터 및 로그 볼륨에 대해 기본 FSx 클러스터에서 대기 FSx 클러스터로 복제됩니다.
+
+이 고가용성 Oracle 환경은 Ansible 컨트롤러 노드와 SnapCenter 백업 서버 및 UI 도구를 통해 관리됩니다.  Oracle 설치, 구성 및 복제는 Ansible 플레이북 기반 툴킷을 사용하여 자동화됩니다.  Oracle EC2 인스턴스 커널 운영 체제나 Oracle 패치에 대한 모든 업데이트는 기본 및 대기 서버를 동기화 상태로 유지하기 위해 병렬로 실행할 수 있습니다.  실제로 초기 자동화 설정은 필요한 경우 일부 반복적인 일일 Oracle 작업을 수행하도록 쉽게 확장될 수 있습니다.
+
+SnapCenter 필요한 경우 기본 또는 대기 영역에서 Oracle 데이터베이스 시점 복구 또는 데이터베이스 복제를 위한 워크플로를 제공합니다.  SnapCenter UI를 통해 RTO 또는 RPO 목표에 따라 고가용성 또는 재해 복구를 위해 Oracle 데이터베이스 백업 및 대기 FSx 스토리지로의 복제를 구성할 수 있습니다.
+
+이 솔루션은 Oracle RAC 및 Data Guard 배포에서 사용 가능한 것과 유사한 기능을 제공하는 대체 프로세스를 제공합니다.

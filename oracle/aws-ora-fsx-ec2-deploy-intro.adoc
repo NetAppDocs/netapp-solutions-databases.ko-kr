@@ -1,0 +1,29 @@
+---
+sidebar: sidebar 
+permalink: oracle/aws-ora-fsx-ec2-deploy-intro.html 
+summary: 이 백서에서는 다중 가용성 영역 배포에서 AWS FSx 스토리지 서비스를 활용하여 AWS 맞춤형 Oracle RDS 데이터베이스 HA 및 DR을 위한 솔루션의 개요와 검증을 제공합니다. 
+keywords: HA, DR, database, Oracle, RDS, AWS 
+---
+= WP-7357: EC2 및 FSx에 대한 Oracle 데이터베이스 배포 모범 사례 소개
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+Allen Cao, Niyaz Mohamed, Jeffrey Steiner, NetApp
+
+[role="lead"]
+많은 미션 크리티컬 엔터프라이즈 Oracle 데이터베이스는 여전히 온프레미스에서 호스팅되고 있으며, 많은 기업이 이러한 Oracle 데이터베이스를 퍼블릭 클라우드로 마이그레이션하려고 합니다.  종종 이러한 Oracle 데이터베이스는 애플리케이션 중심적이어서 사용자별 구성이 필요한데, 이 기능은 많은 데이터베이스 즉 서비스형 퍼블릭 클라우드 서비스에서 누락되어 있습니다.  따라서 현재의 데이터베이스 환경에서는 고유한 요구 사항을 수용할 수 있는 고성능, 확장 가능한 컴퓨팅 및 스토리지 서비스를 기반으로 구축된 퍼블릭 클라우드 기반 Oracle 데이터베이스 솔루션이 필요합니다.  AWS EC2 컴퓨팅 인스턴스와 AWS FSx 스토리지 서비스는 미션 크리티컬 Oracle 데이터베이스 워크로드를 퍼블릭 클라우드로 구축하고 마이그레이션하는 데 활용할 수 있는 퍼즐의 잃어버린 조각일 수 있습니다.
+
+Amazon Elastic Compute Cloud(Amazon EC2)는 클라우드에서 안전하고 크기 조절이 가능한 컴퓨팅 용량을 제공하는 웹 서비스입니다.  기업이 웹 규모의 클라우드 컴퓨팅을 보다 쉽게 사용할 수 있도록 설계되었습니다.  간단한 Amazon EC2 웹 서비스 인터페이스를 사용하면 최소한의 마찰로 용량을 확보하고 구성할 수 있습니다.  이를 통해 컴퓨팅 리소스를 완벽하게 제어할 수 있으며 Amazon의 검증된 컴퓨팅 환경에서 실행할 수 있습니다.
+
+Amazon FSx ONTAP 은 업계 최고의 NetApp ONTAP 블록 및 파일 스토리지를 사용하는 AWS 스토리지 서비스로, NFS, SMB 및 iSCSI를 지원합니다.  이렇게 강력한 스토리지 엔진을 사용하면 밀리초 미만의 응답 시간, 수 GBps의 처리량, 데이터베이스 인스턴스당 100,000이 넘는 IOPS로 미션 크리티컬 Oracle 데이터베이스 앱을 AWS로 이전하는 것이 그 어느 때보다 쉬워졌습니다.  더 나은 점은 FSx 스토리지 서비스에는 기본 복제 기능이 제공되어 온프레미스 Oracle 데이터베이스를 AWS로 쉽게 마이그레이션하거나 HA 또는 DR을 위해 미션 크리티컬 Oracle 데이터베이스를 보조 AWS 가용성 영역으로 복제할 수 있다는 것입니다.
+
+이 문서의 목적은 FSx 스토리지와 온프레미스 시스템과 유사한 성능을 제공하는 EC2 인스턴스를 사용하여 Oracle 데이터베이스를 배포하고 구성하는 방법에 대한 단계별 프로세스, 절차 및 모범 사례 지침을 제공하는 것입니다.  NetApp 또한 AWS 퍼블릭 클라우드에서 Oracle 데이터베이스 워크로드를 배포, 구성 및 관리하는 데 필요한 대부분의 작업을 자동화하는 자동화 툴킷을 제공합니다.
+
+솔루션과 사용 사례에 대해 자세히 알아보려면 다음 개요 비디오를 시청하세요.
+
+link:https://www.netapp.tv/insight/details/30000?playlist_id=275&mcid=04891225598830484314259903524057913910["AWS 및 FSx ONTAP 에서 하이브리드 클라우드를 사용하여 Oracle 데이터베이스를 현대화하세요(1부 - 사용 사례 및 솔루션 아키텍처)"^]

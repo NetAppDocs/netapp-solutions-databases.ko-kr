@@ -1,0 +1,96 @@
+= 도움을 받으려면 어디로 가야 하나요?
+:allow-uri-read: 
+
+
+. Oracle 사용자로 Oracle 서버에 로그인하고 다음 명령을 실행합니다.
++
+[source, cli]
+----
+ps -ef | grep ora
+----
++
+
+NOTE: 예상대로 설치가 완료되고 Oracle DB가 시작되면 Oracle 프로세스가 나열됩니다.
+
+. 데이터베이스에 로그인하여 다음 명령 세트로 생성된 db 구성 설정과 PDB를 확인하세요.
++
+[source, cli]
+----
+[oracle@localhost ~]$ sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu May 6 12:52:51 2021
+Version 19.8.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.8.0.0.0
+
+SQL>
+
+SQL> select name, log_mode from v$database;
+NAME      LOG_MODE
+--------- ------------
+CDB2      ARCHIVELOG
+
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+         3 CDB2_PDB1                      READ WRITE NO
+         4 CDB2_PDB2                      READ WRITE NO
+         5 CDB2_PDB3                      READ WRITE NO
+
+col svrname form a30
+col dirname form a30
+select svrname, dirname, nfsversion from v$dnfs_servers;
+
+SQL> col svrname form a30
+SQL> col dirname form a30
+SQL> select svrname, dirname, nfsversion from v$dnfs_servers;
+
+SVRNAME                        DIRNAME                        NFSVERSION
+------------------------------ ------------------------------ ----------------
+172.21.126.200                 /rhelora03_u02                 NFSv3.0
+172.21.126.200                 /rhelora03_u03                 NFSv3.0
+172.21.126.200                 /rhelora03_u01                 NFSv3.0
+----
++
+이는 dNFS가 제대로 작동하고 있음을 확인합니다.
+
+. 다음 명령을 사용하여 리스너를 통해 데이터베이스에 연결하여 Oracle 리스너 구성을 확인합니다.  적절한 리스너 포트와 데이터베이스 서비스 이름으로 변경합니다.
++
+[source, cli]
+----
+[oracle@localhost ~]$ sqlplus system@//localhost:1523/cdb2_pdb1.cie.netapp.com
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu May 6 13:19:57 2021
+Version 19.8.0.0.0
+
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+
+Enter password:
+Last Successful login time: Wed May 05 2021 17:11:11 -04:00
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.8.0.0.0
+
+SQL> show user
+USER is "SYSTEM"
+SQL> show con_name
+CON_NAME
+CDB2_PDB1
+----
++
+이는 Oracle 리스너가 제대로 작동하고 있음을 확인합니다.
+
+
+
+
+
+=== 도움을 받으려면 어디로 가야 하나요?
+
+툴킷 사용에 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 슬랙 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.

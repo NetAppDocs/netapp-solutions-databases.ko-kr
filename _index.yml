@@ -1,0 +1,117 @@
+---
+indexpage:
+  title: NetApp 데이터베이스 솔루션
+  summary: NetApp 엔터프라이즈 데이터베이스 솔루션은 주요 엔터프라이즈 데이터베이스에서 NetApp 스토리지의 기능을 입증하는 전략적
+    및 기술적 역량의 집합입니다.
+  lead: NetApp 데이터베이스 솔루션은 주요 기업 데이터베이스에서 NetApp 스토리지의 기능을 입증하는 전략적 및 기술적 역량의 집합입니다.
+  tiles:
+  - title: 시작하기
+    links:
+    - title: 새로운 소식
+      url: "/whats-new.html"
+    - title: 블로그
+      url: "/blogs.html"
+    - title: 비디오 및 데모
+      url: "/videos/index.html"
+  - title: Amazon FSx for ONTAP Oracle
+    links:
+    - title: AWS EC2에 Oracle HA 배포
+      url: "/oracle/aws-ora-ha-pacemaker.html"
+    - title: FSx ONTAP 에 Oracle 배포
+      url: "/automation/automation-ora-aws-fsx-iscsi.html"
+    - title: FSx ONTAP 사용하여 VMware Cloud에서 Oracle 실행
+      url: "/oracle/aws-ora-fsx-vmc-guestmount.html"
+    - title: FSx ONTAP 으로 Data Guard 비용 절감
+      url: "/oracle/aws-ora-fsx-ec2-data-guard.html"
+    - title: FSx ONTAP 에서 Oracle VLDB 복구 및 복제
+      url: "/oracle/aws-ora-fsx-ec2-inc-merge.html"
+    - title: FSx/EC2에서 Oracle 보호 및 배포
+      url: "/oracle/aws-ora-fsx-ec2-iscsi-asm.html"
+  - title: Azure NetApp Files 용 Oracle
+    links:
+    - title: ANF에 Oracle VLDB 배포
+      url: "/oracle/azure-ora-anf-vldb-dg.html"
+    - title: ANF로 Data Guard 비용 절감
+      url: "/oracle/azure-ora-anf-data-guard.html"
+    - title: ANF에서 Oracle VLDB 복구 및 복제
+      url: "/oracle/azure-ora-anf-inc-merge.html"
+    - title: NFS를 사용하여 Azure NetApp Files 에 Oracle 배포
+      url: "/automation/automation-ora-anf-nfs.html"
+    - title: ANF에 Oracle 배포 및 마이그레이션
+      url: "/oracle/azure-ora-nfile-usecase.html"
+  - title: Google Cloud용 Oracle
+    links:
+    - title: Google Cloud에서 Oracle VLDB 백업 및 복구 최적화
+      url: "/oracle/gcp-ora-gcnv-inc-merge.html"
+    - title: Google Cloud에서 Data Guard를 사용하여 Oracle VLDB 배포
+      url: "/oracle/gcp-ora-gcnv-vldb-dg.html"
+    - title: Google Cloud에서 Oracle 스토리지 솔루션 검토
+      url: "/oracle/gcp-oracle-gcnv-overview.html"
+  - title: 클라우드 및 온프레미스용 SQL 서버 솔루션
+    links:
+    - title: AWS FSx ONTAP 에서 SQL Server 백업 및 복구
+      url: "/mssql/sqlsb-backup-restore-aws-fsxn.html"
+    - title: FSx ONTAP 사용하여 AWS EC2에서 SQL Server 실행
+      url: "/mssql/sql-aws-ec2.html"
+    - title: Azure NetApp Files 에서 SQL Server 실행
+      url: "/mssql/sql-srv-anf-overview.html"
+    - title: 온프레미스 SQL 워크로드를 FSx ONTAP 으로 마이그레이션
+      url: "/mssql/customer-usecase-mssql-fsx1.html"
+    - title: 클러스터형 데이터 ONTAP 사용하는 Windows 기반 Microsoft SQL Server와 SAP
+      url: https://www.netapp.com/pdf.html?item=/media/16865-tr-4467pdf.pdf
+    - title: Microsoft SQL Server 현대화
+      url: https://www.netapp.com/pdf.html?item=/media/15613-na-446.pdf
+    - title: ONTAP 사용한 Microsoft SQL Server 모범 사례
+      url: https://www.netapp.com/pdf.html?item=/media/8585-tr4590.pdf
+    - title: EF 시리즈를 사용한 Microsoft SQL Server 모범 사례
+      url: https://www.netapp.com/pdf.html?item=/media/17086-tr4764pdf.pdf
+  - title: 하이브리드 클라우드 데이터베이스 솔루션
+    links:
+    - title: VCF에서 vVols 사용하여 Oracle RAC 배포 및 보호
+      url: "/oracle/vcf-ora-rac-vvol.html"
+    - title: VCF에서 vVols 사용하여 Oracle SI 배포 및 보호
+      url: "/oracle/vcf-ora-si-vvol.html"
+    - title: NFS를 사용하여 NetApp C-Series에 Oracle 배포
+      url: "/automation/automation-ora-c-series-nfs.html"
+    - title: iSCSI를 사용하여 NetApp ASA 에 Oracle 배포
+      url: "/automation/automation-ora-asa-iscsi.html"
+    - title: 자동화를 통해 ONTAP 에 Oracle19c 배포
+      url: "/automation/db-protection-overview.html"
+    - title: NetApp EF-Series에서 Oracle 데이터베이스 실행
+      url: https://www.netapp.com/pdf.html?item=/media/17248-tr4794pdf.pdf
+  - title: 오픈 소스 데이터베이스
+    links:
+    - title: AWS FSx/EC2에서 PostgreSQL 데이터베이스를 배포하고 재해 복구를 설정합니다.
+      url: "/postgres/aws-postgres-fsx-ec2-hadr.html"
+    - title: ONTAP 의 MySQL 데이터베이스
+      url: https://www.netapp.com/pdf.html?item=/media/16423-tr-4722pdf.pdf
+  - title: 데이터베이스용 SnapCenter
+    links:
+    - title: SnapCenter 사용하여 ONTAP 에서 PostgreSQL 백업 및 복제
+      url: "/postgres/snapctr-psql-ontap.html"
+    - title: 자동화를 통해 Oracle 데이터베이스 설정, 복제 및 새로 고침
+      url: "/automation/automation-ora-clone-lifecycle.html"
+    - title: Microsoft Azure NetApp File에서 자동화된 Oracle 배포
+      url: "/oracle/snapctr-ora-azure-anf.html"
+    - title: SnapCenter 사용하여 하이브리드 클라우드 데이터베이스 솔루션 배포
+      url: "/dbops/hybrid-dbops-snapcenter-usecases.html"
+  - title: DB 자동화 툴킷
+    links:
+    - title: ASM을 사용하여 GCNV에서 Oracle 복제 수명 주기 자동화
+      url: "/automation/automation-ora-clone-gcnv-asm.html"
+    - title: ASM을 사용하여 ANF에서 Oracle 복제 수명 주기 자동화
+      url: "/automation/automation-ora-clone-anf-asm.html"
+    - title: PDB 이전으로 Oracle 마이그레이션
+      url: "/automation/automation-ora-migration.html"
+    - title: Amazon FSx for NetApp ONTAP 사용하여 Oracle HA/DR 배포
+      url: "/automation/automation-ora-hadr-fsx.html"
+    - title: Amazon FSx for NetApp ONTAP 프로비저닝
+      url: "/automation/automation-fsx-ec2-provision.html"
+    - title: AWS에 PostgreSQL 배포
+      url: https://github.com/NetApp/na_postgresql_aws_deploy_hadr
+  - title: 솔루션 요청 및 피드백
+    links:
+    - title: 새로운 솔루션을 제안하다
+      url: https://github.com/NetAppDocs/netapp-solutions/issues/new?body=[Request%20Solution]%0d%0a%0d%0aSolution%20Use%20Case:%20%0d%0aSolution%20Description:%20%0d%0aAdditional%20Comments:&title=Request%20Solution%20-%20%3Csolution%3E
+    - title: 솔루션 피드백 제공
+      url: https://github.com/NetAppDocs/netapp-solutions/issues/new?body=[Solution%20Feedback]%0d%0a%0d%0aSolution%20Name:%20%0d%0aSolution%20Feedback:%20%0d%0aAdditional%20Comments:&title=Solution%20Feedback%20-%20%3Csolution%3E

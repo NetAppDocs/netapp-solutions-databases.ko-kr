@@ -1,0 +1,172 @@
+---
+sidebar: sidebar 
+permalink: oracle/db-sizing-ora-anf.html 
+keywords: ONTAP, Azure, ANF, Sizing 
+summary: 이 솔루션은 Azure 클라우드의 ANF에서 Oracle 배포를 위한 컴퓨팅 및 스토리지 크기 조정을 위한 유용한 툴킷을 제공합니다. 
+---
+= Azure NetApp Files 대한 Oracle 크기 조정 지침
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+Allen Cao, Niyaz Mohamed, NetApp
+
+[role="lead"]
+이 솔루션은 Azure 클라우드의 ANF에서 Oracle을 배포할 때 컴퓨팅 및 스토리지 크기를 조정하는 데 유용한 툴킷을 제공합니다.
+
+
+
+== 목적
+
+기존 Oracle 워크로드를 한 플랫폼에서 다른 플랫폼으로(예: 온프레미스에서 퍼블릭 클라우드로) 이동하려면 성능 및 서비스 수준 요구 사항을 충족하도록 대상 플랫폼의 컴퓨팅 및 스토리지 크기를 조정해야 합니다.  이 문서는 해당 목표를 달성하기 위한 간단한 툴킷을 보여줍니다.
+
+시간이 지남에 따라 확장될 수 있는 새로운 데이터베이스 애플리케이션과 달리, 기존 Oracle 워크로드는 Oracle 워크로드 리포지토리 또는 AWR에 기록되는 컴퓨팅 및 스토리지 요구 사항에 대한 워크로드 패턴을 확립합니다.  이 툴킷은 HTML 파서를 활용하여 Oracle AWR에서 관련 정보를 검색합니다.  Oracle 데이터베이스를 이전할 때 의미 있는 컴퓨팅 및 스토리지 지침을 제공하기 위해 데이터베이스에 대한 SQL 스크립트를 통해 얻은 추가적인 크기 정보가 결과에 추가됩니다.
+
+이 솔루션은 다음과 같은 사용 사례를 해결합니다.
+
+* 온프레미스에서 Microsoft Azure 클라우드로 데이터베이스를 이전할 때 Oracle 데이터베이스 서버 컴퓨팅에 대한 크기 조정 지침을 제공합니다.
+* 온프레미스에서 Microsoft Azure NetApp Files 로 데이터베이스를 이전할 때 Oracle 데이터베이스 서버 스토리지의 크기 조정 지침을 제공합니다.
+
+
+
+
+== 대상
+
+이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
+
+* 온프레미스 프라이빗 데이터 센터 또는 Microsoft Azure 클라우드 환경에서 Oracle 데이터베이스를 관리하는 DBA입니다.
+* Oracle 데이터베이스를 지원하는 온프레미스 스토리지 또는 Microsoft Azure NetApp Files 스토리지를 관리하는 스토리지 관리자입니다.
+* 온프레미스에서 Microsoft Azure 클라우드로 Oracle 데이터베이스를 마이그레이션하려는 애플리케이션 소유자입니다.
+
+
+
+
+== 특허
+
+이 툴킷 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://netapp.sharepoint.com/sites/CIEBuilt-OnsTeam-DatabasesandApps/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCIEBuilt%2DOnsTeam%2DDatabasesandApps%2FShared%20Documents%2FDatabases%20and%20Apps%2FDatabase%20Solutions%2FDB%20Sizing%20Toolkits%2FOracle%20Sizing%20Guidance%20for%20ANF%2FLICENSE%2ETXT&parent=%2Fsites%2FCIEBuilt%2DOnsTeam%2DDatabasesandApps%2FShared%20Documents%2FDatabases%20and%20Apps%2FDatabase%20Solutions%2FDB%20Sizing%20Toolkits%2FOracle%20Sizing%20Guidance%20for%20ANF["라이센스 파일"^] .
+
+
+NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 및/또는 공유하는 데에는 특정 제한이 있습니다.  콘텐츠를 사용하기 전에 라이선스 조건을 꼭 읽어보세요.  모든 약관에 동의하지 않을 경우, 이 저장소의 콘텐츠에 접근하거나 다운로드하거나 사용하지 마십시오.
+
+
+
+== 솔루션 구축
+
+
+
+=== 배포를 위한 전제 조건
+
+[%collapsible%open]
+====
+배포에는 다음과 같은 전제 조건이 필요합니다.
+
+* Oracle AWR 보고서는 최대 애플리케이션 작업 부하 중에 데이터베이스 활동의 스냅샷을 캡처합니다.
+* DBA 권한으로 SQL 스크립트를 실행하기 위해 Oracle 데이터베이스에 접근합니다.
+
+
+====
+
+
+=== 툴킷을 다운로드하세요
+
+[%collapsible%open]
+====
+저장소에서 툴킷을 검색합니다link:https://netapp.sharepoint.com/sites/CIEBuilt-OnsTeam-DatabasesandApps/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=uJYdVB&CID=bec786b6%2Dccaa%2D42e3%2Db47d%2Ddf0dcb0ce0ef&RootFolder=%2Fsites%2FCIEBuilt%2DOnsTeam%2DDatabasesandApps%2FShared%20Documents%2FDatabases%20and%20Apps%2FDatabase%20Solutions%2FDB%20Sizing%20Toolkits%2FOracle%20Sizing%20Guidance%20for%20ANF&FolderCTID=0x01200006E27E44A468B3479EA2D52BCD950351["ANF를 위한 Oracle 크기 조정 지침"^]
+
+====
+
+
+=== 툴킷을 어떻게 사용하나요?
+
+[%collapsible%open]
+====
+이 툴킷은 웹 기반 HTML 파서와 Oracle 데이터베이스 정보를 수집하는 두 개의 SQL 스크립트로 구성되어 있습니다.  그런 다음 출력은 Oracle 데이터베이스 서버의 컴퓨팅 및 스토리지 크기 조정 지침을 생성하는 데 사용되는 Excel 템플릿에 입력됩니다.
+
+* 사용하다link:https://app.atroposs.com/#/awr-module["HTML 파서"^] AWR 보고서에서 현재 Oracle 데이터베이스의 크기 정보를 검색하는 AWR 모듈입니다.
+* DBA로서 ora_db_data_szie.sql을 실행하여 데이터베이스에서 실제 Oracle 데이터 파일 크기를 검색합니다.
+* DBA 권한으로 ora_db_logs_size.sql을 실행하여 원하는 보관 로그 보존 기간(일)에 따라 Oracle 보관 로그 크기를 검색합니다.
+* 위에서 얻은 크기 정보를 Excel 템플릿 파일 oracle_db_sizing_template_anf.xlsx에 입력하여 Oracle DB 서버의 컴퓨팅 및 스토리지에 대한 크기 조정 지침을 만듭니다.
+
+
+====
+
+
+=== 툴킷 사용 데모
+
+[%collapsible%open]
+====
+. HTML 파서 AWR 모듈을 엽니다.
++
+image:db-sizing-ora-parser-001.png["이 이미지는 Oracle 크기 조정을 위한 HTML 파서 화면을 제공합니다."]
+
+. 출력 형식을 .csv로 선택하고 클릭하세요. `Upload files` AWR 보고서를 업로드합니다.  파서는 테이블 요약과 output.csv 파일이 포함된 HTML 페이지로 결과를 반환합니다. `Download` 접는 사람.
++
+image:db-sizing-ora-parser-002.png["이 이미지는 Oracle 크기 조정을 위한 HTML 파서 화면을 제공합니다."]
+
+. Excel 템플릿 파일을 열고 CSV 내용을 A열, 셀 1에 복사하여 붙여넣어 DB 서버 크기 정보를 생성합니다.
++
+image:db-sizing-ora-parser-anf-003.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."]
+
+. 열 A와 필드 1, 2를 강조 표시하고 클릭하세요. `Data` , 그 다음에 `Text to Columns` 텍스트 마법사를 엽니다.  선택하다 `Delimited` , 그 다음에 `Next` 다음 화면으로.
++
+image:db-sizing-ora-parser-anf-004.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."]
+
+. 확인하다 `Other` , 그런 다음 '='를 입력하세요. `Delimiters` .  클릭해주세요 `Next` 다음 화면으로.
++
+image:db-sizing-ora-parser-anf-005.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."]
+
+. 클릭해주세요 `Finish` 문자열을 읽을 수 있는 열 형식으로 변환을 완료합니다.  VM 및 ANF 크기 조정 필드는 Oracle AWR 보고서에서 검색된 데이터로 채워졌습니다.
++
+image:db-sizing-ora-parser-anf-006.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."] image:db-sizing-ora-parser-anf-007.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."]
+
+. DBA로서 sqlplus에서 ora_db_data_size.sql, ora_db_logs_size.sql 스크립트를 실행하여 기존 Oracle 데이터베이스 데이터 크기와 보관된 로그 크기를 보존 기간 일수와 함께 검색합니다.
++
+....
+
+[oracle@ora_01 ~]$ sqlplus / as sysdba
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Tue Mar 5 15:25:27 2024
+Version 19.18.0.0.0
+
+Copyright (c) 1982, 2022, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.18.0.0.0
+
+
+SQL> @/home/oracle/ora_db_data_size.sql;
+
+Aggregate DB File Size, GiB Aggregate DB File RW, GiB Aggregate DB File RO, GiB
+--------------------------- ------------------------- -------------------------
+                     159.05                    159.05                         0
+
+SQL> @/home/oracle/ora_db_logs_size.sql;
+Enter value for archivelog_retention_days: 14
+old   6:       where first_time >= sysdate - &archivelog_retention_days
+new   6:       where first_time >= sysdate - 14
+
+Log Size, GiB
+-------------
+        93.83
+
+SQL>
+
+....
++
+
+NOTE: 위 스크립트를 사용하여 검색한 데이터베이스 크기 정보는 모든 물리적 데이터베이스 데이터 파일이나 로그 파일의 실제 크기의 합계입니다.  이는 각 데이터 파일 내부에 사용 가능한 여유 공간에는 반영되지 않습니다.
+
+. 결과를 Excel 파일에 입력하여 사이즈 지침 출력을 완료합니다.
++
+image:db-sizing-ora-parser-anf-008.png["이 이미지는 Oracle 크기 조정을 위한 Excel 템플릿 스크린샷을 제공합니다."]
+
+. ANF는 3단계 서비스 수준(Standard, Premium, Ultra)을 사용하여 데이터베이스 볼륨 처리량 한도를 관리합니다.  참조하다link:https://learn.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-service-levels["Azure NetApp Files 의 서비스 수준"^] 자세한 내용은.  크기 조정 지침 출력을 기반으로 데이터베이스 요구 사항을 충족하는 처리량을 제공하는 ANF 서비스 수준을 선택합니다.
+
+
+====

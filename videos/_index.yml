@@ -1,0 +1,23 @@
+---
+indexpage:
+  title: NetApp 데이터베이스 솔루션 비디오
+  summary: NetApp 의 Oracle, SQL Server, 오픈 소스 및 하이브리드 데이터베이스 솔루션에 대한 비디오를 살펴보세요.
+  lead: Oracle, SQL Server 및 오픈 소스 데이터베이스 전반의 데이터베이스 솔루션을 선보이는 NetApp의 포괄적인 비디오 라이브러리를
+    확인해보세요. 각 컬렉션은 특정 사용 사례와 통합 시나리오에 초점을 맞춥니다.
+  tiles:
+  - title: 오라클 데이터베이스 비디오
+    links:
+    - title: 배포 및 자동화
+      url: videos-oracle-videos.html#deployment-and-automation
+    - title: 백업, 복구 및 복제
+      url: videos-oracle-videos.html#backup-recovery-and-cloning
+    - title: 현대화와 이주
+      url: videos-oracle-videos.html#modernization-and-migration
+    - title: 고가용성, 재해 복구 및 복제
+      url: videos-oracle-videos.html#high-availability-disaster-recovery-and-replication
+  - title: SQL Server 및 오픈 소스 데이터베이스 비디오
+    links:
+    - title: SQL Server 비디오
+      url: videos-sqlserver-videos.html
+    - title: 오픈소스 데이터베이스 영상
+      url: videos-open-source-videos.html

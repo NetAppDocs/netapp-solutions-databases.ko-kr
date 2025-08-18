@@ -1,0 +1,33 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-srv-anf-overview.html 
+keywords: use case, rehosting, enterprise resource planning, RDBMS, cloud migration 
+summary: '이 문서에서는 Azure Virtual Machines를 활용하여 Azure NetApp Files 에서 SQL Server Always On 가용성 그룹(AOAG)을 실시간으로 배포하는 방법을 다룹니다.' 
+---
+= TR-4897: Azure NetApp Files 의 SQL Server - 실제 배포 보기
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 문서에서는 Azure Virtual Machines를 활용하여 Azure NetApp Files 에서 SQL Server Always On 가용성 그룹(AOAG)을 실시간으로 배포하는 방법을 다룹니다.
+
+니야즈 모하메드, NetApp
+
+IT 조직은 끊임없는 변화에 직면해 있습니다.  가트너는 2022년까지 모든 데이터베이스의 약 75%가 클라우드 기반 스토리지를 필요로 할 것이라고 보고했습니다.  Microsoft SQL Server는 선도적인 관계형 데이터베이스 관리 시스템(RDBMS)으로, ERP(기업 자원 계획)부터 분석, 콘텐츠 관리에 이르기까지 모든 용도로 SQL Server를 사용하는 Windows 플랫폼 기반 애플리케이션과 조직에 필수적인 선택입니다.  SQL Server는 기업이 방대한 데이터 세트를 관리하고 스키마와 쿼리 성능 요구 사항을 충족하도록 애플리케이션을 구동하는 방식에 혁신을 가져왔습니다.
+
+대부분의 IT 조직은 클라우드 우선 접근 방식을 따릅니다.  혁신 단계에 있는 고객은 현재 IT 환경을 평가한 다음 평가 및 발견 연습을 통해 데이터베이스 워크로드를 클라우드로 마이그레이션합니다.  고객이 클라우드로 마이그레이션하는 데 영향을 미치는 요인으로는 탄력성/버스트, 데이터 센터 철수, 데이터 센터 통합, 수명 종료 시나리오, 합병, 인수 등이 있습니다.  마이그레이션의 이유는 각 조직과 해당 비즈니스 우선순위에 따라 다를 수 있습니다.  클라우드로 전환할 때 SQL Server 데이터베이스 클라우드 배포의 힘을 최대한 활용하기 위해 올바른 클라우드 스토리지를 선택하는 것은 매우 중요합니다.
+
+
+
+== 사용 사례
+
+SQL Server 환경을 Azure로 이전하고 SQL Server를 Azure Data Factory, Azure IoT Hub, Azure Machine Learning과 같은 Azure의 다양한 PaaS(Platform-as-a-Service) 기능과 통합하면 디지털 혁신을 지원하는 엄청난 비즈니스 가치가 창출됩니다.  클라우드를 도입하면 해당 사업부가 생산성에 집중하고 CAPEX 모델이나 기존의 프라이빗 클라우드 모델에 의존하는 것보다 더 빠르게 새로운 기능과 향상된 기능을 제공할 수 있습니다(DevTest 사용 사례).  이 문서에서는 Azure Virtual Machines를 활용하여 Azure NetApp Files 에서 SQL Server Always On 가용성 그룹(AOAG)을 실시간으로 배포하는 방법을 다룹니다.
+
+Azure NetApp Files 지속적으로 사용 가능한 파일 공유 기능을 갖춘 엔터프라이즈급 스토리지를 제공합니다.  SQL Server 프로덕션 데이터베이스에서 SMB 파일 공유를 통해 지속적으로 사용 가능한 공유가 필요한 이유는 컨트롤러 업그레이드나 오류 등의 중단 시나리오를 포함하여 노드가 항상 데이터베이스 저장소에 액세스할 수 있도록 하기 위해서입니다.  지속적으로 사용 가능한 파일 공유 덕분에 스토리지 노드 간에 데이터를 복제할 필요가 없습니다.  Azure NetApp Files SMB 3.0 확장, 지속적 핸들 및 투명한 장애 조치를 사용하여 많은 관리 작업을 포함하여 계획되거나 계획되지 않은 가동 중지 이벤트에 대한 비중단 작업(NDO)을 지원합니다.
+
+클라우드 마이그레이션을 계획할 때는 항상 사용할 가장 좋은 접근 방식을 평가해야 합니다.  애플리케이션 마이그레이션을 위한 가장 일반적이고 쉬운 방법은 리호스팅(리프트 앤 시프트라고도 함)입니다.  이 문서에 제공된 예제 시나리오에서는 리호스팅 방법을 사용합니다.  Azure NetApp Files 갖춘 Azure 가상 머신의 SQL Server를 사용하면 온-프레미스 하드웨어를 관리하지 않고도 클라우드에서 전체 버전의 SQL Server를 사용할 수 있습니다.  SQL Server 가상 머신(VM)은 사용량에 따라 비용을 지불하므로 라이선스 비용도 간소화되고 개발, 테스트 및 자산 새로 고침 시나리오에 대한 탄력성과 버스팅 기능을 제공합니다.

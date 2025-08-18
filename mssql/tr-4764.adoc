@@ -1,0 +1,21 @@
+---
+sidebar: sidebar 
+permalink: mssql/tr-4764.html 
+keywords:  
+summary:  
+---
+= TR-4764: NetApp EF 시리즈를 사용한 Microsoft SQL Server 모범 사례
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+미치 블랙번, 팻 신투산, NetApp
+
+[role="lead"]
+이 모범 사례 가이드는 스토리지 관리자와 데이터베이스 관리자가 NetApp EF 시리즈 스토리지에 Microsoft SQL Server를 성공적으로 배포하는 데 도움을 주기 위해 작성되었습니다.
+
+link:https://www.netapp.com/pdf.html?item=/media/17086-tr4764pdf.pdf["TR-4764: NetApp EF 시리즈를 사용한 Microsoft SQL Server 모범 사례"^]

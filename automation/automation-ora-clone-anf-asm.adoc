@@ -1,0 +1,278 @@
+---
+sidebar: sidebar 
+permalink: automation/automation-ora-clone-anf-asm.html 
+keywords: Oracle, Azure, ANF, Database, clone 
+summary: 이 솔루션은 ASM 구성을 사용하여 Azure NetApp Files 스토리지의 Azure 클라우드에 호스팅된 Oracle Data Guard의 물리적 스탠바이 데이터베이스에서 Oracle 복제 데이터베이스를 설정, 복제 및 새로 고치기 위한 Ansible 기반 자동화 툴킷을 제공합니다. 
+---
+= ASM을 사용한 ANF의 자동화된 Oracle 복제 수명 주기
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+Allen Cao, Niyaz Mohamed, NetApp
+
+[role="lead"]
+이 솔루션은 ASM 구성을 사용하여 Azure NetApp Files 스토리지의 Azure 클라우드에 호스팅된 Oracle Data Guard의 물리적 스탠바이 데이터베이스에서 Oracle 복제 데이터베이스를 설정, 복제 및 새로 고치기 위한 Ansible 기반 자동화 툴킷을 제공합니다.
+
+
+
+== 목적
+
+Oracle Data Guard 구성에서 물리적 스탠바이 Oracle 데이터베이스의 복제본을 다른 사용 사례에 활용하면 여러 가지 목적을 달성할 수 있습니다.  개발 또는 UAT 목적으로 프로덕션 데이터베이스의 쓰기 가능한 사본을 제공합니다.  따라서 보고 지연 시간이 짧더라도(10~15분) 허용된다면 값비싼 Active Data Guard 라이선스 비용을 없앨 수 있습니다.  특히 씬 클론이 옵션인 경우 저장 비용이 절감됩니다.  Ansible 기반 자동화 툴킷을 사용하면 사용자는 사용자 일정에 따라 복제된 Oracle 데이터베이스를 설정, 복제 및 새로 고침하여 간소화된 수명 주기 관리를 수행할 수 있습니다.  이 툴킷은 Azure NetApp Files 스토리지와 Data Guard 구성에서 구성된 Oracle 데이터베이스를 사용하여 Azure 퍼블릭 클라우드에 배포된 Oracle 데이터베이스에 적용됩니다.
+
+이 솔루션은 다음과 같은 사용 사례를 해결합니다.
+
+* Ansible 자동화를 위해 Oracle 스탠바이 데이터베이스 복제 구성 파일을 설정합니다.
+* 사용자 정의 일정에 따라 Ansible 플레이북을 사용하여 Data Guard 대기 데이터베이스에서 Oracle 데이터베이스 복제본을 만들거나 새로 고칩니다.
+
+
+
+
+== 대상
+
+이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
+
+* Azure 클라우드에서 Oracle 데이터베이스를 관리하는 DBA입니다.
+* Azure NetApp Files 스토리지를 관리하는 스토리지 관리자입니다.
+* 다른 사용 사례를 위해 Data Guard 대기 데이터베이스에서 Oracle 데이터베이스를 복제하는 것을 좋아하는 애플리케이션 소유자입니다.
+
+
+
+
+== 특허
+
+이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
+
+
+NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 및/또는 공유하는 데에는 특정 제한이 있습니다.  콘텐츠를 사용하기 전에 라이선스 조건을 꼭 읽어보세요.  모든 약관에 동의하지 않을 경우, 이 저장소의 콘텐츠에 접근하거나 다운로드하거나 사용하지 마십시오.
+
+
+
+== 솔루션 구축
+
+
+
+=== 배포를 위한 전제 조건
+
+[%collapsible%open]
+====
+배포에는 다음과 같은 전제 조건이 필요합니다.
+
+....
+Ansible controller:
+  Ansible v.2.10 and higher
+  ONTAP collection 21.19.1
+  Python 3
+  Python libraries:
+    netapp-lib
+    xmltodict
+    jmespath
+....
+....
+Oracle servers:
+  Physical standby Oracle servers in Data Guard configuration
+  Clone target Oracle servers with ASM configuration
+....
+
+NOTE: 단순화를 위해 복제 대상 Oracle 서버는 Oracle 소프트웨어 스택 및 Oracle Home의 디렉토리 레이아웃 등을 스탠바이 Oracle 서버와 동일하게 구성해야 합니다.
+
+====
+
+
+=== 툴킷을 다운로드하세요
+
+[%collapsible%open]
+====
+[source, cli]
+----
+git clone https://bitbucket.ngage.netapp.com/scm/ns-bb/na_oracle_clone_anf.git
+----
+
+NOTE: 현재 이 툴킷은 bitbucket 액세스 권한이 있는 NetApp 내부 사용자만 액세스할 수 있습니다.  관심 있는 외부 사용자는 계정 팀에 액세스를 요청하거나 NetApp 솔루션 엔지니어링 팀에 문의하세요.
+
+====
+
+
+=== Ansible 소스 및 대상 호스트 파일 구성
+
+[%collapsible%open]
+====
+툴킷에는 Ansible 플레이북이 실행되는 소스 및 대상 Oracle 호스트를 정의하는 호스트 파일이 포함되어 있습니다.  일반적으로 여기에는 Data Guard 설정의 대기 DB 호스트와 대상 Oracle 복제 호스트가 포함됩니다.  다음은 예시 파일입니다.  호스트 항목에는 대상 호스트 IP 주소는 물론 사용자가 호스트에 액세스하여 복제 또는 새로 고침 명령을 실행하는 데 필요한 ssh 키도 포함됩니다.  Azure NetApp Files 저장소는 API를 통해 구성됩니다.  따라서 ANF 연결은 HTTP 프로토콜을 통한 로컬 호스트를 통해 이루어집니다.
+
+....
+[ora_stdby]
+oras ansible_host=172.179.119.75 ansible_ssh_private_key_file=oras.pem
+....
+....
+[ora_clone]
+orac ansible_host=52.148.142.212 ansible_ssh_private_key_file=orac.pem
+....
+....
+[azure]
+localhost ansible_connection=local
+....
+====
+
+
+=== 전역 변수 구성
+
+[%collapsible%open]
+====
+다음은 글로벌 수준에서 적용 가능한 변수를 포함하는 일반적인 글로벌 변수 파일 vars.yml의 예입니다.
+
+....
+######################################################################
+###### Oracle DB clone on ANF user configuration variables      ######
+###### Consolidate all variables from ANF, linux and oracle     ######
+######################################################################
+....
+....
+###########################################
+### ONTAP/ANF specific config variables ###
+###########################################
+....
+....
+# ANF credential
+subscription: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+client: "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+tenant: "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx"
+....
+....
+# Cloned DB volumes from standby DB
+resource_group: ANFAVSRG
+storage_account: ANFOraWest
+anf_pool: database2
+data_vols:
+  - "{{ groups.ora_stdby[0] }}-u02"
+  - "{{ groups.ora_stdby[0] }}-u04"
+  - "{{ groups.ora_stdby[0] }}-u05"
+  - "{{ groups.ora_stdby[0] }}-u06"
+  - "{{ groups.ora_stdby[0] }}-u03"
+....
+....
+nfs_lifs:
+  - 10.0.3.36
+  - 10.0.3.36
+  - 10.0.3.36
+  - 10.0.3.36
+  - 10.0.3.36
+....
+....
+###########################################
+### Linux env specific config variables ###
+###########################################
+....
+....
+####################################################
+### DB env specific install and config variables ###
+####################################################
+....
+....
+# Standby DB configuration
+oracle_user: oracle
+oracle_base: /u01/app/oracle
+oracle_sid: NTAP
+db_unique_name: NTAP_LA
+oracle_home: '{{ oracle_base }}/product/19.0.0/{{ oracle_sid }}'
+spfile: '+DATA/{{ db_unique_name }}/PARAMETERFILE/spfile.289.1190302433'
+adump: '{{ oracle_base }}/admin/{{ db_unique_name }}/adump'
+grid_home: /u01/app/oracle/product/19.0.0/grid
+asm_disk_groups:
+  - DATA
+  - LOGS
+....
+....
+# Clond DB configuration
+clone_sid: NTAPDEV
+sys_pwd: "xxxxxxxx"
+....
+====
+
+
+=== 호스트 변수 구성
+
+[%collapsible%open]
+====
+호스트 변수는 {{host_name}}.yml이라는 이름의 host_vars 디렉토리에 정의되어 있으며 특정 호스트에만 적용됩니다.  이 솔루션의 경우 대상 복제본 DB 호스트 매개변수 파일만 구성됩니다.  Oracle 대기 DB 매개변수는 글로벌 vars 파일에서 구성됩니다.  아래는 일반적인 구성을 보여주는 대상 Oracle 클론 DB 호스트 변수 파일 orac.yml의 예입니다.
+
+ # User configurable Oracle clone host specific parameters
+....
+# Database SID - clone DB SID
+oracle_base: /u01/app/oracle
+oracle_user: oracle
+clone_sid: NTAPDEV
+oracle_home: '{{ oracle_base }}/product/19.0.0/{{ oracle_sid }}'
+clone_adump: '{{ oracle_base }}/admin/{{ clone_sid }}/adump'
+....
+....
+grid_user: oracle
+grid_home: '{{ oracle_base }}/product/19.0.0/grid'
+asm_sid: +ASM
+....
+====
+
+
+=== 추가 복제 대상 Oracle 서버 구성
+
+[%collapsible%open]
+====
+복제 대상 Oracle 서버에는 소스 Oracle 서버와 동일한 Oracle 소프트웨어 스택이 설치되고 패치되어야 합니다.  Oracle 사용자 .bash_profile에 $ORACLE_BASE 및 $ORACLE_HOME이 구성되어 있습니다.  또한 $ORACLE_HOME 변수는 소스 Oracle 서버 설정과 일치해야 합니다.  대상 ORACLE_HOME 설정이 대기 Oracle 서버 구성과 다른 경우, 차이점을 해결하기 위해 심볼릭 링크를 만듭니다.  다음은 예입니다.
+
+ # .bash_profile
+....
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+       . ~/.bashrc
+fi
+....
+ # User specific environment and startup programs
+....
+export ORACLE_BASE=/u01/app/oracle
+export GRID_HOME=/u01/app/oracle/product/19.0.0/grid
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/NTAP
+alias asm='export ORACLE_HOME=$GRID_HOME;export PATH=$PATH:$GRID_HOME/bin;export ORACLE_SID=+ASM'
+....
+====
+
+
+=== 플레이북 실행
+
+[%collapsible%open]
+====
+Oracle 데이터베이스 복제 수명 주기를 실행하기 위한 플레이북은 총 두 개가 있습니다.  DB 복제 또는 새로 고침은 필요에 따라 실행하거나 crontab 작업으로 예약할 수 있습니다.
+
+. Ansible 컨트롤러 필수 구성 요소를 한 번만 설치하세요.
++
+[source, cli]
+----
+ansible-playbook -i hosts ansible_requirements.yml
+----
+. 쉘 스크립트를 사용하여 복제본이나 새로 고침 플레이북을 호출하여 crontab에서 필요에 따라 또는 정기적으로 복제본 데이터베이스를 만들고 새로 고칩니다.
++
+[source, cli]
+----
+ansible-playbook -i oracle_clone_asm_anf.yml -u azureuser -e @vars/vars.yml
+----
++
+[source, cli]
+----
+0 */2 * * * /home/admin/na_oracle_clone_anf/oracle_clone_asm_anf.sh
+----
+
+
+추가 데이터베이스를 복제하려면 별도로 oracle_clone_n_asm_anf.yml과 oracle_clone_n_asm_anf.sh를 만듭니다.  Ansible 대상 호스트, 글로벌 vars.yml 및 host_vars 디렉토리의 hostname.yml 파일을 이에 따라 구성합니다.
+
+
+NOTE: 다양한 단계에서 툴킷 실행이 일시 중지되어 특정 작업이 완료됩니다.  예를 들어, DB 볼륨 복제가 완료될 때까지 2분간 일시 중지합니다.  일반적으로 기본값은 충분하지만, 특정 상황이나 구현에 따라 타이밍을 조정해야 할 수도 있습니다.
+
+====
+
+
+== 추가 정보를 찾을 수 있는 곳
+
+NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

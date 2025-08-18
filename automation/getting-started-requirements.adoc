@@ -1,0 +1,185 @@
+---
+sidebar: sidebar 
+permalink: automation/getting-started-requirements.html 
+keywords: Linux, RHEL Oracle19c, NFS, ONTAP 
+summary: 이 페이지에서는 NetApp ONTAP 스토리지에 Oracle19c를 배포하는 자동화된 방법을 설명합니다. 
+---
+= 시작하기
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 솔루션은 AWX/Tower 환경이나 Ansible 제어 호스트의 CLI에서 실행되도록 설계되었습니다.
+
+
+
+== AWX/타워
+
+AWX/Tower 환경의 경우 ONTAP 클러스터 관리 및 Oracle 서버(IP 및 호스트 이름) 인벤토리를 만들고, 자격 증명을 만들고, NetApp Automation Github에서 Ansible 코드를 가져오는 프로젝트를 구성하고, 자동화를 시작하는 작업 템플릿을 만드는 과정을 안내합니다.
+
+. 사용자 환경에 맞는 변수를 입력하고, 이를 복사하여 작업 템플릿의 추가 변수 필드에 붙여넣습니다.
+. 추가 변수를 작업 템플릿에 추가한 후 자동화를 시작할 수 있습니다.
+. 작업 템플릿은 ontap_config, linux_config, oracle_config에 대한 태그를 지정하여 세 단계로 실행됩니다.
+
+
+
+
+== Ansible 제어 호스트를 통한 CLI
+
+. Ansible 제어 호스트로 사용할 수 있도록 Linux 호스트를 구성하려면link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/getting-started.html["자세한 지침을 보려면 여기를 클릭하세요"^]
+. Ansible 제어 호스트가 구성된 후 Ansible Automation 저장소를 git clone할 수 있습니다.
+. ONTAP 클러스터 관리 및 Oracle 서버 관리 IP의 IP 및/또는 호스트 이름으로 hosts 파일을 편집합니다.
+. 귀하의 환경에 맞는 변수를 입력하고 복사하여 붙여넣으세요. `vars.yml` 파일.
+. 각 Oracle 호스트에는 호스트 이름으로 식별되는 변수 파일이 있으며, 이 파일에는 호스트별 변수가 들어 있습니다.
+. 모든 변수 파일이 완료된 후 태그를 지정하여 플레이북을 세 단계로 실행할 수 있습니다. `ontap_config` , `linux_config` , 그리고 `oracle_config` .
+
+
+
+
+== 요구 사항
+
+[cols="3, 9"]
+|===
+| 환경 | 요구 사항 
+
+
+.4+| *Ansible 환경* | Ansible 제어 호스트가 되는 AWX/Tower 또는 Linux 호스트 
+
+
+| Ansible v.2.10 이상 
+
+
+| 파이썬 3 
+
+
+| Python 라이브러리 - netapp-lib - xmltodict - jmespath 
+
+
+.3+| * ONTAP* | ONTAP 버전 9.3 - 9.7 
+
+
+| 두 개의 데이터 집계 
+
+
+| NFS vlan 및 ifgrp 생성됨 
+
+
+.5+| *오라클 서버* | RHEL 7/8 
+
+
+| 오라클 리눅스 7/8 
+
+
+| NFS, 공개 및 선택적 관리를 위한 네트워크 인터페이스 
+
+
+| Oracle 서버의 Oracle 설치 파일 
+|===
+
+
+== 자동화 세부 정보
+
+이 자동화된 배포는 세 가지 별도 역할로 구성된 단일 Ansible 플레이북으로 설계되었습니다.  역할은 ONTAP, Linux 및 Oracle 구성을 위한 것입니다.  다음 표에서는 어떤 작업이 자동화되고 있는지 설명합니다.
+
+[cols="4, 9"]
+|===
+| 역할 | 작업 
+
+
+.5+| *온탭_구성* | ONTAP 환경 사전 점검 
+
+
+| Oracle용 NFS 기반 SVM 생성 
+
+
+| 수출 정책 수립 
+
+
+| Oracle용 볼륨 생성 
+
+
+| NFS LIF 생성 
+
+
+.9+| *리눅스_설정* | 마운트 지점을 생성하고 NFS 볼륨을 마운트합니다. 
+
+
+| NFS 마운트 확인 
+
+
+| OS별 구성 
+
+
+| Oracle 디렉토리 생성 
+
+
+| 거대한 페이지 구성 
+
+
+| SELinux 및 방화벽 데몬 비활성화 
+
+
+| chronyd 서비스 활성화 및 시작 
+
+
+| 파일 설명자 하드 한도 증가 
+
+
+| pam.d 세션 파일을 생성합니다. 
+
+
+.8+| *오라클_구성* | Oracle 소프트웨어 설치 
+
+
+| Oracle 리스너 생성 
+
+
+| Oracle 데이터베이스 생성 
+
+
+| Oracle 환경 구성 
+
+
+| PDB 상태 저장 
+
+
+| 인스턴스 아카이브 모드 활성화 
+
+
+| DNFS 클라이언트 활성화 
+
+
+| OS 재부팅 사이에 데이터베이스 자동 시작 및 종료를 활성화합니다. 
+|===
+
+
+== 기본 매개변수
+
+자동화를 단순화하기 위해 필수 Oracle 배포 매개변수 중 상당수를 기본값으로 미리 설정했습니다.  대부분의 배포에서는 기본 매개변수를 변경할 필요가 없습니다.  고급 사용자는 주의해서 기본 매개변수를 변경할 수 있습니다.  기본 매개변수는 기본 디렉토리 아래의 각 역할 폴더에 있습니다.
+
+
+
+== 배포 지침
+
+시작하기 전에 다음 Oracle 설치 및 패치 파일을 다운로드하여 다음 위치에 두십시오. `/tmp/archive` 배포될 각 DB 서버의 모든 사용자에게 읽기, 쓰기, 실행 권한이 있는 디렉토리입니다.  자동화 작업은 Oracle 설치 및 구성을 위해 해당 디렉토리에서 지정된 설치 파일을 찾습니다.
+
+[listing]
+----
+LINUX.X64_193000_db_home.zip -- 19.3 base installer
+p31281355_190000_Linux-x86-64.zip -- 19.8 RU patch
+p6880880_190000_Linux-x86-64.zip -- opatch version 12.2.0.1.23
+----
+
+
+== 특허
+
+Github 저장소에 명시된 라이선스 정보를 읽어보세요.  이 저장소의 콘텐츠에 액세스하거나, 다운로드하거나, 설치하거나, 사용함으로써 귀하는 명시된 라이선스 조건에 동의하는 것입니다.link:https://github.com/NetApp-Automation/na_oracle19c_deploy/blob/master/LICENSE.TXT["여기"^] .
+
+이 저장소의 콘텐츠를 사용하여 파생 작품을 제작 및/또는 공유하는 데에는 특정 제한이 있음을 유의하세요.  이용약관을 꼭 읽어주세요.link:https://github.com/NetApp-Automation/na_oracle19c_deploy/blob/master/LICENSE.TXT["특허"^] 콘텐츠를 사용하기 전에.  모든 약관에 동의하지 않을 경우, 이 저장소의 콘텐츠에 접근하거나 다운로드하거나 사용하지 마세요.
+
+준비가 되면 클릭하세요link:awx-automation.html["자세한 AWX/타워 배포 절차는 여기를 참조하세요."] 또는link:cli-automation.html["CLI 배포를 위해 여기를 클릭하세요"] .

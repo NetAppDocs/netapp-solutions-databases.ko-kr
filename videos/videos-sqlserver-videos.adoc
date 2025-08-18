@@ -1,0 +1,20 @@
+---
+sidebar: sidebar 
+permalink: videos/videos-sqlserver-videos.html 
+summary: NetApp 솔루션의 다양한 기능을 논의하는 일련의 비디오 및 데모 
+keywords: netapp, solutions, videos, demos 
+---
+= NetApp 사용한 SQL Server 데이터베이스 솔루션에 대한 비디오와 데모를 시청하세요
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NetApp 사용한 SQL Server 데이터베이스 솔루션에 대한 비디오를 살펴보세요.
+
+.Amazon FSx ONTAP 사용하여 AWS EC2에 SQL Server 배포
+video::27f28284-433d-4273-8748-b01200fb3cd7[panopto,width=360]

@@ -1,0 +1,203 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-srv-anf-ref-design-overview.html 
+keywords: data layout, migration, backup, recovery, dev test, thick clones, business continuity, hybrid storage, snapshot, archive, 
+summary: 이 섹션에서는 Azure NetApp Files SMB 볼륨을 사용하여 AOAG 구성에서 SQL 데이터베이스 자산을 실시간으로 배포하는 방법을 다룹니다. 
+---
+= 실시간 고수준 참조 설계
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+이 섹션에서는 Azure NetApp Files SMB 볼륨을 사용하여 AOAG 구성에서 SQL 데이터베이스 자산을 실시간으로 배포하는 방법을 다룹니다.
+
+* 노드 수: 4
+* 데이터베이스 수: 21개
+* 가용성 그룹 수: 4
+* 백업 보존 기간: 7일
+* 백업 아카이브: 365일
+
+
+
+NOTE: Azure NetApp Files 공유를 통해 Azure 가상 머신에 SQL Server와 함께 FCI를 배포하면 데이터의 단일 복사본을 사용하여 비용 효율적인 모델을 제공합니다.  이 솔루션을 사용하면 파일 경로가 보조 복제본과 다른 경우 파일 추가 작업 문제가 발생하는 것을 방지할 수 있습니다.
+
+image:sql-srv-anf-005.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+다음 이미지는 AOAG 내의 데이터베이스가 여러 노드에 분산되어 있는 모습을 보여줍니다.
+
+image:sql-srv-anf-006.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+
+
+== 데이터 레이아웃
+
+사용자 데이터베이스 파일(.mdf)과 사용자 데이터베이스 트랜잭션 로그 파일(.ldf)은 tempDB와 함께 동일한 볼륨에 저장됩니다.  서비스 수준은 Ultra입니다.
+
+구성은 4개의 노드와 4개의 AG로 구성됩니다.  모든 21개 데이터베이스(Dynamic AX, SharePoint, RDS 연결 브로커 및 인덱싱 서비스의 일부)는 Azure NetApp Files 볼륨에 저장됩니다.  데이터베이스는 AOAG 노드 간에 균형을 이루어 노드의 리소스를 효과적으로 사용합니다.  AOAG 구성에 참여하는 WSFC에 4개의 D32 v3 인스턴스가 추가되었습니다.  이러한 4개의 노드는 Azure 가상 네트워크에 프로비저닝되며 온프레미스에서 마이그레이션되지 않습니다.
+
+*참고사항:*
+
+* 애플리케이션의 특성과 실행되는 쿼리에 따라 로그에 더 많은 성능과 처리량이 필요한 경우, 데이터베이스 파일을 Premium 서비스 수준에 배치하고 로그를 Ultra 서비스 수준에 저장할 수 있습니다.
+* tempdb 파일이 Azure NetApp Files 에 배치된 경우 Azure NetApp Files 볼륨은 사용자 데이터베이스 파일과 분리되어야 합니다.  다음은 AOAG의 데이터베이스 파일 분포 예시입니다.
+
+
+*참고사항:*
+
+* 스냅샷 복사 기반 데이터 보호의 이점을 유지하려면 NetApp 데이터와 로그 데이터를 동일한 볼륨에 결합하지 않는 것이 좋습니다.
+* 기본 복제본에서 수행된 파일 추가 작업은 보조 데이터베이스의 파일 경로가 해당 기본 데이터베이스의 경로와 다른 경우 보조 데이터베이스에서 실패할 수 있습니다.  이는 기본 노드와 보조 노드의 공유 경로가 다른 경우(컴퓨터 계정이 달라서) 발생할 수 있습니다.  이러한 오류로 인해 보조 데이터베이스가 중단될 수 있습니다.  성장이나 성능 패턴을 예측할 수 없고 나중에 파일을 추가할 계획이라면 Azure NetApp Files 포함된 SQL Server 장애 조치(failover) 클러스터가 적합한 솔루션입니다.  대부분의 배포에서 Azure NetApp Files 성능 요구 사항을 충족합니다.
+
+
+
+
+=== 이주
+
+온-프레미스 SQL Server 사용자 데이터베이스를 Azure 가상 머신의 SQL Server로 마이그레이션하는 방법에는 여러 가지가 있습니다.  마이그레이션은 온라인 또는 오프라인으로 진행될 수 있습니다.  선택하는 옵션은 SQL Server 버전, 비즈니스 요구 사항 및 조직 내에서 정의된 SLA에 따라 달라집니다.  데이터베이스 마이그레이션 프로세스 동안 가동 중지 시간을 최소화하기 위해 NetApp AlwaysOn 옵션이나 트랜잭션 복제 옵션을 사용할 것을 권장합니다.  이러한 방법을 사용할 수 없는 경우 데이터베이스를 수동으로 마이그레이션할 수 있습니다.
+
+여러 기계 간에 데이터베이스를 이동하는 가장 간단하고 철저하게 검증된 방법은 백업 및 복원입니다.  일반적으로 데이터베이스 백업부터 시작한 다음 데이터베이스 백업의 복사본을 Azure에 복사할 수 있습니다.  그런 다음 데이터베이스를 복원할 수 있습니다.  최상의 데이터 전송 성능을 위해 압축된 백업 파일을 사용하여 데이터베이스 파일을 Azure VM으로 마이그레이션합니다.  이 문서에 참조된 상위 수준 설계에서는 Azure 파일 동기화를 사용하여 Azure 파일 저장소에 대한 백업 방식을 사용한 다음 Azure NetApp 파일로 복원합니다.
+
+
+NOTE: Azure Migrate를 사용하면 SQL Server 워크로드를 검색, 평가 및 마이그레이션할 수 있습니다.
+
+마이그레이션을 수행하려면 다음의 고급 단계를 완료하세요.
+
+. 요구 사항에 따라 연결을 설정하세요.
+. 온프레미스 파일 공유 위치에 전체 데이터베이스 백업을 수행합니다.
+. Azure 파일 동기화를 사용하여 백업 파일을 Azure 파일 공유에 복사합니다.
+. 원하는 버전의 SQL Server로 VM을 프로비저닝합니다.
+. 다음을 사용하여 백업 파일을 VM에 복사합니다. `copy` 명령 프롬프트에서 명령을 내립니다.
+. Azure 가상 머신의 SQL Server에 전체 데이터베이스를 복원합니다.
+
+
+
+NOTE: 21개의 데이터베이스를 복원하는 데 약 9시간이 걸렸습니다.  이 접근 방식은 이 시나리오에만 적용됩니다.  하지만 귀하의 상황과 요구 사항에 따라 아래에 나열된 다른 마이그레이션 기술을 사용할 수 있습니다.
+
+온-프레미스 SQL Server에서 Azure NetApp Files 로 데이터를 이동하는 다른 마이그레이션 옵션은 다음과 같습니다.
+
+* 데이터와 로그 파일을 분리하여 Azure Blob 저장소에 복사한 다음 URL에서 탑재된 ANF 파일 공유를 사용하여 Azure VM의 SQL Server에 연결합니다.
+* 온프레미스에서 Always On 가용성 그룹 배포를 사용하는 경우 다음을 사용하세요. https://docs.microsoft.com/en-us/previous-versions/azure/virtual-machines/windows/sqlclassic/virtual-machines-windows-classic-sql-onprem-availability["Azure Replica 추가 마법사"^] Azure에 복제본을 만든 다음 장애 조치를 수행합니다.
+* SQL Server를 사용하세요 https://docs.microsoft.com/en-us/sql/relational-databases/replication/transactional/transactional-replication["트랜잭션 복제"^] Azure SQL Server 인스턴스를 구독자로 구성하고, 복제를 비활성화하고, 사용자를 Azure 데이터베이스 인스턴스로 안내합니다.
+* Windows 가져오기/내보내기 서비스를 사용하여 하드 드라이브를 배송하세요.
+
+
+
+
+=== 백업 및 복구
+
+백업과 복구는 모든 SQL Server 배포의 중요한 측면입니다.  AOAG와 같은 고가용성 솔루션과 함께 다양한 데이터 장애 및 손실 시나리오에서 신속하게 복구할 수 있는 적절한 안전망을 갖추는 것이 필수적입니다.  SQL Server Database Quiesce Tool, Azure Backup(스트리밍) 또는 Commvault와 같은 타사 백업 도구를 사용하여 데이터베이스의 애플리케이션 일관성 백업을 수행할 수 있습니다.
+
+Azure NetApp Files 스냅샷 기술을 사용하면 성능이나 네트워크 활용도에 영향을 주지 않고 사용자 데이터베이스의 특정 시점(PiT) 복사본을 쉽게 만들 수 있습니다.  이 기술을 사용하면 스냅샷 복사본을 새 볼륨으로 복원하거나 볼륨 되돌리기 기능을 사용하여 영향을 받은 볼륨을 스냅샷 복사본이 생성되었을 당시의 상태로 빠르게 되돌릴 수도 있습니다.  Azure NetApp Files 스냅샷 프로세스는 매우 빠르고 효율적이어서 Azure Backup에서 제공하는 스트리밍 백업과 달리 매일 여러 번 백업할 수 있습니다.  하루에 여러 개의 스냅샷 복사본이 가능해지면 RPO와 RTO 시간을 크게 줄일 수 있습니다.  스냅샷 복사본을 만들기 전에 데이터가 손상되지 않고 디스크에 제대로 플러시되도록 애플리케이션 일관성을 추가하려면 SQL Server 데이터베이스 정지 도구를 사용하세요.(https://mysupport.netapp.com/site/tools/tool-eula/scsqlapi["SCSQLAPI 도구"^] ; 이 링크에 액세스하려면 NetApp SSO 로그인 자격 증명이 필요합니다.)  이 도구는 PowerShell 내에서 실행할 수 있으며, 이를 통해 SQL Server 데이터베이스를 중지하고 백업을 위해 애플리케이션과 일관된 저장소 스냅샷 복사본을 가져올 수 있습니다.
+
+*참고사항: *
+
+* SCSQLAPI 도구는 SQL Server 2016 및 2017 버전만 지원합니다.
+* SCSQLAPI 도구는 한 번에 하나의 데이터베이스에서만 작동합니다.
+* 각 데이터베이스의 파일을 별도의 Azure NetApp Files 볼륨에 저장하여 격리합니다.
+
+
+SCSQL API의 엄청난 제한으로 인해 https://docs.microsoft.com/en-us/azure/backup/backup-azure-sql-database["Azure 백업"^] SLA 요구 사항을 충족하기 위해 데이터 보호에 사용되었습니다.  Azure Virtual Machines 및 Azure NetApp Files 에서 실행되는 SQL Server의 스트림 기반 백업을 제공합니다.  Azure Backup을 사용하면 빈번한 로그 백업과 최대 1초의 PiT 복구를 통해 15분의 RPO를 허용합니다.
+
+
+
+=== 모니터링
+
+Azure NetApp Files 시계열 데이터를 위한 Azure Monitor와 통합되어 할당된 스토리지, 실제 스토리지 사용량, 볼륨 IOPS, 처리량, 디스크 읽기 바이트/초, 디스크 쓰기 바이트/초, 디스크 읽기/초 및 디스크 쓰기/초, 관련 대기 시간에 대한 메트릭을 제공합니다.  이 데이터는 경고와 관련된 병목 현상을 식별하고 SQL Server 배포가 최적의 구성에서 실행되고 있는지 확인하기 위한 상태 검사를 수행하는 데 사용할 수 있습니다.
+
+이 HLD에서는 ScienceLogic을 사용하여 적절한 서비스 주체를 사용하여 메트릭을 노출하여 Azure NetApp Files 모니터링합니다.  다음 이미지는 Azure NetApp Files 메트릭 옵션의 예입니다.
+
+image:sql-srv-anf-008.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
+
+
+
+=== 두꺼운 클론을 사용한 DevTest
+
+Azure NetApp Files 사용하면 애플리케이션 개발 주기 동안 현재 데이터베이스 구조와 콘텐츠를 사용하여 구현해야 하는 기능을 테스트하기 위해 데이터베이스의 즉각적인 복사본을 만들거나, 데이터 웨어하우스를 채울 때 데이터 추출 및 조작 도구를 사용하거나, 실수로 삭제되거나 변경된 데이터를 복구할 수도 있습니다.  이 프로세스에는 Azure Blob 컨테이너에서 데이터를 복사하는 작업이 포함되지 않아 효율성이 매우 높습니다.  볼륨이 복구되면 읽기/쓰기 작업에 사용할 수 있어 검증 및 출시 시간이 크게 단축됩니다.  애플리케이션의 일관성을 위해 SCSQLAPI와 함께 사용해야 합니다.  이 접근 방식은 Azure NetApp Files '새 볼륨으로 복원' 옵션을 활용하여 또 다른 지속적인 비용 최적화 기술을 제공합니다.
+
+*참고사항:*
+
+* 새 볼륨 복원 옵션을 사용하여 스냅샷 복사본에서 생성된 볼륨은 용량 풀의 용량을 사용합니다.
+* 추가 비용(용량 풀을 늘려야 하는 경우)을 피하기 위해 REST 또는 Azure CLI를 사용하여 복제된 볼륨을 삭제할 수 있습니다.
+
+
+
+
+=== 하이브리드 스토리지 옵션
+
+NetApp SQL Server 가용성 그룹의 모든 노드에 동일한 스토리지를 사용할 것을 권장하지만, 여러 스토리지 옵션을 사용할 수 있는 시나리오도 있습니다.  이 시나리오는 AOAG의 노드가 Azure NetApp Files Azure NetApp Files 에서 가능합니다.  이러한 경우 Azure NetApp Files SMB 공유에 사용자 데이터베이스의 기본 복사본이 보관되어 있고 프리미엄 디스크가 보조 복사본으로 사용되는지 확인하세요.
+
+*참고사항:*
+
+* 이러한 배포에서는 장애 조치 문제를 방지하려면 SMB 볼륨에서 지속적인 가용성이 활성화되어 있는지 확인하세요.  지속적으로 사용 가능한 속성이 없으면 스토리지 계층에서 백그라운드 유지 관리가 수행되는 경우 데이터베이스가 실패할 수 있습니다.
+* Azure NetApp Files SMB 파일 공유에 데이터베이스의 기본 복사본을 보관합니다.
+
+
+
+
+=== 비즈니스 연속성
+
+재해 복구는 일반적으로 모든 배포에서 나중에 고려됩니다.  그러나 비즈니스에 영향을 미치지 않도록 하려면 재해 복구를 초기 설계 및 배포 단계에서 고려해야 합니다.  Azure NetApp Files 사용하면 교차 지역 복제(CRR) 기능을 사용하여 블록 수준의 볼륨 데이터를 페어링된 지역으로 복제하여 예기치 않은 지역적 중단을 처리할 수 있습니다.  CRR이 활성화된 대상 볼륨은 읽기 작업에 사용할 수 있으므로 재해 복구 시뮬레이션에 적합한 후보입니다.  또한, CRR 목적지에 가장 낮은 서비스 수준(예: 표준)을 할당하여 전반적인 TCO를 줄일 수 있습니다.  장애 조치가 발생하면 복제가 중단되어 해당 볼륨에서 읽기/쓰기가 가능해집니다.  또한, 동적 서비스 수준 기능을 사용하면 볼륨의 서비스 수준을 변경하여 재해 복구 비용을 크게 줄일 수 있습니다.  이는 Azure 내에서 블록 복제를 지원하는 Azure NetApp Files 의 또 다른 고유한 기능입니다.
+
+
+
+=== 장기 스냅샷 사본 보관소
+
+많은 조직에서는 의무적인 규정 준수 요구 사항으로 데이터베이스 파일의 스냅샷 데이터를 장기간 보관해야 합니다.  이 프로세스는 이 HLD에서는 사용되지 않지만 간단한 배치 스크립트를 사용하여 쉽게 수행할 수 있습니다. https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10["아즈카피"^] 스냅샷 디렉토리를 Azure Blob 컨테이너에 복사합니다.  예약된 작업을 사용하여 특정 일정에 따라 배치 스크립트를 트리거할 수 있습니다.  이 과정은 간단합니다. 다음 단계로 구성됩니다.
+
+. AzCopy V10 실행 파일을 다운로드하세요.  아무것도 설치할 필요가 없습니다. `exe` 파일.
+. 적절한 권한이 있는 컨테이너 수준에서 SAS 토큰을 사용하여 AzCopy를 인증합니다.
+. AzCopy가 승인되면 데이터 전송이 시작됩니다.
+
+
+*참고사항:*
+
+* 배치 파일에서는 SAS 토큰에 나타나는 % 문자를 이스케이프해야 합니다.  SAS 토큰 문자열의 기존 % 문자 옆에 추가 % 문자를 추가하면 됩니다.
+* 그만큼 https://docs.microsoft.com/en-us/azure/storage/common/storage-require-secure-transfer["보안 전송이 필요합니다"^] 저장소 계정 설정은 저장소 계정에 대한 연결이 TLS(전송 계층 보안)로 보호되는지 여부를 결정합니다.  이 설정은 기본적으로 활성화되어 있습니다.  다음 배치 스크립트 예제는 스냅샷 복사 디렉터리에서 지정된 Blob 컨테이너로 데이터를 재귀적으로 복사합니다.
+
+
+....
+SET source="Z:\~snapshot"
+echo %source%
+SET dest="https://testanfacct.blob.core.windows.net/azcoptst?sp=racwdl&st=2020-10-21T18:41:35Z&se=2021-10-22T18:41:00Z&sv=2019-12-12&sr=c&sig=ZxRUJwFlLXgHS8As7HzXJOaDXXVJ7PxxIX3ACpx56XY%%3D"
+echo %dest%
+....
+다음 예제 cmd는 PowerShell에서 실행됩니다.
+
+....
+ –recursive
+....
+....
+INFO: Scanning...
+INFO: Any empty folders will not be processed, because source and/or destination doesn't have full folder support
+Job b3731dd8-da61-9441-7281-17a4db09ce30 has started
+Log file is located at: C:\Users\niyaz\.azcopy\b3731dd8-da61-9441-7281-17a4db09ce30.log
+0.0 %, 0 Done, 0 Failed, 2 Pending, 0 Skipped, 2 Total,
+INFO: azcopy.exe: A newer version 10.10.0 is available to download
+0.0 %, 0 Done, 0 Failed, 2 Pending, 0 Skipped, 2 Total,
+Job b3731dd8-da61-9441-7281-17a4db09ce30 summary
+Elapsed Time (Minutes): 0.0333
+Number of File Transfers: 2
+Number of Folder Property Transfers: 0
+Total Number of Transfers: 2
+Number of Transfers Completed: 2
+Number of Transfers Failed: 0
+Number of Transfers Skipped: 0
+TotalBytesTransferred: 5
+Final Job Status: Completed
+....
+*참고사항:*
+
+* 장기 보존을 위한 유사한 백업 기능이 곧 Azure NetApp Files 에서 제공될 예정입니다.
+* 배치 스크립트는 모든 지역의 Blob 컨테이너에 데이터를 복사해야 하는 모든 시나리오에서 사용할 수 있습니다.
+
+
+
+
+=== 비용 최적화
+
+데이터베이스에 완전히 투명한 볼륨 재구성 및 동적 서비스 수준 변경을 통해 Azure NetApp Files Azure에서 지속적인 비용 최적화를 가능하게 합니다.  이 기능은 HLD에서 작업 부하 급증을 처리하기 위해 추가 스토리지의 과도한 프로비저닝을 방지하기 위해 광범위하게 사용됩니다.
+
+Azure 경고 로그와 함께 Azure 함수를 만들면 볼륨 크기를 쉽게 조정할 수 있습니다.
