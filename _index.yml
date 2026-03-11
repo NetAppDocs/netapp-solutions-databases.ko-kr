@@ -55,6 +55,8 @@ indexpage:
       url: "/mssql/sql-aws-ec2.html"
     - title: Azure NetApp Files 에서 SQL Server 실행
       url: "/mssql/sql-srv-anf-overview.html"
+    - title: Google Cloud NetApp Volumes에서 SQL Server 실행
+      url: "/mssql/gcnv-sql-aoag-setup.html"
     - title: 온프레미스 SQL 워크로드를 FSx ONTAP 으로 마이그레이션
       url: "/mssql/customer-usecase-mssql-fsx1.html"
     - title: 클러스터형 데이터 ONTAP 사용하는 Windows 기반 Microsoft SQL Server와 SAP
