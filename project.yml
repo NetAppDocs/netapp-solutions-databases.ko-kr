@@ -88,6 +88,9 @@ sidebar:
           url: "/oracle/azure-ora-nfile-migration.html"
     - title: 구글 클라우드
       entries:
+      - title: NFS를 사용하는 Google NetApp Volumes에 Oracle 독립형 인스턴스 배포
+        pdf-filename: NFS를 통한 Google NetApp Volumes에 Oracle 독립형 인스턴스 배포
+        url: "/oracle/gcp-ora-gcnv-si-nfs.html"
       - title: Google Cloud NetApp Volumes 에서 서버 내 증분 병합을 통해 Oracle VLDB 백업 및 복구 최적화
         pdf-filename: Google Cloud NetApp Volumes 에서 서버 내 증분 병합을 통해 Oracle VLDB 백업
           및 복구 최적화

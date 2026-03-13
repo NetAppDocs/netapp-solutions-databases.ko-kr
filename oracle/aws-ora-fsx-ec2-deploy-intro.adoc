@@ -26,4 +26,5 @@ Amazon FSx ONTAP 은 업계 최고의 NetApp ONTAP 블록 및 파일 스토리�
 
 솔루션과 사용 사례에 대해 자세히 알아보려면 다음 개요 비디오를 시청하세요.
 
-link:https://www.netapp.tv/insight/details/30000?playlist_id=275&mcid=04891225598830484314259903524057913910["AWS 및 FSx ONTAP 에서 하이브리드 클라우드를 사용하여 Oracle 데이터베이스를 현대화하세요(1부 - 사용 사례 및 솔루션 아키텍처)"^]
+.AWS 및 FSx ONTAP 에서 하이브리드 클라우드를 사용하여 Oracle 데이터베이스를 현대화하세요(1부 - 사용 사례 및 솔루션 아키텍처)
+video::b1a7bb05-caea-44a0-bd9a-b01200f372e9[panopto,width=360]

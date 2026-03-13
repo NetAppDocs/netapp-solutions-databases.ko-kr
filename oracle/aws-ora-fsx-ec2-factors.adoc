@@ -71,7 +71,7 @@ NetApp 자동화 툴킷을 사용하여 Oracle을 자동으로 배포하면 NFSv
 ----
 sysctl -a | grep tcp.*.slot_table
 ----
-* 다음 표는 Linux NFSv3 - 단일 인스턴스에 권장되는 NFS 마운트 옵션을 보여줍니다.
+* 다음 표는 Linux 단일 인스턴스에 권장되는 NFS 마운트 옵션을 제공합니다.
 +
 image:aws-ora-fsx-ec2-nfs-001.png["입력/출력 대화 상자 또는 서면 내용을 나타내는 그림"]
 

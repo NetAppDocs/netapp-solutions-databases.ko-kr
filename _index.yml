@@ -41,6 +41,8 @@ indexpage:
       url: "/oracle/azure-ora-nfile-usecase.html"
   - title: Google Cloud용 Oracle
     links:
+    - title: NFS를 사용하여 Google NetApp Volumes에 Oracle SI 배포
+      url: "/oracle/gcp-ora-gcnv-si-nfs.html"
     - title: Google Cloud에서 Oracle VLDB 백업 및 복구 최적화
       url: "/oracle/gcp-ora-gcnv-inc-merge.html"
     - title: Google Cloud에서 Data Guard를 사용하여 Oracle VLDB 배포
