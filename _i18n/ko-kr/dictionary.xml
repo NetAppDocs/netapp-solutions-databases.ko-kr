@@ -5686,4 +5686,410 @@
   <block id="4cf73d6ef3868d34a0363e40eef4fa2d" category="sidebar">NFS를 사용하여 Google NetApp Volumes에 Oracle SI 배포</block>
   <block id="2fc358e366a2f0c47255223a019cdeb4" category="sidebar">NFS를 사용하는 Google NetApp Volumes에 Oracle 독립형 인스턴스 배포</block>
   <block id="8e3e5c03980534c9c25ff5b83706d4eb" category="sidebar">NFS를 통한 Google NetApp Volumes에 Oracle 독립형 인스턴스 배포</block>
+  <block id="6f400c01bfff3d3f8bbd7bedb4a491d7" category="summary">iSCSI 블록 스토리지와 함께 Google Cloud NetApp Volumes를 사용하여 Google Compute Engine에 Oracle Database 26ai 고가용성을 배포합니다. 이 가이드에서는 컴퓨팅 인스턴스 및 스토리지 프로비저닝, Oracle Grid Infrastructure 및 Oracle Database 설치, 대기 데이터베이스 초기화, Fast-Start Failover를 사용한 Oracle Data Guard 구성 방법을 설명합니다.</block>
+  <block id="570d7a507bccd399a746bfcd67657b8b" category="doc">Google Cloud NetApp Volumes를 사용하여 Oracle Database 26ai 고가용성 배포</block>
+  <block id="5c895dea5cdcb9cd0db925c45d2779f4" category="paragraph">이 가이드에서는 컴퓨팅 인스턴스 및 스토리지를 프로비저닝하고, Oracle Grid Infrastructure 및 Oracle Database를 설치하고, 대기 데이터베이스를 초기화하고, Fast-Start Failover를 사용하여 Oracle Data Guard를 구성하는 방법을 보여줍니다.</block>
+  <block id="0e8cd694c57c67a5da0d1e6a87b7b5a3" category="paragraph">시작하기 전에 다음 사항을 확인하십시오.</block>
+  <block id="14f8086b974149db9bcd1a822cff7dc3" category="list-text">Compute Engine, VPC 네트워킹, 방화벽 구성, IAM 및 NetApp Volumes에 대한 권한이 있는 Google Cloud 프로젝트</block>
+  <block id="eaeb30f9f18e0c50b178676f3eaef45f" category="cell">작업</block>
+  <block id="b0c993c43c7f9b598a362c2aeae6be13" category="cell">필수 액세스</block>
+  <block id="d9ef5fc623a78be5196538528d37faed" category="cell">Compute Engine VM 생성</block>
+  <block id="8959e8d7ffd92dc935e1e36be7ea37bb" category="cell">Compute Instance Admin(또는 이에 상응하는 권한)</block>
+  <block id="0bf9648bdd9c67241407bac1056d10b6" category="cell">방화벽/방화벽 정책</block>
+  <block id="507864ed765927287a9a92c1ae52fed1" category="cell">네트워크 관리자 또는 위임된 정책 관리자</block>
+  <block id="250428bf29c63465685cf422a4436958" category="cell">GCNV 풀 및 볼륨 생성</block>
+  <block id="d11cc31bc5f81b07d654dec5be90a3ef" category="cell">NetApp Volumes Admin</block>
+  <block id="9d3186a4f401ea45bed904bbc8d00e93" category="cell">PSA 구성</block>
+  <block id="dcae26f2b4bf690b09a92249e541efa0" category="cell">호스트 프로젝트의 네트워크 관리자</block>
+  <block id="766125d706bc80b242885440440a2d87" category="cell">IAP를 통한 SSH</block>
+  <block id="9db60a7d01a3256c92f6d4359469b024" category="cell">IAP로 보호되는 터널 사용자 + OS 로그인(사용하는 경우)</block>
+  <block id="d49bf86e78539a4b9e60941b1e22764f" category="list-text">NetApp Volumes API 활성화됨</block>
+  <block id="fbc9de9ec80e1368c67b77e053b3d2c5" category="list-text">대상 리전에 맞게 구성된 VPC 및 서브넷</block>
+  <block id="0c6322bb602f2d9d0cb52abbc85c41f7" category="list-text">Google Cloud NetApp Volumes에 대해 구성된 Private Services Access(PSA)</block>
+  <block id="bd4a7964d218c4803879df18b6d051a2" category="list-text">필요한 모든 가상 머신용 Oracle Linux 10</block>
+  <block id="ce3af5ed8f5785c890874b010cd50ff8" category="list-text">데이터베이스 호스트와 Observer 호스트에 대해 DNS 및 호스트 이름 확인이 구성되어 있습니다.</block>
+  <block id="46df024513c5c0dbd5a8ed73af3dd210" category="list-text">Oracle Database 26ai 및 Grid Infrastructure용 Oracle 설치 미디어 및 패치 파일 사용 가능</block>
+  <block id="ec395561951f382bbefa5a823677fc38" category="list-text">Oracle Data Guard, Oracle Restart 및 iSCSI 스토리지 개념에 대한 이해</block>
+  <block id="c4f0f99c0831852c4c5b694c501b7eeb" category="list-text">모든 가상 머신에 대해 시간 동기화가 구성되어 있습니다.</block>
+  <block id="0ceedcda92c72b47f16e1967565f68a3" category="paragraph">다음 명령을 사용할 수 있습니다.</block>
+  <block id="2603a18f720497da38e276677c294f43" category="section-title">이 가이드에서 사용된 예시 구성</block>
+  <block id="5b219fec69751daaf3d71c549a16bd3c" category="paragraph">이 가이드에서는 다음과 같은 배포 가정을 사용합니다.</block>
+  <block id="1baad04ea35d661ee7a81655251d71f2" category="list-text">Google Compute Engine 가상 머신 3대:</block>
+  <block id="62fc7bbc96175753d21cf4e94b1dbe97" category="list-text"><block ref="9514606aa0e81e08de08842f8136911c" prefix="" category="inline-code"></block> 운영 데이터베이스의 경우</block>
+  <block id="ce57f48d99efde619ae9bcb04156c209" category="list-text"><block ref="307e0423cd7859aca914691fcbaacca5" prefix="" category="inline-code"></block> 대기 데이터베이스의 경우</block>
+  <block id="f515d75466d0da1e0e9ee2f6de0334a9" category="list-text"><block ref="c7f5bde16987c7d543c988c216354ee9" prefix="" category="inline-code"></block> Fast-Start Failover Observer의 경우</block>
+  <block id="65495690b3f2c82a90af58efa661b0af" category="list-text">데이터베이스 영역당 하나의 GCNV Flex Unified 스토리지 풀</block>
+  <block id="3cd45e2461c436bac2d277a83a91bb5f" category="list-text">데이터베이스 호스트당 5개의 GCNV iSCSI 볼륨</block>
+  <block id="ca371b4b1f2da6a204eef9c0cf2f2f13" category="list-text">자동 페일오버를 위한 Oracle Data Guard Broker 및 Fast-Start Failover</block>
+  <block id="e7965015da23ff8abe627441a120b218" category="list-text">데이터베이스 호스트별로 전용 스토리지가 제공되며, 운영 호스트와 대기 호스트는 iSCSI 볼륨을 공유하지 않습니다.</block>
+  <block id="b617a894739e677261d2baa49d24fe05" category="paragraph">명령에 있는 모든 예시 값을 호스트 이름, IP 주소, 영역, 프로젝트 이름, 포털 IP, 암호 및 Oracle 미디어 파일 이름을 포함하여 사용자 환경의 값으로 바꾸십시오.</block>
+  <block id="bfaec92b2d5de19dd08a50aa9395ccc5" category="paragraph">이 절차에서는 다음 작업을 완료합니다.</block>
+  <block id="570e3ebea06ed5485a51ab8a141e8478" category="list-text">기본 데이터베이스, 대기 데이터베이스 및 Observer용 Compute Engine 인스턴스를 프로비저닝합니다.</block>
+  <block id="0ea55a73f52ab03fcd005c3d8b336b71" category="list-text">Oracle용 GCNV iSCSI 스토리지 및 다중 경로 장치를 구성합니다</block>
+  <block id="ac23cea8234ed48e62fc280b9e2d94ce" category="list-text">두 데이터베이스 호스트 모두에 Oracle Grid Infrastructure와 Oracle Database 26ai를 설치합니다</block>
+  <block id="2ad5b6649af83bc7a6a08da75558b3d9" category="list-text">기본 Oracle 데이터베이스 생성</block>
+  <block id="da05e7e946807759f242ae48605e9b3d" category="list-text">GCNV 복제, 스냅샷 또는 클론을 사용하여 대기 데이터베이스를 초기화합니다</block>
+  <block id="318fa9fd33ab8e3e071bedfb407f5409" category="list-text">Oracle Data Guard Broker, Fast-Start Failover 및 Observer 구성</block>
+  <block id="e2c5a3645710b0ed6fec1053fdfe0ead" category="section-title">배포 옵션</block>
+  <block id="996829dcca4cc326664fd6c94c212912" category="paragraph">이 섹션에서는 Google Compute Engine(GCE)의 Oracle 데이터베이스와 Google Cloud NetApp Volumes(GCNV) iSCSI 블록 스토리지를 사용하는 실제 HA/DR 배포 패턴을 비교합니다. 또한 GCNV 복제가 대기 초기화를 가속화하는 방법을 강조합니다. 시작하기 전에 이 매트릭스를 사용하여 계층을 선택하십시오. 이 가이드는 Prod HA(Data Guard + FSFO) — 맨 아래 행을 구현합니다.</block>
+  <block id="3d7e86901edfb5dd4ff831b110dc3454" category="cell">권장 아키텍처</block>
+  <block id="594c16ca0695f6665d7cf4971707adf6" category="cell">HA</block>
+  <block id="3754385271c4f2a2648b471683d21149" category="cell">DR</block>
+  <block id="d473532c4bfeddffde60958750e5b9f4" category="cell">주요 이점</block>
+  <block id="d5bc493e4a740ff9bbe543eb68120731" category="cell">개발/테스트</block>
+  <block id="2b177596566cc7eb305bbc4ce55fd688" category="cell">최저 비용</block>
+  <block id="c848ba0b9267c3a35f24d01b357339e0" category="cell">단일 인스턴스</block>
+  <block id="bafd7322c6e97d25b6299b5d6fe8920b" category="cell">아니요</block>
+  <block id="93cba07454f06a4a960172bbd6e2a435" category="cell">예</block>
+  <block id="12aa38e90604e137739eb5fbf02481a1" category="cell">스냅샷 클론</block>
+  <block id="acf190ec281c8b7dcb474bec1fa476e6" category="cell">Prod Basic(재시작)</block>
+  <block id="7b71b8b6b25bede5402426bcb8230d1b" category="cell">충돌로 인한 다운타임 감소</block>
+  <block id="96d479a72aa25098c1cac5d508303e11" category="cell">+ Oracle Restart</block>
+  <block id="0dae103909ed6e557fdcf65c22cf8a23" category="cell">로컬 전용</block>
+  <block id="975d49c63b8f7106998f43306ea1cdfc" category="cell">자동 재시작</block>
+  <block id="e57aafc245cb0cd1a4f39fd0df855bc3" category="cell">운영 HA (DG 없음)</block>
+  <block id="2983b1a2a5db25ad1df9750881e33c8a" category="cell">수동 DR 허용</block>
+  <block id="1c71b9a95931933e47b450eebe1bfeae" category="cell">+ Snapshot / RMAN</block>
+  <block id="44ffd38a6dea695cbe2b34efdcc6cf27" category="cell">부분적</block>
+  <block id="cb52167bd821b9013ebc0b810c09c2b0" category="cell">GCNV 클론 복구</block>
+  <block id="b91071312ec14bc510ff935ab3d815ab" category="cell">Prod HA (DG + FSFO)</block>
+  <block id="7abf1e949646e472b36848167aa8a84d" category="cell">진정한 HA(DBA 없음)</block>
+  <block id="b16e662ab29521df679195787c66e2d0" category="cell">Data Guard + FSFO</block>
+  <block id="bbd47109890259c0127154db1af26c75" category="cell">전체</block>
+  <block id="54962912fb2e8054be9d47426799a601" category="cell">진정한 HA + 빠른 페일오버</block>
+  <block id="c6b79d434f793ebf874e8413b181eca9" category="paragraph">*HA/DR/자동화:* 예 = 티어 목표 충족, 아니요 = 범위에 포함되지 않음, 부분적 = 스토리지 수준 또는 수동 단계만 해당.</block>
+  <block id="d4a11793ed5dcdb8168a5f3e8f960d7c" category="section-title">계층에 대해 읽을 섹션</block>
+  <block id="a41aa4fa0a10cf20b90e80b8ca55c3c0" category="paragraph">원하는 HA 수준에 따라 아래 매트릭스의 섹션을 읽어보십시오. 예를 들어, Data Guard 및 FSFO를 사용하는 Prod HA를 원하는 경우 모든 섹션을 읽으십시오. Restart를 사용하는 Dev/Test 또는 Prod Basic을 원하는 경우 첫 번째 열만 읽으십시오.</block>
+  <block id="0247f5ba79c8fd6ea3216d9a3fb2c466" category="cell">개발/테스트 또는 운영 기본(재시작)</block>
+  <block id="ebf9190be73acaf4542a69de1d99a909" category="cell">Prod HA(Data Guard 미사용)</block>
+  <block id="6f3432e185b2a0a8259ea8de4bd41a71" category="cell">운영 HA(Data Guard + FSFO)</block>
+  <block id="6295875e19e489debb21f5f152416fdc" category="paragraph"><block ref="9cfef9c1e7788b80af76f2c7a3395949" category="inline-xref-macro-rx"></block></block>
+  <block id="25f9d5f7c0f7b963bda6aca484c72ac2" category="paragraph"><block ref="790db1d15aa381134087e86064c1cc15" category="inline-xref-macro-rx"></block></block>
+  <block id="89c12fc930953cc9f25c37b3a18b97c4" category="paragraph"><block ref="823b6d6787566dd433a87dae5f5da72a" category="inline-xref-macro-rx"></block></block>
+  <block id="4f9ea9768f5d0dde8183758e651e6199" category="paragraph"><block ref="f8636ffb086ecd5cca26f35c27e574c8" category="inline-xref-macro-rx"></block></block>
+  <block id="18a99e643c4d2b0bc583afba7f340ea8" category="paragraph"><block ref="5a928dc4203c092ef6c0a9810e7ee53a" category="inline-xref-macro-rx"></block></block>
+  <block id="b3e8bc476ceb94843197a745ded6465f" category="paragraph"><block ref="1a51d28b819003ec401451c9a6b4ac89" category="inline-xref-macro-rx"></block></block>
+  <block id="c43278cb8138b24221eb8749f0536585" category="inline-xref">Compute Engine 프로비저닝</block>
+  <block id="ab1db3b9583f4b742597095362669dc8" category="paragraph"><block ref="0798f80eb496dd6c656fbd9afd60cca1" category="inline-xref-macro-rx"></block></block>
+  <block id="00d0182bef9180d0aff1d0d845d42e10" category="inline-xref">GCNV iSCSI 볼륨 프로비저닝</block>
+  <block id="615a51b5ee895bef988e751d290cd113" category="paragraph"><block ref="4ae55d7b9b6ac07a69a1c98e4d8c5546" category="inline-xref-macro-rx"></block></block>
+  <block id="6056ba56003af3745ff8fa3b66fbb670" category="inline-xref">Oracle 소프트웨어 설치</block>
+  <block id="596199c52877556032fbcffd480579e5" category="paragraph"><block ref="05950070aa1a509ef920318170062864" category="inline-xref-macro-rx"></block></block>
+  <block id="eee2a011536270d86e577840ae5568d9" category="inline-xref">기본 데이터베이스를 생성합니다</block>
+  <block id="e08d4df472d415f254bb49e94059f32e" category="paragraph"><block ref="a22e8bc507fee62eb8c57269515eb9b0" category="inline-xref-macro-rx"></block></block>
+  <block id="4ac505713cfada8b1590e76b9e41c218" category="inline-xref">대기 데이터베이스를 생성합니다</block>
+  <block id="7971dfdf9edb733e0ab4635c9c754464" category="inline-xref">3단계: GCNV 대기 초기화</block>
+  <block id="7c736aaab68eb0b5c5cd6427dde8792a" category="paragraph"><block ref="2325ddbeb97493991acefece02396eff" category="inline-xref-macro-rx"></block>(<block ref="595ca2272dfa782b5226a19af86c4f37" category="inline-xref-macro-rx"></block>만 해당)</block>
+  <block id="3182ef46f1fc2349218ba2685349ae33" category="paragraph"><block ref="2325ddbeb97493991acefece02396eff" category="inline-xref-macro-rx"></block></block>
+  <block id="6c65be57ba0b7a7c5e8c087c78698514" category="inline-xref">Data Guard Broker, FSFO 및 Observer 구성</block>
+  <block id="52f62d72690015fc6f32c11bd343aa8d" category="paragraph"><block ref="570201f6cc183155f279a9ee0f1dd27c" category="inline-xref-macro-rx"></block></block>
+  <block id="051f3f699ce1b7edc3419d499e0037bd" category="paragraph">이 아키텍처는 Google Cloud NetApp Volumes(GCNV) iSCSI 스토리지와 Oracle Data Guard를 사용하여 Google Cloud에 Oracle Database 26ai 고가용성을 배포합니다. GCNV는 고성능 블록 스토리지를 제공하고 스토리지 계층에서 대기 초기화를 지원합니다. Data Guard는 지속적인 동기화, 전환 및 Fast-Start 페일오버를 제공합니다.</block>
+  <block id="359b71e88f40029251366609358a302f" category="cell">계층</block>
+  <block id="79423f31b24b340dd9352be752fc5c18" category="cell">GCNV</block>
+  <block id="e3296db9b868f3df3cf0c26b374ad45b" category="cell">블록 스토리지, 대기 초기화, 스토리지 복제</block>
+  <block id="edd8af7eaa131179cb70a5db89636876" category="cell">Data Guard</block>
+  <block id="eeb002a92e371795f7a90c52f2bea874" category="cell">연속 동기화, 리두 적용, 스위치오버, FSFO</block>
+  <block id="8101175ec0be8dcfbde6e362ad665912" category="paragraph">GCNV 복제는 Oracle 데이터베이스 채널을 통하지 않고 스토리지 계층에서 데이터를 이동하므로 RMAN 액티브 복제에 비해 스탠바이 초기화 시간을 크게 단축합니다. 환경에서 지원하는 경우 프로덕션 스탠바이 시드에는 GCNV 복제를 사용하는 것이 좋습니다.</block>
+  <block id="2cb05e4bb7830be982f0922fed86b4cd" category="cell">구성 요소</block>
+  <block id="a254c25adc7d10d7e9c4889484f875a5" category="cell">세부 정보</block>
+  <block id="ac777d777ae29687664b95ccd2875f6f" category="cell">DB 호스트</block>
+  <block id="05a1d5351e0f2fde238e808c1675d6c6" category="cell"><block ref="9514606aa0e81e08de08842f8136911c" prefix="" category="inline-code"></block> /<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block> — 서로 다른 영역, 각 영역당 5개의 GCNV iSCSI 볼륨</block>
+  <block id="8c4aa541ee911e8d80451ef8cc304806" category="cell">스토리지</block>
+  <block id="9a7240a0c943a8ab7e97981fb452769e" category="cell"><block ref="a8946fa5f211c5345e3610710e471cb4" prefix="" category="inline-code"></block> + ASM<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block>,<block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category="inline-code"></block>,<block ref="80f3131b9dc238e16c645ddfad01b783" prefix=" " category="inline-code"></block> on GCNV(EXTERNAL)</block>
+  <block id="fbc6afae895aa15b4de94880f94d327a" category="cell">대기 초기화</block>
+  <block id="a61464b13c6b33859f09693876605ab8" category="cell">GCNV 복제/스냅샷/클론 → Oracle 마무리 → Data Guard</block>
+  <block id="cfe42fd5d4e544839378d7a67942f434" category="cell">재시작, 물리적 대기(MOUNTED), 브로커, FSFO, Observer <block ref="c7f5bde16987c7d543c988c216354ee9" prefix="(" category="inline-code"></block>)</block>
+  <block id="a6f00c82b6eb55a13a1f242313aaf9c9" category="cell">앱</block>
+  <block id="5f65e71d325d775a2b58b33aeb8f1e94" category="cell">서비스<block ref="4645c43c671fdeae260367b4f2fb866a" prefix=" " category="inline-code"></block></block>
+  <block id="a79eb72d4dd6fb0dda84ce7307150f42" category="paragraph">*영역 설정:* 데이터베이스 영역당 하나의 GCNV Flex Unified 풀이 사용되며, 호스트별로 전용 볼륨이 할당됩니다. 부팅 디스크는 OS 전용입니다. *범위 외:* TDE, RAC, NVMe/TCP, OEM, Active Data Guard(대기는 *MOUNTED* 상태 유지).</block>
+  <block id="1142393d49f79cd9812a1f4b3f3fa02e" category="section-title">참조 다이어그램</block>
+  <block id="2ee442b3237b97b6099735cc1a076aa1" category="paragraph">이 아키텍처는 세 가지 독립적인 데이터 경로를 제공합니다. 스토리지 복제와 Data Guard 리두 전송은 별도의 경로입니다.</block>
+  <block id="fba2d7931ab2a35d8d5b6cb6276830be" category="image-title">GCNV Oracle 배포 - 참조 아키텍처</block>
+  <block id="217d35c3ea12d30b07dac643ba5f02ff" category="image-alt">Oracle 26ai HA on GCNV - 참조 아키텍처</block>
+  <block id="478f5c274a903954ce7894f9b33ba59d" category="paragraph">*스토리지 복제 ≠ 리두 복제.* 경로 1은 스탠바이 초기화를 위해 GCNV 계층에서 데이터 파일을 이동합니다. 경로 2는 전환 후 데이터베이스를 동기화 상태로 유지합니다. 경로 3은 Oracle Data Guard Broker 및 Observer를 통해 역할 전환 및 자동 페일오버를 오케스트레이션합니다.</block>
+  <block id="cb9e27422b343274f9974efbc9c3dbc1" category="section-title">플랫폼 역할</block>
+  <block id="419f3742e6de8e0ec4b22cce005e7630" category="cell">플랫폼</block>
+  <block id="7e730a226c1abe4e7a9dde9102b9c81a" category="cell">제공</block>
+  <block id="093acb110aacf54e4d298a19b7c3044c" category="cell">iSCSI 볼륨, 스냅샷, 볼륨 복제(기준 복제 + 증분 복제) — 대기 상태 초기화</block>
+  <block id="175d96046645cf87adf382b378585577" category="cell">리두 전송, MRP, 브로커, FSFO — 지속적인 동기화 및 페일오버</block>
+  <block id="47febd95375e98ce605eaa32243d61b3" category="paragraph">GCNV 복제는 기준 복사본을 실행한 다음 정책에 따라 증분 블록 업데이트를 실행합니다. Data Guard는 스탠바이 서버가 초기화된 후 리두 적용 및 FSFO를 담당합니다.</block>
+  <block id="ed498a266688cfb5e0faabe6d0ed4cea" category="section-title">토폴로지 및 스토리지</block>
+  <block id="b3ff996fe5c77610359114835baf9b38" category="cell">영역</block>
+  <block id="aafb1debc5120d13988900410c6d6eb1" category="cell">GCNV 풀</block>
+  <block id="514eb82e5fe7f221dc1a239aee62f7c2" category="cell">볼륨(호스트당)</block>
+  <block id="e82ca42a2c4526a67b885679fb5aa8cc" category="cell"><block ref="9514606aa0e81e08de08842f8136911c" prefix="" category="inline-code"></block></block>
+  <block id="35cdb90190eca7017839caf3eb90b30a" category="cell"><block ref="b5bcc32f2dcfcba307bfdabcd317f173" prefix="" category="inline-code"></block></block>
+  <block id="dc611284134791d99db6b8e47dc64e10" category="cell"><block ref="79d523916802ef5e588f3a0e1f37e882" prefix="" category="inline-code"></block></block>
+  <block id="13c76f99912af5d3b32f3df3cfdeb1a7" category="cell"><block ref="5adb925391dcc0e1f89a27100238aa98" prefix="" category="inline-code"></block>,<block ref="6660e84e88f4fffe513ef2edd728f3dc" prefix=" " category="inline-code"></block>,<block ref="ae4259f185708f943bcc39bd9dc36f09" prefix=" " category="inline-code"></block>,<block ref="cd5a944679e9c2fd69e4b554b51acb54" prefix=" " category="inline-code"></block></block>
+  <block id="b2610a0e2da9bc44da203c52f36fb67f" category="cell"><block ref="307e0423cd7859aca914691fcbaacca5" prefix="" category="inline-code"></block></block>
+  <block id="319fec914f6278b0e01df80f55a9901a" category="cell"><block ref="bffe9cca2446cbd9a50cb8fb48107c25" prefix="" category="inline-code"></block></block>
+  <block id="7b93f588d4beb4c71d3287f3c8a71d0c" category="cell"><block ref="dd70af3bcff9c8357ee70338cabadf23" prefix="" category="inline-code"></block></block>
+  <block id="82e39eb770809674a4bca16a31684309" category="cell">동일한 명명 패턴</block>
+  <block id="83d694b8b98b155b8817ac412c4d3e9c" category="cell">Observer</block>
+  <block id="aa4080137b1eef796ca61e4690c790f7" category="cell"><block ref="c7f5bde16987c7d543c988c216354ee9" prefix="" category="inline-code"></block></block>
+  <block id="f095b0b316b4f06f2f1be592365e493e" category="cell"><block ref="54420979f24fe03e6067aef46b2d7b19" prefix="" category="inline-code"></block></block>
+  <block id="26aeabd0c99c77002e55825fbcd435af" category="cell">—</block>
+  <block id="8e6431c5abf069b8a3a35ed8abba8341" category="cell">부팅 디스크만</block>
+  <block id="a5bfccfcb5543ce6cd1d6a5471e3224c" category="cell">백업</block>
+  <block id="ad8783089f828b927473fb61d51940ec" category="cell">사용</block>
+  <block id="17bc10091293fdc562a6db69940ee924" category="cell">OS</block>
+  <block id="1b02a9477b6731aacb2e25439a422cc1" category="cell">GCE 부팅 디스크</block>
+  <block id="22f1d38eeaae97935ea60696181acf16" category="cell">OS 전용</block>
+  <block id="0a24867dd5f1891183c60e2ce04cc844" category="cell"><block ref="a8946fa5f211c5345e3610710e471cb4" prefix="" category="inline-code"></block></block>
+  <block id="a9a1b624d4df65057ecc4d03bd34fa08" category="cell">GCNV iSCSI</block>
+  <block id="fb4d79e081113859fc37805b64f81a53" category="cell">그리드/DB 홈, 스테이징(XFS)</block>
+  <block id="cb7cc0f9531b8cfee1be7fd8953f8452" category="cell"><block ref="c097579d8cb34b312d396304e0b8f487" prefix="" category="inline-code"></block> /<block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category="inline-code"></block> /<block ref="80f3131b9dc238e16c645ddfad01b783" prefix=" " category="inline-code"></block></block>
+  <block id="d6cab2913ff457e5d19c6412efb6d21f" category="cell">ASM EXTERNAL — 데이터 파일, 아카이브, FRA</block>
+  <block id="45ce8fb9d12209f44a24f5c6625f2336" category="paragraph-title">시스템 유형</block>
+  <block id="d9fa131dc2f2aabbebf27c61e0944f16" category="paragraph">이 가이드의 샘플<block ref="781e05c5c208b0d55d2b16b06ad7ccbe" prefix=" " category="inline-code"></block>입니다. OLTP 워크로드는 일반적으로<block ref="fe1633c2ac7a622d0b89e58f57e15903" prefix=" " category="inline-code"></block>를 사용합니다.</block>
+  <block id="8ed982666bddcd8ff02a5747ff73e458" category="section-title">1단계: VM 생성</block>
+  <block id="e5ea886932e3869d766934475a76cfe8" category="paragraph">동일 리전 내 서로 다른 영역에 세 개의 VM을 생성합니다(영역별 장애 격리). 총소유비용(TCO) 및 지속가능성을 고려하여 지연 시간 및 규정 준수 요구 사항을 충족하는 저탄소 리전을 선택하는 것이 좋습니다(예: <block ref="7460527a94dd1cdca7f80472ca36103e" prefix=" " category="inline-code"></block> vs<block ref="68ceb8e3f47e5536a6434f040549ec8b" prefix=" " category="inline-code"></block>). Cloud Console,<block ref="7f22bf39aaf5ce5980111c3587bef5b5" prefix=" " category="inline-code"></block> Terraform 또는 표준 프로비저닝 워크플로를 사용하세요.</block>
+  <block id="3ea4bf9da7622edeeae1bf80e9c5cded" category="cell">시스템 유형</block>
+  <block id="0fe30f7d2c6d9fa750acc035e9d2df03" category="cell">부팅 디스크</block>
+  <block id="eec89088ee408b80387155272b113256" category="cell">네트워크</block>
+  <block id="acc62355c8479494569c093cd8b15090" category="cell"><block ref="781e05c5c208b0d55d2b16b06ad7ccbe" prefix="" category="inline-code"></block> (샘플) 또는<block ref="fe1633c2ac7a622d0b89e58f57e15903" prefix=" " category="inline-code"></block></block>
+  <block id="2dbda0c7b4f038ea79d3f9e0d1ebf6f3" category="cell">OL 10, 50 GB Hyperdisk Balanced(OS 전용)</block>
+  <block id="dacfe1c0dcff363c45cd4df2486f678d" category="cell"><block ref="2027eeee86a22251d3d3ffbc95e965b5" prefix="" category="inline-code"></block> /<block ref="ed0bf7b39c3cdb89c08c74d590dd84bf" prefix=" " category="inline-code"></block>, gVNIC</block>
+  <block id="3d8ebbee3b53ee817e0140136ee97a21" category="cell">기본 DB</block>
+  <block id="813f96cabf1f12653e92542db7aa6f3a" category="cell">기본과 동일</block>
+  <block id="c90a13d8ec8fe53c6bb33fe10af6f2fe" category="cell">동일</block>
+  <block id="2c9b2b5486c192c6e37ff3b7a69b58d3" category="cell">대기 DB</block>
+  <block id="85b84850fdf091ce2b8db484ab9e1c33" category="cell"><block ref="2cacbf1ab442ffaa5b437941e551f041" prefix="" category="inline-code"></block></block>
+  <block id="1f06b01186359475d82c6d064be8806d" category="cell">OL 10, 20GB Hyperdisk Balanced</block>
+  <block id="0d1988376825015a69424f118fa0d9ba" category="cell">FSFO Observer(Instant Client 전용)</block>
+  <block id="134db94cc9d355845d78fb5fd08adfb5" category="paragraph">*네트워크 등급:* 지연 시간이나 송신(&gt;~200GiB/월)이 중요한 경우 Premium, 개발/테스트에서 TCO를 낮추려면 Standard를 선택하십시오.</block>
+  <block id="3e912ad74db884147cbe49ec6e648f62" category="paragraph">세 디스크 모두에서 *Secure Boot*, *vTPM* 및 *Integrity Monitoring*을 활성화하십시오. 부팅 디스크에는 OS만 저장됩니다.<block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block> Grid/DB 홈, 스테이징 및 모든 ASM 데이터는 GCNV iSCSI 볼륨을 사용합니다(참조 <block ref="4ae55d7b9b6ac07a69a1c98e4d8c5546" category="inline-xref-macro-rx"></block>) — <block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block>에 대해 별도의 GCE 데이터 디스크를 연결하지 *마십시오*.</block>
+  <block id="7f658ecfbb2f8abf805202d737460198" category="section-title">2단계: VPC 방화벽 - 세 영역 모두에서 TCP/1521 허용 목록 추가</block>
+  <block id="a233dc626e7616b1cb789efe03c51b29" category="paragraph">모든 영역의 세 VM<block ref="1c2834cd351fe5f23b2e7096f2732eff" prefix=" " category="inline-code"></block> 내부 IP 간에 TCP/1521을 허용합니다<block ref="17dfa8b70fd4f9130b1e6cb3a82a8f79" prefix="(" category="inline-code"></block>). 동일한 허용 목록으로 VPC 방화벽 규칙 또는 방화벽 정책을 사용합니다. 규칙이 누락되면 redo 전송 및 Observer 연결이 중단됩니다.</block>
+  <block id="f8b89b1617aeea4320e159e39f22ad4f" category="paragraph">*Cloud Console:* VPC 네트워크 → 방화벽 → 규칙 생성<block ref="09b7b0b04e727fd655b5aec3c5b9b0c0" prefix=" " category="inline-code"></block> on<block ref="2027eeee86a22251d3d3ffbc95e965b5" prefix=" " category="inline-code"></block> — 수신, 허용, 소스 = 세 개의<block ref="1c2834cd351fe5f23b2e7096f2732eff" prefix=" " category="inline-code"></block> IP, TCP 1521. 필요한 경우 송신도 동일하게 설정합니다. 각 VM에서 유효성을 검사합니다.</block>
+  <block id="60aaf44d4b562252c04db7f98497e9aa" category="cell">포트</block>
+  <block id="c87076fc9901bb23fee8eda95971b5a5" category="cell">예상</block>
+  <block id="7277de5f2ed6f17c61f1f25594591a82" category="cell">의미</block>
+  <block id="5da8d8087ef76472ac4cce5df22c3696" category="cell"><block ref="b6d767d2f8ed5d21a44b0e5886680cb9" prefix="" category="inline-code"></block></block>
+  <block id="2ec0d16e4ca169baedb9b2d50ec5c6d7" category="cell">연결됨</block>
+  <block id="86bd785c9703ed9e0c9896b135786c36" category="cell">SSH 경로가 작동합니다</block>
+  <block id="47bfab5eca222340898b48d75b206e05" category="cell"><block ref="253f7b5d921338af34da817c00f42753" prefix="" category="inline-code"></block></block>
+  <block id="1867e4a765d502c76e2b022504c37d92" category="cell">연결이 거부되었습니다</block>
+  <block id="5d50b52633f5bef8715e30e4a8fc12a6" category="inline-xref">1단계: 각 DB 호스트에 Oracle Grid Infrastructure(Oracle Restart)를 설치합니다</block>
+  <block id="007aa00a3b581b065f771dbe79986af2" category="cell">방화벽 열림, Grid 리스너가 <block ref="6077d869d1c17b4609a7a121dc0426ac" category="inline-xref-macro-rx"></block> 중에 시작됨</block>
+  <block id="9e70a5d3dab1960c04b55a29f310331e" category="cell">둘 중 하나</block>
+  <block id="c85a251cc457840f1e032f1b733e9398" category="cell">시간 초과</block>
+  <block id="53998773f8e834f94209b1d69c925f32" category="cell">방화벽 또는 라우팅 수정</block>
+  <block id="ee6f41d8b788e77298c6295e18ca7b89" category="paragraph">세 개의 VM 모두에서 각 피어 IP를 향해 실행합니다.</block>
+  <block id="272ab50d7a25c897af2133b0505d9153" category="section-title">3단계: 호스트 이름, DNS 및<block ref="ad942c725cd0cae65ca4c63717ec464c" prefix=" " category="inline-code"></block></block>
+  <block id="7f2f4a3547fbe3b2ab1c5468a554d07f" category="paragraph">각 VM이 부팅된 후 호스트 이름을 설정하고<block ref="ad942c725cd0cae65ca4c63717ec464c" prefix=" " category="inline-code"></block> 세 호스트 모두에 항목을 추가하여 Oracle Net, 브로커 및 Observer에 대한 정방향/역방향 이름 확인이 작동하도록 하십시오.</block>
+  <block id="8fc5a7e393f74252b30f268ee94af3bd" category="paragraph">GCE 내부 IP 주소(*Compute Engine → VM instances* 목록, _Internal IP_ 열에 표시됨)를 대체하십시오.</block>
+  <block id="6276b3074f4adeb978e6e1c9789ac500" category="paragraph">각 호스트에서 유효성을 검사합니다.</block>
+  <block id="b7a6078dc05fdad35eedcb863a1a424b" category="section-title">4단계: OS 기준선(DB 호스트만 해당)</block>
+  <block id="58b64cbd6d646767067f1a3ae1d1a6dd" category="paragraph">*필수 조건:* <block ref="c129932d9c09d1c318e36e52fc4ef0bb" prefix=" " category="inline-code"></block>에 대한 아웃바운드 HTTPS(프라이빗 서브넷의 Cloud NAT 또는 내부 미러).</block>
+  <block id="8f0aa1f80b6a3fea3f5f3f35282ab944" category="inline-xref">4단계: Observer 호스트에 Oracle Instant Client 설치</block>
+  <block id="928b0be7fe417cd128db374651a5f33e" category="paragraph"><block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block> 및 <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 실행(Observer 설정은 <block ref="f834f71b7b95d7b0b6bc91d673168263" category="inline-xref-macro-rx"></block>에서 다룹니다).</block>
+  <block id="2d602cd2927004a1baef2c08ab0be038" category="paragraph">*보안 상태(OL 10):* 아래 명령은 SELinux를 허용 모드로 설정하고<block ref="7ba21652408bcade58b8719451511f2a" prefix=" " category="inline-code"></block>를 비활성화합니다. 이는 최소한의 랩 환경을 위한 설정일 뿐입니다. 강화된 SELinux 및 방화벽 구성은 조직의 보안 기준을 참조하십시오.</block>
+  <block id="30be3a68f571bdf2e2aaccce6cc938c6" category="section-title">5단계: iSCSI 이니시에이터 이름(IQN) 캡처</block>
+  <block id="41e6b9276493ce264cc0f48065ee97a8" category="inline-xref">2단계: 호스트 그룹 생성</block>
+  <block id="e1f105442b4fbe4f7ccfdc9bd6b3df88" category="paragraph">재부팅 후 각 DB 호스트의 IQN을 캡처하십시오. 이 IQN을 사용하여 <block ref="9fc0077264de0ccac2bc390e8e2588e0" category="inline-xref-macro-rx"></block>에서 GCNV 호스트 그룹을 생성합니다.</block>
+  <block id="09a9aca5b3001f666ba2a4a0d99aa831" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 반복합니다. 각 호스트의 IQN을 기록합니다. 호스트당 하나의 호스트 그룹을 사용하여 단일 호스트의 재부팅 또는 IQN 재생성이 다른 호스트의 GCNV iSCSI 볼륨 가시성에 영향을 미치지 않도록 합니다.</block>
+  <block id="b869ecbb2882a1e727a0bdee595b1c02" category="paragraph">*복제된 VM:* 두 호스트가 동일한 IQN을 공유하는 경우<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 다시 생성하십시오(중지<block ref="39eea648dab96b0ee6022dabb38bc420" prefix=" " category="inline-code"></block>, 초기화<block ref="732b4f233335f6653bbc69eb25801802" prefix=" " category="inline-code"></block>, 새로 생성<block ref="c23e5c42f09add6332c9db71a9774c3f" prefix=" " category="inline-code"></block><block ref="22565a44e8f73044eb2029acbb069639" prefix=" " category="inline-code"></block>, 재시작<block ref="3fe4dc8de876aca2c78fa0cd9c6d0b65" prefix=" " category="inline-code"></block>).</block>
+  <block id="9f0519aa4a93d0d1c0a95b0dff2bd965" category="section-title">1단계: 데이터베이스 영역별로 GCNV Flex Unified iSCSI 스토리지 풀을 하나씩 생성합니다</block>
+  <block id="20a31ad10baa17b5d17ac9d18e28b111" category="paragraph">데이터베이스 영역당 하나의 Flex Unified 풀(<block ref="1a51d28b819003ec401451c9a6b4ac89" category="inline-xref-macro-rx"></block> 참조).</block>
+  <block id="a91129e4ffe7da23c62aca53e4c64cc7" category="paragraph">이 HA 설계를 위해 두 개의 스토리지 풀을 생성합니다(각 영역에 대해 위 단계를 반복합니다).</block>
+  <block id="c931e064dd64a38adddc55cf37391292" category="cell">풀 이름</block>
+  <block id="11cd4b12c171c74f7146ba4e4ede2f62" category="cell">사용 대상</block>
+  <block id="0c0bad4c5f2c059789d5fbb27a7ff0fd" category="cell"><block ref="9514606aa0e81e08de08842f8136911c" prefix="" category="inline-code"></block> (운영)</block>
+  <block id="cc6ba6c1a83cebc51fddbf1fda529f3a" category="cell"><block ref="307e0423cd7859aca914691fcbaacca5" prefix="" category="inline-code"></block> (대기)</block>
+  <block id="891870071864adba3b9808fbe1ea50a6" category="paragraph">*NetApp Volumes → 스토리지 풀 → 각 풀에 대해 생성*</block>
+  <block id="86db7eb922fddec58c408a2360a878cc" category="list-text">*서비스 수준:* Flex(Premium 아님)</block>
+  <block id="01adb05cfd0c81e5a9ddb3835c65e849" category="list-text">*유형:* Unified</block>
+  <block id="bbad578a9e9b89bf1b685de2b770e39b" category="list-text">*Zone:* 데이터베이스 VM 영역과 일치<block ref="b5bcc32f2dcfcba307bfdabcd317f173" prefix="(" category="inline-code"></block> /<block ref="bffe9cca2446cbd9a50cb8fb48107c25" prefix=" " category="inline-code"></block>)</block>
+  <block id="8750f2664755ee27d7667d0c71546c87" category="list-text">*PSA:* 다음에 연결됨<block ref="2027eeee86a22251d3d3ffbc95e965b5" prefix=" " category="inline-code"></block></block>
+  <block id="02aa93caee1e448c2ec6b5203557efaa" category="list-text">*용량:* 워크로드에 맞춰 크기가 조정됩니다. 재실행, 백업 또는 복원 작업이 기본 여유 용량(풀당 최대 5120 MiB/s 또는 160K IOPS, 제품 제한)을 초과하는 경우 사용자 지정으로 프로비저닝된 처리량/IOPS를 사용합니다.</block>
+  <block id="38d150db7ef372a8f8970104a2e8aab0" category="inline-xref">3단계: GCNV iSCSI 볼륨 생성</block>
+  <block id="d577faa76333018a77342c6c3a4529a6" category="paragraph"><block ref="2baa69eafc7204f3bd8648eba580c489" prefix=" " category="inline-code"></block>을(를) 기다립니다. 데이터베이스 사용 공간에 맞게 풀 크기를 조정합니다(<block ref="62251f099442e38ae7b0eafb65c9d537" category="inline-xref-macro-rx"></block>의 크기는 예시입니다).</block>
+  <block id="c5b12dd3623cbb4064fca1b7aad72e82" category="paragraph">*기본 모드(이 가이드):* Flex Unified 풀은 기본 모드<block ref="fc3ffd95288f0a9c0078286de2bc3467" prefix="(" category="inline-code"></block>를 사용합니다. Cloud Console 또는<block ref="be461f2f19fe40ccc0c8414ac6aa799f" prefix=" " category="inline-code"></block>를 사용하여 풀 및 iSCSI 볼륨을 생성합니다. 볼륨 복제, 스냅샷 및 클론은 Google Cloud API(<block ref="595ca2272dfa782b5226a19af86c4f37" category="inline-xref-macro-rx"></block>)를 사용합니다.</block>
+  <block id="fa582d4273725bb79b90068083149121" category="section-title">2단계: 호스트 그룹을 생성합니다(DB 호스트당 하나씩)</block>
+  <block id="e2d4481176265dc1a3a23e7f3918036d" category="paragraph">각 VM이 자체 볼륨만 볼 수 있도록 데이터베이스 호스트별로 호스트 그룹을 하나씩 생성합니다. 기본 VM과 대기 VM은 GCNV iSCSI 볼륨을 공유해서는 안 됩니다. Observer에는 GCNV 리소스가 없습니다. Cloud Console에서 다음을 수행합니다.</block>
+  <block id="de2c98ee68fb9b9198e6f9558a6b36d5" category="list-text">*NetApp 볼륨 → 호스트 그룹 → 생성*</block>
+  <block id="700894200be37f60f4b74318a5a795d7" category="list-text">*이름:*<block ref="895d9ad3946d63f2384be29aafa0979d" prefix=" " category="inline-code"></block> · *지역:*<block ref="7460527a94dd1cdca7f80472ca36103e" prefix=" " category="inline-code"></block> · *유형:* iSCSI 이니시에이터 · *운영체제 유형:* Linux</block>
+  <block id="b4d2e8a88d73ee5dbc5b5cfcfd1d3404" category="list-text">*호스트:* <block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>(값 <block ref="22565a44e8f73044eb2029acbb069639" prefix=" " category="inline-code"></block>)에서 IQN을 붙여넣으세요.</block>
+  <block id="43402061a1c98c9d5ba14df979a08744" category="list-text">*설명:* "Oracle 운영 호스트 oracdb1" · *생성*</block>
+  <block id="80dd2a8a344fe218b6279270dfb025d6" category="list-text"><block ref="7fc5f45b049a449b87b1f9b25afbc331" prefix=" " category="inline-code"></block><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>의 IQN을 사용하여 반복합니다.</block>
+  <block id="c66592ab7e27918f0f533809cac4fa24" category="section-title">3단계: GCNV iSCSI 볼륨 생성(데이터베이스 호스트당)</block>
+  <block id="dd72252c1e11b315fe48e630aaae1207" category="paragraph">각 데이터베이스 호스트는 해당 영역의 풀에 5개의 GCNV iSCSI 볼륨을 할당받습니다. 이 중 하나는<block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block>용이고 나머지 4개는 ASM 백업 장치용입니다.</block>
+  <block id="179f6f47f36f2f8b25930bbb5706bfdc" category="cell">GCNV iSCSI 볼륨</block>
+  <block id="6f6cb72d544962fa333e2e34ce64f719" category="cell">크기</block>
+  <block id="f9e5c9984d5ffdf0fba283eb0e0951e4" category="cell">다중 경로 별칭</block>
+  <block id="9c39ecfc2f8c59671523dc76164be600" category="cell"><block ref="5adb925391dcc0e1f89a27100238aa98" prefix="" category="inline-code"></block></block>
+  <block id="d47eab2f6c8443515b4726d2c0efbcec" category="cell">100 GiB</block>
+  <block id="efc44c1e30e41258159d4cbb66737137" category="cell"><block ref="a8946fa5f211c5345e3610710e471cb4" prefix="" category="inline-code"></block> GCNV iSCSI 볼륨 — Grid/Oracle 홈, 스테이징</block>
+  <block id="bd9fe8750723b9b4c5110d991883be63" category="cell"><block ref="2eb81ae14809bd879fc6e7e057d1dfad" prefix="" category="inline-code"></block></block>
+  <block id="b041e3bb5d0b5396c97cd52ec88ee63e" category="cell"><block ref="647862761ab030859d9ee5d9d353d133" prefix="" category="inline-code"></block></block>
+  <block id="51fea93790588030a8f5ece2b9b6b8ee" category="cell">50 GiB</block>
+  <block id="5cff5cb48b217dd1ae99e0acb7943cfb" category="cell">ASM<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block></block>
+  <block id="9d776048d10a556744294a5dfee22f72" category="cell"><block ref="a64d09dd04cf980346aef379dbec9261" prefix="" category="inline-code"></block></block>
+  <block id="f3befa9e72558b71a65f8698c142e3d3" category="cell"><block ref="0b6f195fbe53a7b6a5fde3604ddbd7c2" prefix="" category="inline-code"></block></block>
+  <block id="b8ac9400ebcd9a5f7fb8e22082944bea" category="cell">ASM<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block>(스트라이프)</block>
+  <block id="363df9fc621846c7ff3004bb43072052" category="cell"><block ref="3f1ff14e8393895c9543235245ba40fc" prefix="" category="inline-code"></block></block>
+  <block id="b1df19f4089c0ea2cf9255348e06275e" category="cell"><block ref="ae4259f185708f943bcc39bd9dc36f09" prefix="" category="inline-code"></block></block>
+  <block id="abb61d51f2d37735fd87a2a348737347" category="cell">ASM<block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category="inline-code"></block></block>
+  <block id="b5372f5adbcae35f3e65fa5f5033fc93" category="cell"><block ref="e694cc7cd4178c88a8401e2d87d3894c" prefix="" category="inline-code"></block></block>
+  <block id="caf9ddc376bbde380002424723d47be3" category="cell"><block ref="cd5a944679e9c2fd69e4b554b51acb54" prefix="" category="inline-code"></block></block>
+  <block id="e18eec2cbd6542841c2ef1e3bfde8fa3" category="cell">ASM<block ref="80f3131b9dc238e16c645ddfad01b783" prefix=" " category="inline-code"></block></block>
+  <block id="f4f9f49c93e3e3b1edebec8dd716cf6c" category="cell"><block ref="5ffa49ce3a3785edbe1a9cbd98dda743" prefix="" category="inline-code"></block></block>
+  <block id="aeb62ad031c4fac80dc64de0c2742a2a" category="paragraph">볼륨 이름: 문자, 숫자, 밑줄만 사용 가능(하이픈 사용 불가).</block>
+  <block id="9797600304cf56e59eecd53643947707" category="paragraph">*최소 레이아웃(검증용):* 호스트당 LUN 2개<block ref="302d00dd053834542788c28e3e2dd381" prefix="(" category="inline-code"></block>,<block ref="7fbf99ef1c96027aac19ecd6af720594" prefix=" " category="inline-code"></block>)<block ref="586ff5f5d1906de25c1aa22812306114" prefix=" " category="inline-code"></block><block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix="→" category="inline-code"></block> 및<block ref="88dca2eaae990b0f6ab57d2245b672cd" prefix=" " category="inline-code"></block><block ref="80f3131b9dc238e16c645ddfad01b783" prefix="→" category="inline-code"></block>는 연구실 환경에서 사용 가능하며, 프로덕션 환경에서는<block ref="62251f099442e38ae7b0eafb65c9d537" category="inline-xref-macro-rx"></block>당 5개의 볼륨을 사용합니다.</block>
+  <block id="0bacaf7bbf2eba0dba7abc42e7d17b22" category="paragraph">켜짐<block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>: <block ref="79d523916802ef5e588f3a0e1f37e882" prefix=" " category="inline-code"></block>의 호스트 그룹<block ref="895d9ad3946d63f2384be29aafa0979d" prefix=" " category="inline-code"></block>에 5개의 볼륨을 모두 생성합니다.</block>
+  <block id="0309352ded62c2362e1452265f1b6664" category="paragraph">켜짐<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>: <block ref="dd70af3bcff9c8357ee70338cabadf23" prefix=" " category="inline-code"></block>의 호스트 그룹<block ref="7fc5f45b049a449b87b1f9b25afbc331" prefix=" " category="inline-code"></block>에 5개의 볼륨을 모두 생성합니다.</block>
+  <block id="9227c7111abb4c3bc6ac07d6e6066a38" category="paragraph">*NetApp Volumes → Volumes → Create* — iSCSI, 올바른 풀 및 호스트 그룹, Linux. 풀별 기록:</block>
+  <block id="8385ecabb21384e77b969d3da9b71f83" category="list-text">iSCSI 포털 IP →<block ref="1a166cb3995363e3b206805f722e998f" prefix=" " category="inline-code"></block>,<block ref="d1bde1532ebbeda95cf8ca6392f7cb8c" prefix=" " category="inline-code"></block> (기본 풀 포털은<block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에 있고, 대기 풀 포털은<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에 있으며 서로 다를 수 있음)</block>
+  <block id="234628016c35cfe67afe88cfd3570147" category="inline-xref">4단계: GCNV iSCSI 볼륨에 대한 Linux iSCSI 및 다중 경로 구성</block>
+  <block id="e940f06f517df8a2d2e3787da4e73cca" category="list-text">클라우드 콘솔의 볼륨 일련 번호 — <block ref="e3e604617fdd62c104597da028962427" category="inline-xref-macro-rx"></block>에서 호스트가 검색한 WWID와 함께 사용</block>
+  <block id="24c9df26ad3e64494e1f33835d9bd012" category="paragraph">해당 호스트의 풀 포털을 사용하여 <block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에서 실행한 다음 대기 풀 포털을 사용하여 <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 실행합니다.</block>
+  <block id="fc29f66b6b53d73fdb5970962aa78ad2" category="paragraph">호스트 송신이 제한된 경우 각 데이터베이스 VM에서 해당 GCNV iSCSI 포털 IP로 TCP/3260을 허용하십시오(<block ref="216a3dfc061d9ad1db7651f0db156818" category="inline-xref-macro-rx"></block>의 VM 간 TCP/1521 외에도).</block>
+  <block id="a1765cabcd3f7054ce66029367e15843" category="list-text">대상 검색, 로그인 및 노드 시작 정보 유지:</block>
+  <block id="17564cc1bd1692fb3a6e967425b29fde" category="paragraph">재부팅 후 Oracle을 시작하기 전에 다시 확인하십시오.</block>
+  <block id="26b17225b626fb9238849fd60eabdf60" category="paragraph">+</block>
+  <block id="dc57dd149181e8f4b2a20c749748abd6" category="list-text">구성<block ref="a3938eeca32dce6ca3908d2eae163c75" prefix=" " category="inline-code"></block>:</block>
+  <block id="ce3834713e5b88bd239b82444cb14422" category="list-text">호스트에서 발견한 WWID 별칭을<block ref="dd5ff67ba72768d33f75e645aa2b8e56" prefix=" " category="inline-code"></block>에 추가합니다(추측하지 마십시오 —<block ref="9ac80d53ede05256c28cf9e043eb423c" prefix=" " category="inline-code"></block>는 셸 변수를 확장하지 *않습니다*). WWID 검색:</block>
+  <block id="c39397366affde6dc5123be9df430ed0" category="paragraph">해당 호스트에 대한 구체적인 별칭을<block ref="dd5ff67ba72768d33f75e645aa2b8e56" prefix=" " category="inline-code"></block>에 추가한 다음<block ref="05f91f8866e5890377760c5f890d13a0" prefix=" " category="inline-code"></block>.</block>
+  <block id="39f6f767b6bd10e2b919e16bc4c8f4bd" category="paragraph"><block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에서 다음을 추가합니다.</block>
+  <block id="8fc1fe6065aa97d1a1160f4700a86a56" category="paragraph">+ <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 <block ref="e206f004cb05d43b06ce54926cb4831e" prefix=" " category="inline-code"></block> 별칭과 동일한 패턴을 사용한 다음:</block>
+  <block id="4a51abd54bbd73e99fdc4a0d677b51ed" category="section-title">5단계: GCNV iSCSI 볼륨에서 ASM 백업 디바이스 파티션 생성</block>
+  <block id="3e8b963fd2c66af8116d0db159daeb1f" category="paragraph">4개의 ASM 백업 장치(<block ref="997802bac7f8b4cb6d5cee9adf487d9d" prefix=" " category="inline-code"></block>아님)를 각각 하나의 GPT 파티션으로 분할합니다. ASM은 원시 파티션을 사용합니다. 각 호스트에서 실행합니다. 이후의 모든 블록은 <block ref="2bb0b2911e6b14e33864a2330bd3d3b6" prefix=" " category="inline-code"></block>를 사용하여 로컬 호스트의 장치를 자동으로 선택합니다.</block>
+  <block id="00aa3ade28e8ca95470f0fc6adf21b3a" category="section-title">6단계: 로컬 GCNV iSCSI 볼륨을 포맷하고 마운트합니다<block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block></block>
+  <block id="e0ab15441764bbd4731c68ecb88f232d" category="paragraph"><block ref="5adb925391dcc0e1f89a27100238aa98" prefix=" " category="inline-code"></block>GCNV iSCSI 볼륨에는 Grid 홈, Oracle 홈 및 스테이징이 저장됩니다. 다중 경로 디바이스에서 XFS 포맷(ASM용으로 파티션되지 않음). <block ref="816a3ef77b62ade41c3f936c958aa555" prefix=" " category="inline-code"></block>에서 UUID 사용(공유 파일 시스템 레이블 아님):</block>
+  <block id="5875440d1a8deaac16ec6d4d6867b7c3" category="paragraph">한 번 재부팅하고 <block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block> 마운트가 <block ref="05950070aa1a509ef920318170062864" category="inline-xref-macro-rx"></block> 전에 완료되는지 확인합니다.</block>
+  <block id="f24bb5955ef8c312af51871966a1f80f" category="paragraph"><block ref="a22e8bc507fee62eb8c57269515eb9b0" category="inline-xref-macro-rx"></block> 전에 각 DB 호스트에서 Grid를 실행한 다음 데이터베이스 홈 설치를 진행하십시오.</block>
+  <block id="41f7fb323962901a356158d531e7b71a" category="paragraph"><block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에서 이 섹션의 모든 작업을 실행한 다음 <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 반복합니다. 두 호스트 모두 자체 Grid 홈, ASM 인스턴스 및 디스크 그룹을 갖게 됩니다. Data Guard는 스토리지가 아닌 Oracle Net을 통해 복제됩니다.</block>
+  <block id="7e9c2869fdbef6d33b20c2b3eca32038" category="section-title">Oracle 바이너리를 스테이징합니다<block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category="inline-code"></block></block>
+  <block id="6183747e4e2e9f37fd8cae0389d14be4" category="section-title">Grid 홈을 제자리에 압축 해제합니다</block>
+  <block id="3a178fba805e3b5abd0c8dae8878f9f1" category="paragraph">26ai Grid GoldImage는 대상 Grid 홈 디렉터리에 압축을 풀어 설치합니다.</block>
+  <block id="c6555ecc5ab7fd21df653f4ac956cf4e" category="paragraph">*그리드 RU 레벨.* 이 가이드는 그리드 GoldImage에 이미 검증된 RU가 포함되어 있다고 가정합니다. 그리드 GoldImage가 대상 RU보다 이전 버전인 경우, Oracle에서 문서화한<block ref="ee051a75e2660d642544e1a782ef2a15" prefix=" " category="inline-code"></block> 절차에 따라 설치 중에 그리드 홈에 패치를 적용하거나, RU가 포함된 그리드 GoldImage를 사용하십시오. 그리드 홈과 데이터베이스 홈을 동일한 의도된 패치 레벨로 유지하십시오.</block>
+  <block id="125c9b978a2018acc88dbee209076fd6" category="section-title">단일 샷<block ref="6188ef2848d4d8eb4f4ed48cd6154082" prefix=" " category="inline-code"></block> — 전체 HA_CONFIG 응답 파일</block>
+  <block id="53eac7008970891dc200af11015962d3" category="paragraph">각 호스트에 <block ref="0e13878fba905bfdba91c98a6366125f" prefix=" " category="inline-code"></block>빌드<block ref="b32b7221bf65ca4fdf81dfafe6b4dbc2" prefix="(" category="inline-code"></block>는 필수입니다(<block ref="b9361011891280a44d85b967739cc6a5" prefix=" " category="inline-code"></block>를 대체하고 강력한 암호 사용):</block>
+  <block id="975888b0eb888d23409c48cc757aff11" category="paragraph"><block ref="6188ef2848d4d8eb4f4ed48cd6154082" prefix=" " category="inline-code"></block>를 실행하여 바이너리를 복사하고 구성을 준비합니다.</block>
+  <block id="b21fafa1d62ca7813b4d271670c59379" category="paragraph"><block ref="6eae1314173532e3774a3a0c0562c5dc" prefix=" " category="inline-code"></block> 및 종료 코드 6(경고) 또는 0이 예상됩니다.</block>
+  <block id="0614ae580480d609f45d908143248554" category="section-title"><block ref="7271e605f277fd89fbb28d42f8ec0575" prefix=" " category="inline-code"></block> 및 <block ref="08030ad08b2b991d61b424afd8828758" prefix=" " category="inline-code"></block>을(를) 루트로 실행합니다</block>
+  <block id="ce76c36fc6b5dd8bc4aa41d82f1e8ff0" category="paragraph"><block ref="08030ad08b2b991d61b424afd8828758" prefix="" category="inline-code"></block><block ref="3810a6a610bef40c0a7363dd774d87a6" prefix=" " category="inline-code"></block>/<block ref="631e391a1dd104c58c129cf7d5a4d08c" prefix=" " category="inline-code"></block>/<block ref="ae709dc3414219bf2c9c8abc9ff6c67a" prefix=" " category="inline-code"></block> 래퍼를 생성하고 OHAS를 실행합니다.</block>
+  <block id="b3ff6019d8383c3567b6dcac620372ca" category="section-title"><block ref="7cea6cc86d5bdf9819f4db2ef6937ac5" prefix="" category="inline-code"></block> — ASM을 실행하고 생성합니다<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block></block>
+  <block id="c08defc39ee79a774de0940923405b1d" category="inline-xref">단일 샷&lt;block ref="6188ef2848d4d8eb4f4ed48cd6154082" prefix=" " category='inline-code'/&gt; — 전체 HA_CONFIG 응답 파일</block>
+  <block id="2d49f3f41dc3a0d604a8ed8a2c7da56b" category="paragraph"><block ref="b48a0516a4c52f78b8c6c36d746121ac" category="inline-xref-macro-rx"></block>의 응답 파일에 대해 구성 도우미(NETCA, ASMCA, CVU)를 실행합니다. 그러면 ASM 인스턴스와 <block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block> 디스크 그룹이 생성됩니다.</block>
+  <block id="b2ed9530f12046fa3758f714fc8777f2" category="paragraph">NETCA/ASMCA/CVU 이후에 예상됩니다<block ref="6b95da482f52dc7093ecbb9883b7852a" prefix=" " category="inline-code"></block>.</block>
+  <block id="93ed2251d17a3a2fab931580b9f1582d" category="section-title"><block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category="inline-code"></block> 및 <block ref="80f3131b9dc238e16c645ddfad01b783" prefix=" " category="inline-code"></block> 디스크 그룹을 생성합니다</block>
+  <block id="bc2bc650a0cf2bd1d32ffce6ccaaac81" category="paragraph">일회성 설치는<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block>만 생성합니다. <block ref="2f88ab4f1aea87019dee2980a5ea4867" prefix=" " category="inline-code"></block>를 통해 나머지 두 개를 생성하십시오:</block>
+  <block id="a01b7485299dbd5cbd6fb2d7bbc0d6aa" category="section-title">ASM 및 Oracle Restart 확인</block>
+  <block id="5ffa7d7e74b702f93242158a79a93a3a" category="inline-xref">&lt;block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category='inline-code'/&gt; 및 &lt;block ref="80f3131b9dc238e16c645ddfad01b783" prefix=" " category='inline-code'/&gt; 디스크 그룹을 생성합니다</block>
+  <block id="ce26f01bfae2e5fb146708c972b8739e" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에 대해서도 이 섹션을 반복하십시오. <block ref="2bb0b2911e6b14e33864a2330bd3d3b6" prefix=" " category="inline-code"></block>의 <block ref="b48a0516a4c52f78b8c6c36d746121ac" category="inline-xref-macro-rx"></block> 및 <block ref="5293afa6691aba6fcb1215cff8ee79ed" category="inline-xref-macro-rx"></block> 패턴은 해당 호스트의 GCNV iSCSI 장치를 자동으로 선택합니다. 동일한 ASM 디스크 그룹 이름을 사용하십시오. Data Guard는 스토리지가 아닌 Oracle Net을 통해 복제됩니다.</block>
+  <block id="795ea328e74e8402c26f4b4a005653f1" category="section-title">2단계: 각 DB 호스트에 Oracle Database 26ai를 설치합니다</block>
+  <block id="3032bb5f80cc5062f9ede1448c8f3949" category="paragraph"><block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에서 이 섹션을 실행한 다음 <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 실행하세요. 대기 데이터베이스가 <block ref="2325ddbeb97493991acefece02396eff" category="inline-xref-macro-rx"></block>에 생성됩니다.</block>
+  <block id="28ab48133aa4c46d033ce715199b52c3" category="section-title">DB 홈과 RU 패치의 압축을 풉니다</block>
+  <block id="6027fe7360b1d70cf62ccc126cf543f1" category="paragraph">RU 디렉터리 레이아웃 및 <block ref="7ce39dabc2cfedccd1c6a71515794c03" prefix=" " category="inline-code"></block> 경로는 Oracle 설명서를 참조하십시오.</block>
+  <block id="d801b8da00cfd010e24168a65e75fcd3" category="section-title">RU가 적용된 자동 소프트웨어 전용 설치</block>
+  <block id="987cc0fbf1b6d89415d8e4c3626469e3" category="paragraph">OL 8/9에서는 <block ref="5235cc1b2d7c699a9b435b06f7e3c174" prefix=" " category="inline-code"></block>를 <block ref="b82ce39ca01e6cecfdb6fcab38c5dce4" prefix=" " category="inline-code"></block> 줄에서 생략하십시오.</block>
+  <block id="8f24428f3a9c0fc7454920f0f9b9000d" category="paragraph"><block ref="63a9f0ea7bb98050796b649e85481845" prefix=" " category="inline-code"></block>로 설치 후 스크립트를 실행하십시오.</block>
+  <block id="e9f0a53f468d8b32dfcc84ba250a10fe" category="section-title">Oracle 환경을 설정합니다</block>
+  <block id="369aa96044ac762ab8dc36186b098fa6" category="paragraph">각 DB 호스트에서 <block ref="173ad268594dda99be99f9ab53fc66c5" prefix="(" category="inline-code"></block> on<block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>,<block ref="3ad0bd4699c7945297963a438f68d612" prefix=" " category="inline-code"></block> on<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>):</block>
+  <block id="d2c5d9dca5cff0bb8e4e506eb1c507a2" category="paragraph">(대기 호스트에서 <block ref="2149247a998ff1efe97ec719204c2f29" prefix=" " category="inline-code"></block>을(를) 사용하십시오. 대기 데이터베이스는 <block ref="2325ddbeb97493991acefece02396eff" category="inline-xref-macro-rx"></block>에 생성됩니다.)</block>
+  <block id="9c6dc05580931a40c8d6159091769687" category="section-title">기본 데이터베이스 생성(<block ref="9514606aa0e81e08de08842f8136911c" prefix="(" category="inline-code"></block> 전용)</block>
+  <block id="76cdab9aa1d77dbdce41a29ca5df78ca" category="paragraph">ASM 디스크 그룹에 대해<block ref="d45e719c39bbb431346849ed79ab89c0" prefix=" " category="inline-code"></block> 자동 모드로 실행합니다.</block>
+  <block id="e84a744e65776d401eabd372c57f9857" category="inline-xref">2단계: 대기: 최소 init.ora pfile, 암호 파일, NOMOUNT</block>
+  <block id="965b991e02cf0538142b5b6ddddae5c9" category="paragraph">아카이브 로그를 다음 위치에 지정하십시오<block ref="7805bd080c8df4b5e04ec773d62b82b2" prefix=" " category="inline-code"></block>(대기 서버는 다음 위치의 일치하는 설정을 사용합니다<block ref="fd1521ad570f67485d657084a1a905d4" category="inline-xref-macro-rx"></block>):</block>
+  <block id="df43d9a032f76cf9f35c4df72e98a973" category="paragraph">Oracle Restart에서 데이터베이스가 실행 중인지 확인하십시오.</block>
+  <block id="bc5fedb653a7c3519c3fd740fe85f25d" category="paragraph">*역할 기반 애플리케이션 서비스(Oracle Restart)를 생성합니다.* 애플리케이션은 DB 이름이 아닌 <block ref="4645c43c671fdeae260367b4f2fb866a" prefix=" " category="inline-code"></block>를 통해 연결해야 하므로 페일오버가 투명하게 이루어집니다.</block>
+  <block id="acd771de807e8ac150ecf9644419193c" category="paragraph">Broker 활성화 후 <block ref="4645c43c671fdeae260367b4f2fb866a" prefix=" " category="inline-code"></block>는 PRIMARY에서만 실행됩니다. ASM 디스크 그룹 전체에 제어 파일을 다중화하고 워크로드에 맞게 메모리 크기를 조정합니다(이 가이드에서는 4GB/3GB SGA를 예시로 사용합니다).</block>
+  <block id="936051adc56db91d6f8864ea21ece29f" category="paragraph"><block ref="3ad0bd4699c7945297963a438f68d612" prefix=" " category="inline-code"></block><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>(전용 볼륨 <block ref="dd70af3bcff9c8357ee70338cabadf23" prefix=" " category="inline-code"></block>)에 구축합니다. 초기 운영 및 대기 설정을 완료한 다음 <block ref="595ca2272dfa782b5226a19af86c4f37" category="inline-xref-macro-rx"></block>, 대기 완료 작업 및 <block ref="570201f6cc183155f279a9ee0f1dd27c" category="inline-xref-macro-rx"></block>을(를) 수행합니다. 대상: 운영 READ WRITE, 대기 PHYSICAL STANDBY, MOUNTED, MRP 적용.</block>
+  <block id="c64be7bf80cf12e9b96e4b2b52073d91" category="section-title">1단계: 운영: SYS 암호, 암호 파일 및 DG 매개 변수</block>
+  <block id="2c12aa0c02a34946b5a866755b080190" category="paragraph">켜짐<block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block> 상태<block ref="a189c633d9995e11bf8607170ec9a4b8" prefix=" " category="inline-code"></block>:</block>
+  <block id="5601612151aba60574961e1e8d5febce" category="paragraph">설정:<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block></block>
+  <block id="c15a253d69b770bc726ed46271032582" category="paragraph">각 호스트에서 Oracle Restart를 통해 재시작하십시오.</block>
+  <block id="758bc5b22fd6bb6bff1b0e8ffc6255dc" category="paragraph"><block ref="1bc7636cf21813656343e52683e941aa" prefix="" category="inline-code"></block>은(는) <block ref="701c8da2e2528f6391b88ecdc624ae0e" prefix=" " category="inline-code"></block> 및 <block ref="1c6d7c413459631f3dcdadbc45d1ca3d" prefix=" " category="inline-code"></block>을(를) 나열해야 합니다.</block>
+  <block id="a019c4084eedfd567702e9444115af51" category="paragraph">기본 암호 파일을 대기(IAP<block ref="d6dabc84f8422e23c7543fa0791f209b" prefix=" " category="inline-code"></block>)로 복사합니다.</block>
+  <block id="b6775709cb424d269cec2d5653f7bdaa" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 소유권을 설정하고 대기 pfile을 생성합니다. *primary*에서 <block ref="46e839b4f4f04c535d7961774d097ca4" prefix=" " category="inline-code"></block>를 먼저 복사합니다.</block>
+  <block id="685506ffb9c52d4724d0f4db522c0e9b" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 아래 블록의 <block ref="e63e42940889bea5eb6ebfd47a5a238b" prefix=" " category="inline-code"></block>에 해당 값을 대입하세요.</block>
+  <block id="65950d148f30efa8bbf09d87304fb03f" category="paragraph"><block ref="595ca2272dfa782b5226a19af86c4f37" category="inline-xref-macro-rx"></block>까지 데이터 파일이 없는 NOMOUNT입니다.</block>
+  <block id="23bbaf39a9b33135d2cb8b67fba51eaa" category="inline-xref">Oracle 최종 확정</block>
+  <block id="cee2df546018bfd30030c8f09d7558fc" category="paragraph"><block ref="dd70af3bcff9c8357ee70338cabadf23" prefix="*" category="inline-code"></block>*에서 *Google Cloud NetApp Volumes 복제*(SnapMirror 기반, *기본 모드*), *볼륨 스냅샷* 또는 *클론*을 사용하여 대기 ASM 볼륨을 채운 다음 <block ref="289edb88c45052115560a4dc1eaccd93" category="inline-xref-macro-rx"></block>를 실행합니다. iSCSI 및 ASM은 <block ref="4ae55d7b9b6ac07a69a1c98e4d8c5546" category="inline-xref-macro-rx"></block>와(과) 동일합니다.</block>
+  <block id="db974238714ca8de634a7ce1d083a14f" category="cell">API</block>
+  <block id="dbd56cfa99387d149de3a5873c30e3b4" category="cell"><block ref="758368f13db966aa3dba5a12085882cf" prefix="" category="inline-code"></block></block>
+  <block id="7459839e3e3ad94625734d093960ebd6" category="cell">*기본 모드* Flex Unified 풀 생성<block ref="fc3ffd95288f0a9c0078286de2bc3467" prefix="(" category="inline-code"></block>)</block>
+  <block id="3e57501f3165ffc71e98dae94644bd7f" category="cell"><block ref="b15200f26d72da8bfe16e9d01ad9c57b" prefix="" category="inline-code"></block></block>
+  <block id="352a8ea7691c86e661a246713e7b8dc2" category="cell">iSCSI 볼륨, 호스트 그룹, 스냅샷</block>
+  <block id="6b36d28ea1e5ec915fe09eafb6801b3b" category="cell"><block ref="dd2fb812573e33a308ac23e4caef3b66" prefix="" category="inline-code"></block></block>
+  <block id="231bdd36eddb3add6777610317675838" category="cell">위치 간 *볼륨 복제*</block>
+  <block id="48c7c41b72e1d678923ce3571aa65b2d" category="cell">단계</block>
+  <block id="004bf6c9a40003140292e97330236c53" category="cell">작업</block>
+  <block id="c4ca4238a0b923820dcc509a6f75849b" category="cell">1</block>
+  <block id="763d1a0dde52d1fd91bdcb3bba067543" category="cell">기본 아카이브 로그 + 강제 로깅(<block ref="0aa1ce17ba7c90083ab1993f39b32f0b" category="inline-xref-macro-rx"></block>)</block>
+  <block id="c81e728d9d4c2f636f067f89cc14862c" category="cell">2</block>
+  <block id="00477ffde3eeceddbd94b3f467668221" category="cell">정지:<block ref="52d95898daf10eaba00a9c07efb6bda0" prefix=" " category="inline-code"></block> SCN 기록, 대기 제어 파일</block>
+  <block id="eccbc87e4b5ce2fe28308fd9f2a7baf3" category="cell">3</block>
+  <block id="43b53990d4d1ca1a2707c0fdff631215" category="inline-xref">볼륨 복제를 생성합니다</block>
+  <block id="d1342cae857f632372fcdba3b87b794f" category="inline-xref">컷오버 — 정지, 복제 중지, 대기 LUN 연결</block>
+  <block id="6948952b7a0970ea0810ec25df6e09d9" category="inline-xref">대안 — 스냅샷 시드</block>
+  <block id="aa441a6f01bc56294568c46ff78220f5" category="cell">볼륨 복제(<block ref="84fe70e5f2bdea3c8472398843c250e1" category="inline-xref-macro-rx"></block> 및 <block ref="66a44fc7a93076d7f9a201f18a16c2ed" category="inline-xref-macro-rx"></block>) 또는 스냅샷(<block ref="1fe090bf4a3df8bb672bb2d6c7e59b08" category="inline-xref-macro-rx"></block>)</block>
+  <block id="a87ff679a2f3e71d9181a67b7542122c" category="cell">4</block>
+  <block id="4dc767f87847d7940a6c997bd2d120f5" category="inline-xref">6단계: 로컬 GCNV iSCSI 볼륨을 포맷하고 마운트합니다&lt;block ref="a8946fa5f211c5345e3610710e471cb4" prefix=" " category='inline-code'/&gt;</block>
+  <block id="545df81bf6f8665056f91045448a252a" category="cell">활성화<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>: iSCSI, 다중 경로, ASM 마운트(<block ref="e3e604617fdd62c104597da028962427" category="inline-xref-macro-rx"></block>, <block ref="c214ed23399347949af0c0b3367b59cf" category="inline-xref-macro-rx"></block>, <block ref="9bd553999d38e7cadc25828eda5ea50d" category="inline-xref-macro-rx"></block>)</block>
+  <block id="e4da3b7fbbce2345d7772b0674a318d5" category="cell">5</block>
+  <block id="bfa830b2b7309b5edbd577867bfb17ed" category="cell">Oracle 최종화 — SCN으로 복구, *마운트됨* (<block ref="289edb88c45052115560a4dc1eaccd93" category="inline-xref-macro-rx"></block>)</block>
+  <block id="1679091c5a880faf6fb5e6087eb1b2dc" category="cell">6</block>
+  <block id="2b701ca7d71c8aff3dfb767d9038a67d" category="inline-xref">4단계: 대기 리두 로그 파일</block>
+  <block id="5876b5802a02d4fb6189d873597bd2c3" category="cell">SRL 재구축(<block ref="17b3e040fa8435fd43de245d0dbe1b60" category="inline-xref-macro-rx"></block>), MRP, 브로커(<block ref="570201f6cc183155f279a9ee0f1dd27c" category="inline-xref-macro-rx"></block>)</block>
+  <block id="7956b7dd32d04a8855f122e8445ad484" category="paragraph">소규모 연구실에서는 RMAN 활성 복제 방식이 여전히 유효합니다. 프로덕션 대기 시드 구축에는 *GCNV 복제 방식이 권장됩니다*.</block>
+  <block id="6afcb4f3a7966685ae11d809209f8b00" category="list-text"><block ref="be461f2f19fe40ccc0c8414ac6aa799f" prefix="" category="inline-code"></block> 볼륨 복제 지원.</block>
+  <block id="c6238f3076f03414fe6dbb90459cb0e9" category="list-text">서로 다른 위치에 있는 두 개의 *기본 모드* 풀 <block ref="79d523916802ef5e588f3a0e1f37e882" prefix="(" category="inline-code"></block>,<block ref="dd70af3bcff9c8357ee70338cabadf23" prefix=" " category="inline-code"></block>).</block>
+  <block id="4cdf00c93e2bd3ac3179a53111653cab" category="list-text">기본 풀에 연결된 소스 볼륨<block ref="895d9ad3946d63f2384be29aafa0979d" prefix=" " category="inline-code"></block>, 복제를 통해 생성된 대상 볼륨.</block>
+  <block id="750957edeb9b4c00e9907a94eb6589ca" category="list-text">DB VM이 아닌 Cloud Shell 또는 워크스테이션에서 복제를 실행하십시오.</block>
+  <block id="f8645124721b8adedd49097b446aec68" category="paragraph">필요한 경우 대기 풀을 생성합니다.</block>
+  <block id="679a6834c1819a8d18dda130b5954095" category="paragraph"><block ref="dab686ada5c9477e04c2327657fc8f30" prefix=" " category="inline-code"></block>가 *MIRRORED*/초기 동기화가 완료될 때까지 기다립니다.</block>
+  <block id="f7d65df1842e5b8e17b3ae3a6045ae66" category="paragraph">*기본:*</block>
+  <block id="1c7f26f53eca6373830e438a60535971" category="paragraph">최종 복제 주기를 허용한 다음:</block>
+  <block id="ad04544037208423c976de184a9443f4" category="paragraph">대상 볼륨을<block ref="7fc5f45b049a449b87b1f9b25afbc331" prefix=" " category="inline-code"></block>에 연결합니다(복제된 LUN은 소스 이름을 유지할 수 있습니다. 업데이트 시<block ref="9fa83431ed1c0bffae3032ef4a6d7573" prefix=" " category="inline-code"></block> 사용):</block>
+  <block id="fd6bbc370938d4a09f36c62888a1d3c6" category="paragraph">제어 파일을<block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에 복사한 다음 운영 서버에서 다음을 수행합니다.</block>
+  <block id="d50e85f8434011d66a715b40086cfdc8" category="paragraph">일회성 시드: 소스 볼륨에서 스냅샷 → 대기 풀에서 스냅샷으로 볼륨 생성(Cloud Console 또는 API). attach to<block ref="7fc5f45b049a449b87b1f9b25afbc331" prefix=" " category="inline-code"></block> 후 <block ref="289edb88c45052115560a4dc1eaccd93" category="inline-xref-macro-rx"></block>로 진행합니다.</block>
+  <block id="594239a62893e2e802a9b54f3c573f5a" category="section-title">대기 iSCSI 및 ASM(RMAN 이전)</block>
+  <block id="954c1cff0b808463b884948158ecd6a8" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 *대기 풀* iSCSI 포털에 로그인합니다. ASM 디스크 헤더가 기본 명명 규칙과 일치하면 *기본 스타일 다중 경로 별칭*(lab:<block ref="d3e577701c1159d29bb37a6897fe1195" prefix=" " category="inline-code"></block>,<block ref="325b416024d98d67ef0bf8431c889820" prefix=" " category="inline-code"></block>)을 사용하고, 파티션에 <block ref="89f1b02de5b3851d79f204e14b1a457d" prefix=" " category="inline-code"></block>,<block ref="cca4fb206ec312ebd25c1e99a02bbdb9" prefix=" " category="inline-code"></block>를 설정한 다음:</block>
+  <block id="d55afb24fbd55b350639f4aa14b3e5ca" category="paragraph">변환 후 *스탠바이 리두 로그를 재구축*하십시오(복제된 제어 파일에 여전히<block ref="b9be7946c3a48c46e42b29df36135b48" prefix=" " category="inline-code"></block> SRL 경로가 남아 있어<block ref="45d3f913b21d3b56afad08bf52beee16" prefix=" " category="inline-code"></block> /<block ref="c729c7564963a242b8612301629b9f19" prefix=" " category="inline-code"></block> 기본 시스템에서 오류가 발생합니다). <block ref="17b3e040fa8435fd43de245d0dbe1b60" category="inline-xref-macro-rx"></block>을 참조하십시오.</block>
+  <block id="9679c1da9528350ee52b0aaa37931ce9" category="paragraph">FSFO를 사용하려면 *두* 호스트 모두에 필요합니다. 크기는 가장 큰 운영 온라인 redo 로그의 크기 이상이어야 하며, 개수는 (스레드당 온라인 그룹 수) + 1입니다.</block>
+  <block id="b261ae61d4cf2f97e1aa7212b93628bc" category="paragraph">*GCNV 시드 후:* 대기 서버의 모든 대기 로그 파일 그룹을 삭제하고<block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block> 전용<block ref="34d9ae742309e48f0b66756d53f849ea" prefix="(" category="inline-code"></block>에서만 다시 생성합니다). <block ref="b9be7946c3a48c46e42b29df36135b48" prefix=" " category="inline-code"></block> 아래의 복제된 경로는 재구축될 때까지<block ref="45d3f913b21d3b56afad08bf52beee16" prefix=" " category="inline-code"></block> /<block ref="c729c7564963a242b8612301629b9f19" prefix=" " category="inline-code"></block>를 발생시킵니다.</block>
+  <block id="293c068c2a0a4255ddd5a7a8e134e804" category="paragraph">*기본 <block ref="173ad268594dda99be99f9ab53fc66c5" prefix="(" category="inline-code"></block>):*</block>
+  <block id="1ed0e256e075cc9ebc2a2ecdd88164a7" category="paragraph">*GCNV 시드 이후 대기 모드<block ref="3ad0bd4699c7945297963a438f68d612" prefix="(" category="inline-code"></block>:*</block>
+  <block id="b9be1a8e0a9434b4f8afa7bec67d90c0" category="section-title">5단계: 대기 모드에서 플래시백을 활성화하고 관리형 복구를 시작합니다</block>
+  <block id="38e7f58a8d1391692c7407a353e68c19" category="paragraph">관리형 복구를 시작하기 *전에* 플래시백을 활성화하십시오(MRP가 활성 상태인 동안에는 플래시백을 활성화할 수 없습니다).</block>
+  <block id="daeecac992fb6cd4104c35be083b504c" category="paragraph"><block ref="96e899093a4f64e9b84092873ecb4162" prefix="" category="inline-code"></block> 실시간 적용이 가능합니다(SRL에 도착하는 즉시 redo가 적용됨).</block>
+  <block id="c7f9afee775efc258599e585d964fdba" category="section-title">6단계: 운영 시스템에서 redo shipping을 활성화합니다</block>
+  <block id="501ee1ef18f9df70df5949b0586ec27c" category="paragraph"><block ref="2f8150ac9469ed6ebf4ca88b88dde4b5" prefix="" category="inline-code"></block>는 <block ref="fd1521ad570f67485d657084a1a905d4" category="inline-xref-macro-rx"></block>에서 지속적인 <block ref="0089858c7dd22225c3de5be78ce29016" prefix=" " category="inline-code"></block> 오류를 억제하기 위해 의도적으로 <block ref="7f5e3f26a1a530c4cc7f9b80e963e9cc" prefix=" " category="inline-code"></block>(으)로 설정되었습니다. 대기 생성 중입니다. 이제 대기가 준비되었으니 활성화하십시오.</block>
+  <block id="bdffc58ccab03556b5a1c2ee289ff1f7" category="paragraph"><block ref="d0407d9670675ee36b404c4218a54bab" prefix=" " category="inline-code"></block>로 전환하고<block ref="b332708e4304e13c9b424e7465254954" prefix=" " category="inline-code"></block> 로그 전환을 강제로 수행하여 첫 번째 재실행 라운드가 즉시 전송되도록 합니다.</block>
+  <block id="9d8bb4c7d129f3129d6403ca792d40c1" category="inline-xref">1단계: 두 데이터베이스 모두에서 브로커를 활성화합니다</block>
+  <block id="f2e4cb4f70ce70bdbe1fe99e172c13d3" category="paragraph"><block ref="2224873378f51ce78ccb598214ddcb89" prefix=" " category="inline-code"></block>에 <block ref="0089858c7dd22225c3de5be78ce29016" prefix=" " category="inline-code"></block>가 표시되면 기본 서버를 재시작하십시오. <block ref="4eaa53aeb4b865bec8911f2b33f7d10c" category="inline-xref-macro-rx"></block> 후 DGMGRL을 통해 전송을 관리하십시오.</block>
+  <block id="54262be793f8c8c53336ae062920258c" category="section-title">7단계: 대상 Data Guard 상태를 확인합니다</block>
+  <block id="887d8fd91b7e1a1d6a5e8ec1e7ba8cc8" category="paragraph">*운영* <block ref="9514606aa0e81e08de08842f8136911c" prefix="(" category="inline-code"></block>):</block>
+  <block id="9506e566b705f66a92a926b2d91eb3a3" category="paragraph">*대기* <block ref="307e0423cd7859aca914691fcbaacca5" prefix="(" category="inline-code"></block> — Cloud Console *SSH* 또는 워크스테이션의 IAP):</block>
+  <block id="59d8e6829346a655b4e2efe2ff9cd9cb" category="paragraph">대기 상태에서 예상되는 값:<block ref="b054bbcaeeb7ee444b2efdecc2cf4dde" prefix=" " category="inline-code"></block>;<block ref="6a101baec717a0c2b7554a544ddf7a2f" prefix=" " category="inline-code"></block> 포함<block ref="1f38735e57e053804f3980f01073a19b" prefix=" " category="inline-code"></block>.</block>
+  <block id="eac1b4418af44742a4ce096fb47a4e71" category="paragraph">대기 보고서가 <block ref="483044c0a27107e78203087cbbf6d45c" prefix=" " category="inline-code"></block>로 표시되지만 적용이 실행되지 않는 경우 <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 MRP를 다시 시작하십시오.</block>
+  <block id="2a705826d45db40e40f108837b1cb764" category="section-title">8단계: Oracle Restart에 대기 데이터베이스 등록</block>
+  <block id="27f111f76ab683db9d1f77dca2ec5367" category="paragraph">GCNV 시딩 후 재시작을 사용하여 대기 상태를 등록하면 재부팅 시 ASM, MOUNT 및 적용이 복구됩니다.</block>
+  <block id="88d88a8f7514b88b511e58e3196c107e" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 spfile 위치를 캡처하고 Oracle Restart에 등록합니다(쿼리에서 <block ref="39f24d8681d2402426bc0254b28e4ca8" prefix=" " category="inline-code"></block>를 대체하며, 일반적으로 <block ref="c097579d8cb34b312d396304e0b8f487" prefix=" " category="inline-code"></block> 아래에 있음):</block>
+  <block id="7382ab0ce8940a8d764a5e0c7b09acc6" category="paragraph"><block ref="9514606aa0e81e08de08842f8136911c" prefix=" " category="inline-code"></block>에서, 기본 Oracle Restart 데이터베이스 리소스가 ASM 디스크 그룹 종속성을 나열하는지 확인합니다. DBCA가 등록만 한 경우 <block ref="a3ab56e5c68dae48c656f6149fd2626e" prefix=" " category="inline-code"></block>를 추가하고 <block ref="e44f9e348e41cb272efa87387728571b" prefix=" " category="inline-code"></block> 및 <block ref="e52a9d7f668e660411384f7f4cfa3111" prefix=" " category="inline-code"></block>를 추가합니다.</block>
+  <block id="528f04a6c8e9ab6d0a45ee906b3b6d52" category="paragraph">*대기 데이터베이스 리소스에 동일한 애플리케이션 서비스 추가* <block ref="3ad0bd4699c7945297963a438f68d612" prefix="(" category="inline-code"></block> <block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>). 양쪽에서 모두<block ref="64dfff6e31b96e0cbc5549861f919993" prefix=" " category="inline-code"></block>을(를) 사용하면 전환 후에도<block ref="4645c43c671fdeae260367b4f2fb866a" prefix=" " category="inline-code"></block>을(를) 사용할 수 있습니다:</block>
+  <block id="1b024149be686cd8ee5bd425f6e352fb" category="paragraph"><block ref="307e0423cd7859aca914691fcbaacca5" prefix=" " category="inline-code"></block>에서 대기 데이터베이스 리소스를 확인하십시오.</block>
+  <block id="65e2cfb618dee5dd999fdad93779e5c0" category="paragraph"><block ref="a6b0d00baacd14c56c27b44792e734a9" prefix=" " category="inline-code"></block> 이후에는 임시 <block ref="9d2a8946ccbded26bb1775427bfc37d9" prefix=" " category="inline-code"></block> SQL이 아닌 *DGMGRL*을 통해 전송 및 역할을 관리하십시오.</block>
+  <block id="e4de0042dcc7c786f7f6ddd14c367e01" category="paragraph">*기본* 및 *대기* 데이터베이스 호스트에서:</block>
+  <block id="7fcab2c5b43cdf2569500ae5863fbab5" category="inline-xref">5단계: Observer를 systemd 유닛으로 시작합니다</block>
+  <block id="be61dc9b5a11062afaf00930696d5bf6" category="paragraph">*기본 데이터베이스 호스트*에서 OS 인증을 사용하여 연결하십시오(<block ref="3f54d7f082b381eaddb4be4be13df81f" category="inline-xref-macro-rx"></block>의 Observer 지갑은 DB 호스트에서 필요하지 않습니다):</block>
+  <block id="67db5365c3b258a72b5c26bdcae15e6b" category="paragraph">Observer 호스트에서만 자동 로그인 지갑이 존재한 후 <block ref="060d6517833ab8e61b51eb32ccedd603" prefix=" " category="inline-code"></block>을(를) 사용하십시오. <block ref="b684595e149fba1c667223b300ce301d" prefix=" " category="inline-code"></block> 명령줄에 암호를 입력하지 마십시오.</block>
+  <block id="240ba9d8a514d5462d332e5e2b4e5259" category="inline-xref">3단계: FSFO 속성을 구성하고 활성화합니다</block>
+  <block id="87cc4946c3611fa199557115946a6251" category="paragraph"><block ref="51be8c2d480dfa8386ab67552d875dc8" prefix=" " category="inline-code"></block>즉시 실행하세요. 이 명령은 전환을 시도하기 전에 고아 데이터 파일, 누락된 SRL, 리두 적용이 실행되지 않는 문제 등 일반적인 문제점을 찾아냅니다. <block ref="059e9861e0400dfbe05c98a841f3f96b" prefix=" " category="inline-code"></block> 또는 NULL이 아닌<block ref="bb1ca97ec761fc37101737ba0aa2e7c5" prefix=" " category="inline-code"></block> 값은 <block ref="1e50eb0fb14dafced24bbc2ae3e645b5" category="inline-xref-macro-rx"></block> 전에 모두 수정해야 합니다.</block>
+  <block id="69bb7c2c9e12b752761ebbfd6e95a351" category="section-title">2단계: 플래시백 확인(FSFO 자동 복구에 필요)</block>
+  <block id="9d0499063285b7adb2cb16b599f1ea52" category="paragraph">*두* 호스트 모두에서<block ref="5915cf8468db7b8035e489d020bb8412" prefix=" " category="inline-code"></block> FSFO를 활성화하기 전에 확인하십시오.</block>
+  <block id="34cd217186280692ff0d91ecd32e798b" category="paragraph">*운영* 시스템에만 보존이 아직 설정되지 않은 경우:</block>
+  <block id="36cace7426375eff3116339b95314405" category="paragraph">자격 증명은 자동 로그인 지갑에 저장되며<block ref="b684595e149fba1c667223b300ce301d" prefix=" " category="inline-code"></block> 명령줄(<block ref="8812c36aa5ae336c2a77bf63211d899a" prefix=" " category="inline-code"></block>/<block ref="eed23a3d2310f43954a09887cb36b398" prefix=" " category="inline-code"></block>에 표시됨)에는 절대 노출되지 않습니다. Observer에서만<block ref="17c8111e46ce374e6a8685bbfa346ba3" prefix=" " category="inline-code"></block>을(를) 사용하여 연결하십시오.</block>
+  <block id="5e70ae9485e9fef5226c828e4932c9d6" category="list-text">*전용 계정 사용:* 전용 Data Guard 관리 계정(예:<block ref="9c5feafb5e3cc87dcc19ba27c46c1b5b" prefix=" " category="inline-code"></block>)의 자격 증명을<block ref="834c3d60d84e11303f54a7dabaacb567" prefix=" " category="inline-code"></block>이 아닌 지갑에 저장합니다.</block>
+  <block id="355e6dc579f9a2494ac8fe0d69c85d40" category="list-text">*자동 로그인 지갑 필요:* Observer systemd 서비스에는 자동 로그인 지갑<block ref="71e796326554d16610b5039dc97b84cf" prefix="(" category="inline-code"></block>이 필요합니다). <block ref="71e796326554d16610b5039dc97b84cf" prefix=" " category="inline-code"></block>를 실행한 후 <block ref="13f20f2533b4fd8761279f9006c67a59" prefix=" " category="inline-code"></block>이(가) 없는 경우 Instant Client *tools* 패키지 또는 데이터베이스 홈의 <block ref="fb690b2120a681e6eead8d230367816f" prefix=" " category="inline-code"></block>를 사용하여 자동 로그인 지갑을 생성한 다음 저장된 자격 증명을 다시 추가하십시오.</block>
+  <block id="3abbcae4779dea2bb36bad2edfa04521" category="list-text">두 멤버 모두의 자격 증명을 사용하여 Observer에서 지갑을 생성합니다.</block>
+  <block id="c07c0502e62d2a71c9a04cdb0844ffd7" category="list-text">Systemd 유닛 + 로그 로테이션:</block>
+  <block id="e3c6c14a60d971a11add738158732ffe" category="paragraph">기본 서버에서 확인하십시오. Observer는 다음 내용을 읽어야 합니다<block ref="a5afd6edd5336d91316964e493936858" prefix=" " category="inline-code"></block>(a<block ref="99c8ce56e7ab246445d3b134724428f3" prefix=" " category="inline-code"></block> Observer는 FSFO를 자동으로 일시 중단합니다):</block>
+  <block id="3bc2c0a95c3a5778da1c4bb024c15a52" category="section-title">6단계: FSFO(스위치오버 및 페일오버) 테스트</block>
+  <block id="68e7ca2683a553da37942fd93755ca42" category="paragraph">*계획된 전환:*</block>
+  <block id="18711b8dcfadb8571b6b785642834b37" category="paragraph">*계획되지 않은 페일오버:* 테스트 기간 내에 VM *재설정*(크래시 테스트 방식)을 사용하십시오. 일반적인 *중지* 작업으로는 FSFO가 발생하지 않을 수 있습니다. <block ref="3ca876beeb71c8704cdac200d57596a6" prefix=" " category="inline-code"></block>에서 Tail<block ref="c7f5bde16987c7d543c988c216354ee9" prefix=" " category="inline-code"></block>을 수행하고 완료되면 토폴로지를 복원하십시오.</block>
+  <block id="1b8810be65a2475a4f3e2e362dbfda33" category="sidebar">Google Cloud NetApp Volumes를 사용하여 Oracle Database 26ai 고가용성 배포</block>
 </blocks>
