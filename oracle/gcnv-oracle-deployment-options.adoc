@@ -1,0 +1,149 @@
+---
+sidebar: sidebar 
+permalink: oracle/gcnv-oracle-deployment-options.html 
+keywords: oracle database, google cloud netapp volumes, gcnv, deployment options, high availability, disaster recovery, data guard, fsfo 
+summary: 개발/테스트 환경부터 프로덕션 고가용성 계층까지 Oracle Database 26ai와 함께 사용하는 Google Cloud NetApp Volumes의 배포 옵션. 
+---
+= Oracle Database 26ai용 Google Cloud NetApp Volumes 배포 옵션에 대해 알아보세요
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes는 개발/테스트 환경부터 Data Guard 및 Fast-Start Failover를 지원하는 프로덕션 고가용성 구성에 이르기까지 다양한 배포 계층에서 Oracle Database 26ai를 지원합니다. 배포 요구 사항을 검토하고, 고가용성 계층을 비교하고, Google Cloud NetApp Volumes에서 선택한 아키텍처에 대한 작업 순서를 확인하세요.
+
+
+
+== 배포 요구 사항
+
+Oracle Database 26ai 고가용성을 위한 Google Cloud NetApp Volumes를 프로비저닝하기 전에 다음 항목이 모두 준비되어 있는지 확인하십시오.
+
+* Compute Engine, VPC 네트워킹, 방화벽 구성, IAM 및 NetApp Volumes에 대한 권한이 있는 Google Cloud 프로젝트
++
+[cols="1,2"]
+|===
+| 작업 | 필수 액세스 
+
+
+| Compute Engine VM 생성 | Compute Instance Admin(또는 이에 상응하는 권한) 
+
+
+| 방화벽/방화벽 정책 | 네트워크 관리자 또는 위임된 정책 관리자 
+
+
+| GCNV 풀 및 볼륨 생성 | NetApp Volumes Admin 
+
+
+| PSA 구성 | 호스트 프로젝트의 네트워크 관리자 
+
+
+| IAP를 통한 SSH | IAP로 보호되는 터널 사용자 + OS 로그인(사용하는 경우) 
+|===
+* NetApp Volumes API 활성화됨
+* 대상 리전에 맞게 구성된 VPC 및 서브넷
+* Google Cloud NetApp Volumes에 대해 구성된 Private Services Access(PSA)
+* 필요한 모든 가상 머신용 Oracle Linux 10
+* 데이터베이스 호스트와 Observer 호스트에 대해 DNS 및 호스트 이름 확인이 구성되어 있습니다.
+* Oracle Database 26ai 및 Grid Infrastructure용 Oracle 설치 미디어 및 패치 파일 사용 가능
+* Oracle Data Guard, Oracle Restart 및 iSCSI 스토리지 개념에 대한 이해
+* 모든 가상 머신에 대해 시간 동기화가 구성되어 있습니다.
++
+다음 명령을 사용할 수 있습니다.
+
++
+[source, bash]
+----
+gcloud services enable netapp.googleapis.com
+chronyc tracking
+timedatectl
+----
+
+
+
+
+== 예시 배포 구성
+
+이 솔루션은 다음과 같은 배포 구성을 사용합니다:
+
+* Google Compute Engine 가상 머신 3대:
++
+** `oracdb1` 운영 데이터베이스의 경우
+** `oracdb2` 대기 데이터베이스의 경우
+** `oradg-obs` Fast-Start Failover Observer의 경우
+
+
+* 데이터베이스 영역당 하나의 GCNV Flex Unified 스토리지 풀
+* 데이터베이스 호스트당 5개의 GCNV iSCSI 볼륨
+* 자동 페일오버를 위한 Oracle Data Guard Broker 및 Fast-Start Failover
+* 데이터베이스 호스트별로 전용 스토리지가 제공되며, 운영 호스트와 대기 호스트는 iSCSI 볼륨을 공유하지 않습니다.
+
+
+명령에 있는 모든 예시 값을 호스트 이름, IP 주소, 영역, 프로젝트 이름, 포털 IP, 암호 및 Oracle 미디어 파일 이름을 포함하여 사용자 환경의 값으로 바꾸십시오.
+
+
+
+== 배포 옵션
+
+다음 표는 고가용성(HA) 및 재해 복구(DR) 구축 패턴을 비교하고 자동화가 운영상 가장 큰 이점을 제공하는 부분을 보여줍니다.
+
+[cols="1,1,1,1,1,1,1"]
+|===
+| 환경 | 요구 사항 | 권장 아키텍처 | HA | DR | 오토메이션 | 주요 이점 
+
+
+| 개발/테스트 | 최저 비용 | 단일 인스턴스 | 아니요 | 예 | 아니요 | 스냅샷 클론 
+
+
+| Prod Basic(재시작) | 충돌로 인한 다운타임 감소 | + Oracle Restart | 아니요 | 예 | 로컬 전용 | 자동 재시작 
+
+
+| 운영 HA (DG 없음) | 수동 DR 허용 | + Snapshot / RMAN | 부분적 | 예 | 부분적 | GCNV 클론 복구 
+
+
+| Prod HA (DG + FSFO) | 진정한 HA(DBA 없음) | Data Guard + FSFO | 예 | 예 | 전체 | 진정한 HA + 빠른 페일오버 
+|===
+.고가용성/재해 복구/자동화
+* 예 = 티어 목표를 충족합니다
+* 아니요 = 범위에 포함되지 않음
+* 부분적 = 스토리지 수준 또는 수동 단계만 해당
+
+
+
+
+== HA 계층별 배포 작업
+
+이 문서 xref:gcnv-oracle-deployment.html[배포 워크플로]에서는 모든 배포 단계에 대한 번호가 매겨진 단계별 순서를 제공합니다. 모든 단계는 아래에 표시된 기본 배포 작업을 완료한 다음 프로덕션 고가용성을 위한 단계별 작업을 추가합니다.
+
+*기본 배포(모든 계층):*
+
+. xref:gcnv-oracle-solution-architecture.html[솔루션 아키텍처를 검토합니다.]
+. 배포 옵션 및 요구 사항 검토(이 페이지)
+. xref:gcnv-oracle-access-and-apis.html[액세스 및 API 확인]
+. xref:gcnv-oracle-provision-compute.html[Google Compute Engine 인스턴스 프로비저닝]
+. xref:gcnv-oracle-provision-storage.html[GCNV iSCSI 스토리지 프로비저닝]
+. xref:gcnv-oracle-install-software.html[Oracle Grid Infrastructure 및 Oracle Database 26ai 설치]
+. xref:gcnv-oracle-primary-database.html[기본 데이터베이스를 생성합니다]
+. xref:gcnv-oracle-standby-database.html[대기 데이터베이스를 생성합니다]
+
+
+*티어별 작업(Prod HA에만 해당):*
+
+[cols="1,2"]
+|===
+| 계층 | 배포 단계 
+
+
+| 개발/테스트 및 프로덕션 기본(재시작) 티어 | 기본 배포 1단계부터 7단계까지만 완료하십시오. 대기 데이터베이스는 필요하지 않습니다. 
+
+
+| Prod HA(Data Guard 미사용) | 기본 배치 1단계부터 8단계까지를 완료하십시오. 
+
+
+| 운영 HA(Data Guard + FSFO) | 기본 배포 단계를 모두 완료한 후 다음을 추가합니다. + 9단계: xref:gcnv-oracle-standby-finalize-dg.html[Data Guard용 대기 데이터베이스를 최종 확정합니다.] + 10단계: xref:gcnv-oracle-data-guard.html[Data Guard Broker 및 Fast-Start Failover 구성] 
+|===
+
+
+== 다음 단계
+
+배포 전에 환경을 준비하려면 xref:gcnv-oracle-access-and-apis.html[Google Cloud NetApp Volumes의 Oracle Database 26ai에 대한 액세스 및 API]을(를) 계속 진행하십시오.

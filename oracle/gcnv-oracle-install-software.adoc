@@ -1,0 +1,209 @@
+---
+sidebar: sidebar 
+permalink: oracle/gcnv-oracle-install-software.html 
+keywords: oracle database, grid infrastructure, oracle restart, asm, asm disk groups, oracle database 26ai, silent install, gridsetup 
+summary: 각 데이터베이스 호스트에 대해 Google Cloud NetApp Volumes iSCSI 스토리지에 Oracle Restart 및 ASM과 함께 Oracle Grid Infrastructure를 설치한 다음, Oracle Database 26ai 소프트웨어를 설치합니다. 이 절차에서는 Oracle Grid Infrastructure GoldImage 의 스테이징 및 압축 해제, gridSetup 응답 파일 실행, GCNV 볼륨에 ASM 디스크 그룹 생성, Oracle Database 홈의 자동 소프트웨어 전용 설치 수행에 대해 다룹니다. 
+---
+= Google Cloud NetApp Volumes에 Oracle Grid Infrastructure 및 Oracle Database 26ai 설치
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+각 데이터베이스 호스트용 Google Cloud NetApp Volumes iSCSI 스토리지에 Oracle Restart 및 ASM을 함께 구성한 Oracle Grid Infrastructure를 설치한 다음, Oracle Database 26ai 소프트웨어를 설치합니다. 이 절차에는 Oracle GoldImages 스테이징, 응답 파일을 사용한 자동 설치 실행, GCNV 볼륨에 ASM 디스크 그룹 생성, 그리고 데이터베이스 생성 전에 주 호스트와 대기 호스트 모두에 동일한 Oracle 소프트웨어를 준비하는 과정이 포함됩니다.
+
+
+
+== 1단계: 각 DB 호스트에 Grid Infrastructure 설치
+
+Oracle Restart 및 ASM을 활성화하려면 각 데이터베이스 호스트에 Oracle Grid Infrastructure GoldImage를 설치하십시오. 두 호스트 모두 각각 고유한 Grid 홈, ASM 인스턴스 및 디스크 그룹이 필요합니다. Data Guard는 공유 스토리지가 아닌 Oracle Net을 통해 데이터를 복제합니다.  `oracdb1`에서 모든 단계를 완료한 후 `oracdb2`에서 반복하십시오.
+
+. [[stage-oracle-binaries-on-u01]]Oracle GoldImages, 릴리스 업데이트 및 OPatch 바이너리를 `/u01/stage`에 스테이징합니다:
++
+[source, bash]
+----
+sudo chown oracle:oinstall /u01/stage && sudo chmod 775 /u01/stage
+# Upload GoldImages, RU, OPatch to /u01/stage.
+----
+. [[unzip-grid-home]]Grid GoldImage 파일을 대상 Grid 홈 디렉터리에 압축을 풀어 설치합니다. 26ai GoldImage는 대상 디렉터리에 직접 압축을 풀어 설치합니다:
++
+[source, bash]
+----
+sudo -u grid bash -c '
+cd /u01/app/26ai/grid
+unzip -q /u01/stage/LINUX.X64_<RELEASE>_grid_home.zip
+'
+sudo chown -R grid:oinstall /u01/app/26ai/grid
+----
++
+Grid GoldImage의 버전이 대상 RU보다 오래된 경우, `gridSetup.sh -applyRU` 워크플로를 사용하여 설치 과정에서 Grid 홈에 패치를 적용하거나, RU가 번들로 포함된 GoldImage를 사용하십시오. Grid와 데이터베이스 홈은 의도한 패치 수준을 동일하게 유지하십시오.
+
+. [[gridsetup-response-file]]각 호스트에서 `gridSetup` 응답 파일 `/tmp/grid.rsp`을 생성하십시오. 호스트명을 대체하고 강력한 비밀번호를 사용하십시오:
++
+[source, bash]
+----
+HOST=$(hostname -s)
+
+sudo -u grid bash -c "cat > /tmp/grid.rsp <<RSP
+oracle.install.responseFileVersion=/oracle/install/rspfmt_crsinstall_response_schema_v23.0.0
+INVENTORY_LOCATION=/u01/app/oraInventory
+installOption=HA_CONFIG
+ORACLE_BASE=/u01/app/grid
+clusterUsage=GENERAL_PURPOSE
+OSDBA=asmdba
+OSOPER=asmoper
+OSASM=asmadmin
+storageOption=FLEX_ASM_STORAGE
+sysasmPassword=WelcomeOracle1!
+asmsnmpPassword=WelcomeOracle1!
+diskGroupName=DATA
+redundancy=EXTERNAL
+auSize=4
+diskString=/dev/mapper/ora_${HOST}_*p*
+diskList=/dev/mapper/ora_${HOST}_data_01p1,/dev/mapper/ora_${HOST}_data_02p1
+managementOption=NONE
+RSP"
+sudo -u grid chmod 600 /tmp/grid.rsp
+----
+.  `gridSetup.sh`를 무음 모드로 실행하여 바이너리 파일을 복사하고 구성을 준비합니다.  `Successfully Setup Software with warning(s).` 및 종료 코드 6(경고) 또는 0을 예상합니다:
++
+[source, bash]
+----
+sudo -u grid bash -c '
+export ORACLE_HOME=/u01/app/26ai/grid
+export ORACLE_BASE=/u01/app/grid
+cd /u01/app/26ai/grid
+./gridSetup.sh -silent -responseFile /tmp/grid.rsp -ignorePrereqFailure
+'
+----
+. [[run-orainstroot-and-root]] `orainstRoot.sh` 와 `root.sh` 를 루트 권한으로 실행하십시오.  `root.sh` 스크립트는 `crsctl`, `srvctl`, 및 `asmcmd` 래퍼를 생성하고 OHAS를 시작합니다:
++
+[source, bash]
+----
+sudo /u01/app/oraInventory/orainstRoot.sh
+sudo /u01/app/26ai/grid/root.sh
+----
+. [[execute-config-tools]] `gridSetup.sh -executeConfigTools` 를 실행하여 구성 어시스턴트(NETCA, ASMCA, CVU)를 <<gridsetup-response-file,응답 파일>> 에 대해 실행합니다. 이렇게 하면 ASM 인스턴스와 `+DATA` 디스크 그룹이 생성됩니다. NETCA / ASMCA / CVU 실행 후에는 `Successfully Configured Software.` 가 표시될 것으로 예상됩니다:
++
+[source, bash]
+----
+sudo -u grid bash -c '
+export ORACLE_HOME=/u01/app/26ai/grid
+export ORACLE_BASE=/u01/app/grid
+cd /u01/app/26ai/grid
+./gridSetup.sh -silent -executeConfigTools -responseFile /tmp/grid.rsp
+'
+----
+. [[create-reco-and-fra-disk-groups]] `asmca`을 사용하여  `+RECO` 및  `+FRA` 디스크 그룹을 생성합니다. single-shot 설치는  `+DATA`만 생성합니다:
++
+[source, bash]
+----
+HOST=$(hostname -s)
+
+sudo -u grid bash -c "
+export ORACLE_HOME=/u01/app/26ai/grid
+export ORACLE_SID=+ASM
+
+\$ORACLE_HOME/bin/asmca -silent -createDiskGroup \
+  -diskGroupName RECO \
+  -disk /dev/mapper/ora_${HOST}_arch_01p1 \
+  -redundancy EXTERNAL -au_size 4
+
+\$ORACLE_HOME/bin/asmca -silent -createDiskGroup \
+  -diskGroupName FRA \
+  -disk /dev/mapper/ora_${HOST}_fra_01p1 \
+  -redundancy EXTERNAL -au_size 4
+"
+----
+. [[verify-asm-and-oracle-restart]]ASM 디스크 그룹 및 Oracle Restart 리소스의 상태를 확인하십시오:
++
+[source, bash]
+----
+sudo -u grid ORACLE_HOME=/u01/app/26ai/grid ORACLE_SID=+ASM \
+  /u01/app/26ai/grid/bin/sqlplus -s / as sysasm <<'SQL'
+SELECT name, total_mb, free_mb, state FROM v$asm_diskgroup ORDER BY name;
+SQL
+
+sudo /u01/app/26ai/grid/bin/crsctl stat res -t
+# Expected ONLINE: ora.DATA.dg, ora.RECO.dg, ora.FRA.dg, ora.LISTENER.lsnr, ora.asm, ora.cssd, ora.evmd.
+----
+.  `oracdb2`에서 위의 단계를 반복하십시오.  `HOST=$(hostname -s)` 패턴은 <<gridsetup-response-file,3단계와 4단계>> 및 <<create-reco-and-fra-disk-groups,7단계>>에서 해당 호스트의 GCNV iSCSI 장치를 자동으로 선택합니다.
++
+동일한 ASM 디스크 그룹 이름을 사용하십시오. Data Guard는 스토리지가 아닌 Oracle Net을 통해 복제됩니다.
+
+
+
+
+
+== 2단계: 각 DB 호스트에 Oracle 데이터베이스 설치
+
+최신 릴리스 업데이트가 적용된 상태에서, 무인 방식의 소프트웨어 전용 설치를 통해 각 데이터베이스 호스트에 Oracle Database 26ai 소프트웨어 홈을 설치하십시오.  `oracdb1`에 있는 모든 단계를 완료한 후, `oracdb2`에서 동일한 절차를 반복하십시오.
+
+. [[unzip-db-home-and-ru-patch]]데이터베이스 홈, 최신 OPatch 및 RU 패치를 각각의 디렉터리에 압축을 풀어주세요. RU 디렉터리 구조 및 `-applyRU` 경로에 대해서는 Oracle 설명서를 참조하십시오:
++
+[source, bash]
+----
+sudo su - oracle
+cd /u01/app/oracle/product/26ai/db_1
+unzip -q /u01/stage/LINUX.X64_<RELEASE>_db_home.zip
+rm -rf OPatch
+unzip -q /u01/stage/p6880880_<base>_Linux-x86-64.zip                    # latest OPatch
+unzip -q /u01/stage/p<RU_PATCH>_<base>_Linux-x86-64.zip -d /u01/stage   # latest 26ai RU
+----
+. [[silent-db-home-install]]설치 응답 파일을 작성하고, RU가 적용된 상태에서 자동 소프트웨어 전용 설치를 실행합니다. OL 8/9의 경우, `-applyOneOffs` 를 `runInstaller` 줄에서 생략하십시오:
++
+[source, bash]
+----
+sudo -u oracle tee /u01/stage/dbinstall.rsp >/dev/null <<'EOF'
+oracle.install.option=INSTALL_DB_SWONLY
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=/u01/app/oraInventory
+ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+ORACLE_BASE=/u01/app/oracle
+oracle.install.db.InstallEdition=EE
+oracle.install.db.OSDBA_GROUP=dba
+oracle.install.db.OSOPER_GROUP=oper
+oracle.install.db.OSBACKUPDBA_GROUP=backupdba
+oracle.install.db.OSDGDBA_GROUP=dgdba
+oracle.install.db.OSKMDBA_GROUP=kmdba
+oracle.install.db.OSRACDBA_GROUP=racdba
+oracle.install.db.rootconfig.executeRootScript=false
+EOF
+
+sudo -u oracle bash -c '
+export CV_ASSUME_DISTID=OEL10    # OEL9 / OEL8.10 if cluvfy requires it
+cd /u01/app/oracle/product/26ai/db_1
+./runInstaller -applyRU /u01/stage/<RU_PATCH> \
+  -applyOneOffs /u01/stage/39292021 \
+  -silent -ignorePrereqFailure -responseFile /u01/stage/dbinstall.rsp
+'
+----
+. 설치 후 루트 스크립트를 실행하십시오:
++
+[source, bash]
+----
+sudo /u01/app/oracle/product/26ai/db_1/root.sh
+----
+. [[set-oracle-environment]]각 DB 호스트에서 Oracle 환경을 설정합니다.  `oracdb1`에서  `ORACLE_SID=orcl`을 사용하고  `oracdb2`에서  `ORACLE_SID=orcls`을 사용하십시오:
++
+[source, bash]
+----
+sudo -u oracle tee -a /home/oracle/.bash_profile >/dev/null <<'EOF'
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export ORACLE_SID=orcl                          # use 'orcls' on oracdb2
+export GRID_HOME=/u01/app/26ai/grid
+export PATH=$ORACLE_HOME/bin:$GRID_HOME/bin:$PATH
+export TNS_ADMIN=$ORACLE_HOME/network/admin
+EOF
+----
++
+대기 데이터베이스가 xref:gcnv-oracle-standby-database.adoc[대기 데이터베이스를 생성합니다]에 생성됩니다.
+
+
+
+
+
+== 다음 단계
+
+HA 배포를 위한 프로덕션 기본 인스턴스를 생성하려면  `oracdb1`에서 xref:gcnv-oracle-primary-database.adoc[Oracle 주 데이터베이스 생성](으)로 이동합니다.

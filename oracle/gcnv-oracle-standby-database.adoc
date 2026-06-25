@@ -1,0 +1,388 @@
+---
+sidebar: sidebar 
+permalink: oracle/gcnv-oracle-standby-database.html 
+keywords: oracle database, standby database, data guard, gcnv replication, iscsi, asm, oracle restart, managed recovery, physical standby 
+summary: Google Cloud NetApp Volumes 스토리지 계층 복제, 스냅샷 또는 클론을 사용하여 Oracle 물리적 스탠바이 데이터베이스를 생성하고 스탠바이 초기화 속도를 높입니다. 이 절차에서는 리스너 및 스탠바이 pfile 구성, GCNV 복제를 사용한 스탠바이 볼륨 시드, Oracle 인스턴스 최종화, 스탠바이 리두 로그 생성, 관리형 복구를 사용한 리두 적용 활성화, Oracle Restart에 스탠바이 등록에 대해 설명합니다. 
+---
+= Google Cloud NetApp Volumes 스토리지 계층 시딩을 사용하여 Oracle 스탠바이 데이터베이스 생성
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes 스토리지 계층 복제, 스냅샷 또는 클론을 사용하여 Oracle 물리적 스탠바이 데이터베이스를 생성하면 기존 RMAN 방식보다 스탠바이 초기화 속도를 높일 수 있습니다. 이 절차에서는 리스너 구성, 스탠바이 pfile 생성, GCNV 복제를 사용한 스탠바이 볼륨 시드, Oracle 인스턴스 최종화, Oracle Restart를 사용한 스탠바이 등록을 다룹니다. 모든 HA 계층에서 이러한 단계를 완료해야 합니다. *프로덕션 HA(Data Guard + FSFO)* 계층의 경우, xref:gcnv-oracle-standby-finalize-dg.adoc[Data Guard 최종화] 구성 전에 계속 진행하십시오. xref:gcnv-oracle-data-guard.adoc[Data Guard Broker, Fast-Start Failover 및 Observer]
+
+
+
+== 1단계: 리스너 및 Data Guard 매개변수 구성
+
+두 데이터베이스 호스트 모두에서 Data Guard 연결을 지원하도록 리스너를 구성하고, 브로커에 필요한 서비스도 설정하십시오. `_DGMGRL` 기본 데이터베이스에서 암호 파일을 설정하고 아카이브 로그 매개변수를 구성하십시오.
+
+. 기본 리스너를 구성하고 다음 환경에서 환경을 확인하십시오 `oracdb1`:
++
+[source, bash]
+----
+sudo su - oracle
+. ~/.bash_profile        # ORACLE_SID=orcl, ORACLE_HOME set
+----
+.  `oracdb2`의 대기 수신기를 구성하여  `orcls` 및  `orcls_DGMGRL` 서비스를 포함하도록 합니다.
++
+[source, bash]
+----
+GRID_HOME=/u01/app/26ai/grid
+sudo -u grid tee "$GRID_HOME/network/admin/listener.ora" >/dev/null <<'EOF'
+LISTENER =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracdb2.example.internal)(PORT = 1521)))
+
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC = (GLOBAL_DBNAME = orcls)        (ORACLE_HOME = /u01/app/oracle/product/26ai/db_1) (SID_NAME = orcls))
+    (SID_DESC = (GLOBAL_DBNAME = orcls_DGMGRL) (ORACLE_HOME = /u01/app/oracle/product/26ai/db_1) (SID_NAME = orcls)))
+EOF
+----
+. 두 호스트 모두에서 Oracle Restart를 통해 리스너를 다시 시작하고  `_DGMGRL` 서비스가 등록되었는지 확인하십시오.
++
+[source, bash]
+----
+sudo -u grid bash -c '
+export GRID_HOME=/u01/app/26ai/grid
+export ORACLE_HOME=$GRID_HOME
+$GRID_HOME/bin/srvctl stop listener
+$GRID_HOME/bin/srvctl start listener
+$GRID_HOME/bin/lsnrctl status
+'
+----
++
+`lsnrctl status`은(는)  `<SID>` 및  `<SID>_DGMGRL`을(를) 나열해야 합니다.
+
+
+
+
+
+== 2단계: 대기 pfile 및 NOMOUNT 준비
+
+기본 데이터베이스에서 암호 파일을 복사하고, Data Guard 매개변수가 포함된 최소한의 init.ora pfile을 생성하고, 인스턴스를 NOMOUNT 모드로 시작하여 대기 데이터베이스 인스턴스를 준비합니다.
+
+. IAP 및 `gcloud compute scp`를 사용하여 기본 암호 파일을 대기 호스트로 복사합니다.
++
+[source, bash]
+----
+PRIMARY_ZONE=us-west1-a       # zone of oracdb1
+STANDBY_ZONE=us-west1-b       # zone of oracdb2
+
+gcloud compute scp \
+  oracdb1:/u01/app/oracle/product/26ai/db_1/dbs/orapworcl ./orapworcl \
+  --zone=$PRIMARY_ZONE --tunnel-through-iap
+
+gcloud compute scp \
+  ./orapworcl oracdb2:/u01/app/oracle/product/26ai/db_1/dbs/orapworcls \
+  --zone=$STANDBY_ZONE --tunnel-through-iap
+----
+. 기본 데이터베이스에서  `compatible` 매개변수 값을 조회합니다.
++
+[source, bash]
+----
+# On oracdb1
+sudo -u oracle sqlplus -s / as sysdba \
+  <<<"SELECT value FROM v\$parameter WHERE name='compatible';"
+----
+. 대기 pfile을  `oracdb2`에 생성하고, 암호 파일의 소유권을 설정한 다음, 인스턴스를 NOMOUNT 모드로 시작하십시오.  `compatible` 값을 이전 단계에서  `<COPY_FROM_PRIMARY>`으로 대체하십시오.
++
+[source, bash]
+----
+sudo -u oracle mkdir -p /u01/app/oracle/admin/orcls/adump
+sudo chown oracle:oinstall /u01/app/oracle/product/26ai/db_1/dbs/orapworcls
+sudo chmod 0600 /u01/app/oracle/product/26ai/db_1/dbs/orapworcls
+
+sudo -u oracle tee /u01/app/oracle/product/26ai/db_1/dbs/initorcls.ora >/dev/null <<'EOF'
+*.db_name='orcl'
+*.db_unique_name='orcls'
+*.audit_file_dest='/u01/app/oracle/admin/orcls/adump'
+*.diagnostic_dest='/u01/app/oracle'
+*.compatible='<COPY_FROM_PRIMARY>'
+*.sga_target=3072m
+*.pga_aggregate_target=1024m
+*.processes=320
+*.remote_login_passwordfile='EXCLUSIVE'
+*.standby_file_management='AUTO'
+*.fal_server='orcl'
+*.log_archive_config='DG_CONFIG=(orcl,orcls)'
+*.log_archive_dest_1='LOCATION=+RECO VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME=orcls'
+*.log_archive_dest_2='SERVICE=orcl AFFIRM SYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=orcl'
+*.log_archive_dest_state_2='DEFER'
+*.log_archive_format='%t_%s_%r.arc'
+*.dg_broker_start=TRUE
+*.undo_tablespace='UNDOTBS1'
+*.open_cursors=300
+*.db_create_file_dest='+DATA'
+*.db_create_online_log_dest_1='+DATA'
+*.db_recovery_file_dest='+FRA'
+*.db_recovery_file_dest_size=25000m
+EOF
+
+echo "orcls:/u01/app/oracle/product/26ai/db_1:N" | sudo tee -a /etc/oratab
+
+sudo -u oracle bash -c '
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export ORACLE_SID=orcls
+sqlplus / as sysdba <<SQL
+STARTUP NOMOUNT PFILE=/u01/app/oracle/product/26ai/db_1/dbs/initorcls.ora;
+EXIT
+SQL
+'
+----
++
+대기 인스턴스는 이제 <<gcnv-standby-initialization,3단계: GCNV를 사용하여 대기 스토리지 초기화>>까지 데이터 파일이 없는 NOMOUNT 모드입니다.
+
+
+
+
+
+== 3단계: GCNV를 사용하여 대기 스토리지 초기화
+
+대기 볼륨을  `oracle-pool-b`에 시드하고,  `oracdb2`에 연결하고, ASM 디스크 그룹을 마운트한 다음, 대기 인스턴스를 MOUNT 상태로 최종화합니다.
+
+프로덕션 시딩에는 GCNV 복제를 사용하고, 일회성 랩 워크플로우에는 스냅샷 시딩을 사용하십시오.
+
+
+
+=== 시딩 경로를 선택합니다
+
+사용 환경 및 복구 요구 사항에 따라 대기 시드 방법을 선택하십시오.
+
+* *프로덕션 환경에 권장:* <<create-volume-replications,복제 경로: 복제본 생성 및 동기화>> 및 <<cutover-quiesce-stop-repl-attach,복제 경로: 컷오버 및 대기 볼륨 연결>>에 있는 복제 경로를 사용하십시오.
+* *실험실 대안:* <<snapshot-seed,대체 경로: 스냅샷에서 시드 생성>>을(를) 사용합니다.
+
+
+모든 경로는 <<standby-iscsi-and-asm-before-rman,대기 ASM 디스크 그룹 마운트>>와 <<oracle-finalize,대기 인스턴스를 완료합니다.>>에서 다시 합쳐집니다.
+
+
+
+=== 필수 조건을 확인합니다
+
+대기 볼륨을 시드하기 전에 다음 필수 조건을 확인하십시오.
+
+* `gcloud netapp` 볼륨 복제 지원.
+* 서로 다른 위치에 있는 두 개의 *기본 모드* 풀 (`oracle-pool-a`, `oracle-pool-b`).
+* 기본 풀에 연결된 소스 볼륨 `oracdb1-hg`, 복제를 통해 생성된 대상 볼륨.
+* DB VM이 아닌 Cloud Shell 또는 워크스테이션에서 복제를 실행하십시오.
+*  `oracdb2`에서 xref:gcnv-oracle-provision-storage.adoc#configure-iscsi-and-multipath[4단계], xref:gcnv-oracle-provision-storage.adoc#partition-asm-backing-devices[5단계], xref:gcnv-oracle-provision-storage.adoc#format-and-mount-u01[6단계]의 iSCSI 및 ASM 호스트 설정을 완료하십시오.
++
+[source, bash]
+----
+export PROJECT=<your-gcp-project>
+export LOC_A=us-west1-a
+export LOC_B=us-west1-b
+export DEST_POOL="projects/${PROJECT}/locations/${LOC_B}/storagePools/oracle-pool-b"
+----
+* 필요한 경우 대기 풀을 생성합니다.
++
+[source, bash]
+----
+gcloud netapp storage-pools create oracle-pool-b \
+  --project="${PROJECT}" --location="${LOC_B}" \
+  --service-level=flex --type=unified --mode=default \
+  --capacity=1024 --network=name=<your-vpc>
+----
+
+
+
+
+=== 복제본 생성 및 동기화
+
+기본 볼륨에서 대기 볼륨으로 복제 관계를 생성한 다음 초기 동기화가 완료될 때까지 기다립니다.
+
+[source, bash]
+----
+gcloud netapp volumes replications create repl-oracdb2-data \
+  --project="${PROJECT}" --location="${LOC_A}" --volume=oracdb1_data \
+  --replication-schedule=EVERY_10_MINUTES \
+  --destination-volume-parameters="storage_pool=${DEST_POOL},volume_id=oracdb2_data,share_name=oracdb2_data"
+
+gcloud netapp volumes replications create repl-oracdb2-reco \
+  --project="${PROJECT}" --location="${LOC_A}" --volume=oracdb1_reco \
+  --replication-schedule=EVERY_10_MINUTES \
+  --destination-volume-parameters="storage_pool=${DEST_POOL},volume_id=oracdb2_reco,share_name=oracdb2_reco"
+----
++
+
+ `mirrorState`이(가)  `MIRRORED`이 될 때까지 기다리고 각 복제에 대한 초기 동기화가 완료될 때까지 기다리십시오.
+
+
+
+=== 전환 후 대기 볼륨 연결
+
+기본 서버를 정지시키고, 최종 동기화 후 복제를 중지한 다음, 대상 볼륨을 대기 호스트 그룹에 연결합니다.
+
+기본 서버에서 쓰기 작업을 중지하고 복구 메타데이터를 캡처합니다.
+
+[source]
+----
+ALTER DATABASE BEGIN BACKUP;
+SELECT CURRENT_SCN FROM V$DATABASE;
+ALTER DATABASE CREATE STANDBY CONTROLFILE AS '/tmp/orcls_stby.ctl';
+----
+마지막 복제 주기를 한 번 더 허용한 다음 복제를 중지합니다.
+
+[source, bash]
+----
+gcloud netapp volumes replications stop repl-oracdb2-data \
+  --project="${PROJECT}" --location="${LOC_A}" --volume=oracdb1_data --force
+
+gcloud netapp volumes replications stop repl-oracdb2-reco \
+  --project="${PROJECT}" --location="${LOC_A}" --volume=oracdb1_reco --force
+----
+대상 볼륨을 다음 위치에 연결합니다 `oracdb2-hg`(복제된 LUN은 원본 이름을 유지할 수 있습니다):
+
+[source, bash]
+----
+HG=$(gcloud netapp host-groups describe oracdb2-hg --project="${PROJECT}" \
+  --location=us-west1 --format='value(name)')
+
+gcloud netapp volumes update oracdb2_data --project="${PROJECT}" --location="${LOC_B}" \
+  --block-devices="name=oracdb1_data_lun,host-groups=${HG},os-type=LINUX"
+----
+대기 제어 파일을  `oracdb2`에 복사한 다음 기본 시스템에서 백업 모드를 종료합니다.
+
+[source]
+----
+ALTER DATABASE END BACKUP;
+----
+
+
+=== 스냅샷에서 시드
+
+지속적인 복제가 필요하지 않은 경우 이 경로를 사용하여 일회성 랩 시딩을 수행하십시오.
+
+일회성 랩 시드를 생성하려면 소스 스냅샷을 생성하고  `oracle-pool-b`(클라우드 콘솔 또는 API)에서 해당 스냅샷으로부터 대기 볼륨을 생성합니다. 생성된 볼륨을  `oracdb2-hg`에 연결한 다음 <<standby-iscsi-and-asm-before-rman,대기 ASM 디스크 그룹 마운트>>을 계속 진행합니다.
+
+
+
+=== 대기 ASM 디스크 그룹 마운트
+
+대기 호스트에서 연결된 스토리지 경로를 검색하고 데이터베이스 복구 전에 ASM 디스크 그룹을 마운트합니다.
+
+켜짐 상태에서 `oracdb2`, 대기 풀 iSCSI 포털에 로그인하고 다중 경로 장치를 다시 검색합니다. 랩 워크플로에서 ASM 디스크 헤더가 기본 명명 규칙과 일치하는 경우 기본 스타일 별칭(예: `ora_oracdb1_data_01`, `ora_oracdb1_arch_01`)을 사용하고, `asm_diskstring='/dev/mapper/ora_oracdb1_*p*'`를 설정하고, 파티션 소유권이 `grid:asmadmin`인지 확인한 다음 디스크 그룹을 마운트합니다.
+
+[source]
+----
+ALTER DISKGROUP DATA MOUNT FORCE;
+ALTER DISKGROUP RECO MOUNT FORCE;
+ALTER DISKGROUP FRA MOUNT FORCE;
+----
+
+
+=== 대기 인스턴스를 완료합니다.
+
+대기 제어 파일을 복원하고, 캡처된 SCN으로 복구하고, 물리적 대기 상태로 전환한 다음 관리형 복구를 시작합니다.
+
+[source]
+----
+STARTUP NOMOUNT;
+RESTORE STANDBY CONTROLFILE FROM '/tmp/orcls_stby.ctl';
+ALTER DATABASE MOUNT;
+RECOVER DATABASE UNTIL SCN <quiesce_scn>;
+ALTER DATABASE CONVERT TO PHYSICAL STANDBY;
+SHUTDOWN IMMEDIATE;
+STARTUP MOUNT;
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+----
+이 시점에서 대기 모드는  `PHYSICAL STANDBY` 및  `MOUNTED` 상태여야 하며 관리형 복구가 시작되어야 합니다.
+
+*등급별 다음 단계:*
+
+* *프로덕션 HA(데이터 가드 미사용):* 바로 <<register-standby-with-oracle-restart,4단계: Oracle Restart에 대기 상태 등록>>으로 진행하세요.
+* *프로덕션 HA(Data Guard + FSFO):* <<register-standby-with-oracle-restart,4단계: Oracle Restart에 대기 상태 등록>>로 계속 진행한 다음 xref:gcnv-oracle-standby-finalize-dg.adoc[Data Guard 최종화 단계]로 진행합니다.
+
+
+
+
+== 4단계: Oracle Restart에 대기 상태 등록
+
+대기 데이터베이스를 Oracle Restart에 등록하여 재부팅 시 ASM 디스크 그룹이 자동으로 복구되고, 대기 데이터베이스가 마운트되고, 관리형 복구가 다시 시작되도록 합니다. 또한 애플리케이션 서비스를 두 데이터베이스 리소스 모두에 추가합니다.
+
+. 대기 데이터베이스에서 spfile 위치를 캡처하고 Oracle Restart에 등록합니다 `oracdb2`. 쿼리에서 `<STANDBY_SPFILE_PATH>`를 대체합니다(대개 `+DATA` 아래에 있음).
++
+[source, bash]
+----
+sudo -u oracle bash -c '
+export ORACLE_SID=orcls
+sqlplus -s / as sysdba <<< "SHOW PARAMETER spfile;"
+'
+
+sudo -u oracle bash -c '
+export GRID_HOME=/u01/app/26ai/grid
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export PATH=$ORACLE_HOME/bin:$GRID_HOME/bin:$PATH
+
+srvctl add database \
+  -db orcls \
+  -dbname orcl \
+  -oraclehome /u01/app/oracle/product/26ai/db_1 \
+  -spfile <STANDBY_SPFILE_PATH> \
+  -pwfile /u01/app/oracle/product/26ai/db_1/dbs/orapworcls \
+  -role PHYSICAL_STANDBY \
+  -startoption MOUNT \
+  -stopoption IMMEDIATE \
+  -diskgroup DATA,RECO,FRA
+
+srvctl config database -db orcls
+srvctl status database -db orcls
+'
+----
+.  `oracdb1`에서 모든 ASM 디스크 그룹 종속성을 포함하도록 기본 데이터베이스 리소스를 확인하고 업데이트하십시오.
++
+[source, bash]
+----
+sudo -u oracle bash -c '
+export GRID_HOME=/u01/app/26ai/grid
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export PATH=$ORACLE_HOME/bin:$GRID_HOME/bin:$PATH
+srvctl config database -db orcl
+srvctl modify database -db orcl -diskgroup DATA,RECO,FRA
+srvctl config database -db orcl
+'
+----
+. 대기 데이터베이스 리소스에 애플리케이션 서비스를 추가합니다 (`orcls` (on `oracdb2`).  `role PRIMARY`을 양쪽에서 모두 사용하므로 전환 후에도  `orclapp`을 사용할 수 있습니다.
++
+[source, bash]
+----
+sudo -u oracle bash -c '
+export GRID_HOME=/u01/app/26ai/grid
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export PATH=$ORACLE_HOME/bin:$GRID_HOME/bin:$PATH
+
+srvctl add service \
+  -db orcls \
+  -service orclapp \
+  -pdb orclpdb \
+  -role PRIMARY \
+  -policy AUTOMATIC
+
+srvctl config service -db orcls -service orclapp
+'
+----
+. 대기 데이터베이스 리소스를 다음 위치에서 확인하십시오. `oracdb2`
++
+[source, bash]
+----
+sudo -u oracle bash -c '
+export GRID_HOME=/u01/app/26ai/grid
+export ORACLE_HOME=/u01/app/oracle/product/26ai/db_1
+export PATH=$ORACLE_HOME/bin:$GRID_HOME/bin:$PATH
+srvctl status database -db orcls
+'
+----
+
+
+
+
+== 다음 단계
+
+*등급별 특징:*
+
+* *프로덕션 HA(Data Guard 미사용):* 스토리지 복제 기반 복구 대상을 유지하기 위해 대기 데이터베이스 초기화가 완료되었으며, 대기 데이터베이스가 Oracle Restart에 백업 인스턴스로 등록되었습니다.
+* *Prod HA (Data Guard + FSFO):* 브로커 관리형 스위치오버 및 빠른 시작 페일오버를 활성화하려면 xref:gcnv-oracle-standby-finalize-dg.adoc[Data Guard용 대기 데이터베이스를 최종 설정합니다.]을(를) 계속 진행하십시오.
+

@@ -1,0 +1,138 @@
+---
+sidebar: sidebar 
+permalink: oracle/gcnv-oracle-solution-architecture.html 
+keywords: oracle database, google cloud netapp volumes, gcnv, iscsi, data guard, fsfo, architecture, topology, standby initialization 
+summary: 고가용성 Oracle Database 26ai를 위한 Google Cloud NetApp Volumes 아키텍처에 대해 알아보세요. iSCSI 블록 스토리지 설계, Data Guard 통합, 대기 초기화 가속화를 위한 스토리지 계층 복제 및 플랫폼 책임 사항을 다룹니다. 
+---
+= Google Cloud NetApp Volumes 아키텍처를 활용한 고가용성 Oracle Database 26ai에 대해 알아보세요.
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes는 Oracle Database 26ai 고가용성 아키텍처를 위한 고성능 iSCSI 블록 스토리지를 제공하며, 스토리지 계층 복제를 통해 기존 Oracle RMAN 방식보다 대기 데이터베이스 초기화 속도를 크게 향상시킵니다. 참조 데이터 경로, 스토리지 토폴로지, GCNV의 블록 스토리지와 Data Guard의 지속적인 동기화 간의 책임 분담 등 Oracle Data Guard와의 GCNV 통합에 대해 자세히 알아보세요.
+
+
+
+== 아키텍처 개요
+
+이 아키텍처는 *Google Cloud NetApp Volumes(GCNV)* iSCSI 블록 스토리지를 사용하여 Google Cloud에서 *Oracle Data Guard*를 통해 *Oracle Database 26ai*에 대한 고가용성을 제공합니다.
+
+GCNV는 고성능 블록 스토리지를 제공하고 스토리지 계층 *복제, 스냅샷 및 클론*을 사용하여 대기 데이터베이스 초기화를 가속화합니다.
+
+Data Guard는 *지속적인 리두 전송*, 역할 관리 및 *장애 조치 오케스트레이션*(Broker, Fast-Start Failover, Observer)을 제공합니다.
+
+[cols="1,3"]
+|===
+| 계층 | 역할 
+
+
+| GCNV | 블록 스토리지, 대기 초기화, 스토리지 복제 
+
+
+| Data Guard | 연속 동기화, 리두 적용, 스위치오버, FSFO 
+|===
+GCNV 복제는 Oracle 데이터베이스 채널을 통하는 대신 스토리지 계층에서 데이터를 이동함으로써 RMAN 액티브 복제에 비해 대기 서버 초기화 시간을 크게 단축합니다.
+
+*GCNV 복제, 스냅샷 또는 클론*을 사용하여 대기 데이터베이스를 초기화한 다음, 지속적인 동기화 및 고가용성을 위해 Data Guard를 활성화하십시오.
+
+[cols="1,3"]
+|===
+| 구성 요소 | 세부 정보 
+
+
+| DB 호스트 | oracdb1 / oracdb2 - 서로 다른 영역, 각각 5개의 GCNV iSCSI 볼륨 
+
+
+| 스토리지 | GCNV (EXTERNAL) 상의 /u01 + ASM +DATA, +RECO, +FRA 
+
+
+| 대기 초기화 | GCNV 복제/스냅샷/클론 -> Oracle 최종화 -> Data Guard 
+
+
+| HA | 재시작, 물리적 대기(마운트됨), 브로커, FSFO, 옵저버(oradg-obs) 
+
+
+| 앱 | 서비스 orclapp (8.2단계) 
+|===
+
+
+=== 조닝
+
+데이터베이스 영역별로 GCNV Flex Unified 풀을 하나씩 배포하고 각 호스트에 전용 볼륨을 할당하십시오. 부팅 디스크는 운영 체제에만 사용하십시오.
+
+*범위 외 항목:* TDE, RAC, NVMe/TCP, OEM 및 Active Data Guard(대기 장치는 *MOUNTED* 상태로 유지됨).
+
+
+
+== 아키텍처 참조 다이어그램
+
+솔루션 아키텍처는 세 가지 독립적인 데이터 경로를 제공합니다. 스토리지 복제와 Data Guard 리두 전송은 별도의 경로입니다.
+
+image::gcnv-oracle-26ai-ha.png[GCNV 참조 아키텍처]
+
+.스토리지 복제는 리두 복제와 동일하지 않습니다
+* 경로 1은 스탠바이 초기화를 위해 GCNV 계층에서 데이터 파일을 이동합니다.
+* 경로 2는 전환 후 데이터베이스를 동기화 상태로 유지합니다.
+* 경로 3은 Oracle Data Guard Broker 및 Observer를 통해 역할 전환 및 자동 페일오버를 오케스트레이션합니다.
+
+
+
+
+== 플랫폼 역할
+
+다음 표는 스토리지 서비스를 제공하는 플랫폼 계층과 데이터베이스 동기화 및 장애 조치 제어를 제공하는 계층을 요약한 것입니다.
+
+[cols="1,3"]
+|===
+| 플랫폼 | 제공 
+
+
+| GCNV | iSCSI 볼륨, 스냅샷, 볼륨 복제(기준 복제 + 증분 복제) - 대기 상태 초기화 
+
+
+| Data Guard | 리두 전송, MRP, 브로커, FSFO - 지속적인 동기화 및 페일오버 
+|===
+GCNV 복제는 기준 복사본을 실행한 다음 정책에 따라 증분 블록 업데이트를 실행합니다. Data Guard는 스탠바이 서버가 초기화된 후 리두 적용 및 FSFO를 담당합니다.
+
+
+
+== 토폴로지 및 스토리지
+
+이 토폴로지는 기본, 대기 및 관찰자 역할을 서로 다른 영역에 배치하고 각 데이터베이스 호스트를 전용 GCNV 풀 및 iSCSI 볼륨에 매핑합니다.
+
+[cols="1,1,1,1,2"]
+|===
+| 역할 | VM | 영역 | GCNV 풀 | 볼륨(호스트당) 
+
+
+| 주요한 | `oracdb1` | `us-west1-a` | `oracle-pool-a` | `ora_<host>_u01`, `ora_<host>_data_01/02`, `ora_<host>_arch_01`, `ora_<host>_fra_01` 
+
+
+| 대기 | `oracdb2` | `us-west1-b` | `oracle-pool-b` | 동일한 명명 패턴 
+
+
+| Observer | `oradg-obs` | `us-west1-c` | - | 부팅 디스크만 
+|===
+[cols="1,1,2"]
+|===
+| 스토리지 | 백업 | 사용 
+
+
+| OS | GCE 부팅 디스크 | OS 전용 
+
+
+| `/u01` | GCNV iSCSI | 그리드/DB 홈, 스테이징(XFS) 
+
+
+| `+DATA` / `+RECO` / `+FRA` | GCNV iSCSI | ASM EXTERNAL - 데이터 파일, 아카이브, FRA 
+|===
+.시스템 유형
+Sample `n4-highmem-8` 이 솔루션의 예시입니다. OLTP 워크로드는 일반적으로 `c4-standard-*`을 사용합니다.
+
+
+
+== 다음 단계
+
+복구 및 가용성 목표에 맞는 배포 경로를 선택하려면 xref:gcnv-oracle-deployment-options.adoc[Google Cloud NetApp Volumes에서 Oracle Database 26ai 배포 옵션에 대해 알아보기]을(를) 참조하십시오.

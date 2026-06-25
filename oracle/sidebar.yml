@@ -1,0 +1,31 @@
+---
+section: gcnv-oracle
+title: Oracle Database 26ai용 Google Cloud NetApp Volumes
+entries:
+- title: 배포 워크플로
+  url: "/oracle/gcnv-oracle-deployment.html"
+- title: Oracle HA를 위한 Google Cloud NetApp Volumes에 대해 알아보기
+  entries:
+  - title: 솔루션 아키텍처
+    url: "/oracle/gcnv-oracle-solution-architecture.html"
+  - title: 배포 옵션
+    url: "/oracle/gcnv-oracle-deployment-options.html"
+  - title: 액세스 및 API
+    url: "/oracle/gcnv-oracle-access-and-apis.html"
+- title: Oracle HA를 지원하는 Google Cloud NetApp Volumes 배포
+  pdf-filename: Oracle HA를 지원하는 Google Cloud NetApp Volumes 배포
+  entries:
+  - title: Compute Engine 인스턴스 프로비저닝
+    url: "/oracle/gcnv-oracle-provision-compute.html"
+  - title: GCNV iSCSI 스토리지 프로비저닝
+    url: "/oracle/gcnv-oracle-provision-storage.html"
+  - title: Oracle 소프트웨어 설치
+    url: "/oracle/gcnv-oracle-install-software.html"
+  - title: 기본 데이터베이스를 생성합니다
+    url: "/oracle/gcnv-oracle-primary-database.html"
+  - title: 대기 데이터베이스를 생성합니다
+    url: "/oracle/gcnv-oracle-standby-database.html"
+  - title: Data Guard용 대기 데이터베이스를 최종 확정합니다.
+    url: "/oracle/gcnv-oracle-standby-finalize-dg.html"
+  - title: Data Guard Broker, FSFO 및 Observer 구성
+    url: "/oracle/gcnv-oracle-data-guard.html"
