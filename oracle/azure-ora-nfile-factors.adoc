@@ -20,6 +20,7 @@ keywords: database, Oracle, Azure, Azure NetApp Files
 
 
 
+[[vm-type-and-sizing]]
 == VM 유형 및 크기
 
 퍼블릭 클라우드에서 관계형 데이터베이스의 성능을 최적화하려면 올바른 VM 유형과 크기를 선택하는 것이 중요합니다.  Azure 가상 머신은 Oracle 데이터베이스 워크로드를 호스팅하는 데 사용할 수 있는 다양한 컴퓨팅 인스턴스를 제공합니다.  Microsoft 설명서를 참조하세요link:https://docs.microsoft.com/en-us/azure/virtual-machines/sizes["Azure의 가상 머신 크기"^] 다양한 유형의 Azure 가상 머신과 크기에 대해 알아보세요.  일반적으로 NetApp 소규모 및 중규모 Oracle 데이터베이스를 배포할 때 범용 Azure 가상 머신을 사용할 것을 권장합니다.  대규모 Oracle 데이터베이스를 배포하는 경우 메모리 최적화된 Azure VM이 적합합니다.  사용 가능한 RAM이 많을수록 더 큰 Oracle SGA 또는 스마트 플래시 캐시를 구성하여 물리적 I/O를 줄일 수 있으며, 이는 데이터베이스 성능을 향상시킵니다.
@@ -34,6 +35,7 @@ Azure NetApp Files Azure 가상 머신에 연결된 NFS 마운트로 작동하�
 
 
 
+[[azure-netapp-files-performance]]
 == Azure NetApp Files 성능
 
 Azure NetApp Files 볼륨은 고객이 Azure NetApp Files 스토리지 계정에서 프로비저닝해야 하는 용량 풀에서 할당됩니다.  각 용량 풀은 다음과 같이 할당됩니다.
@@ -46,6 +48,7 @@ Azure NetApp Files 볼륨은 고객이 Azure NetApp Files 스토리지 계정에
 
 
 
+[[1-service-levels-for-azure-netapp-files]]
 === 1. Azure NetApp Files 의 서비스 수준
 
 Azure NetApp Files Ultra, Premium, Standard의 세 가지 서비스 수준을 지원합니다.
@@ -57,6 +60,7 @@ Azure NetApp Files Ultra, Premium, Standard의 세 가지 서비스 수준을 �
 
 
 
+[[2-capacity-pool-and-quality-of-service]]
 === 2. 용량 풀 및 서비스 품질
 
 각각의 원하는 서비스 수준에는 프로비저닝된 용량에 대한 관련 비용이 있으며, 프로비저닝된 공간에 대한 전체 최대 처리량을 정의하는 서비스 품질(QoS) 수준이 포함됩니다.
@@ -67,6 +71,7 @@ Azure NetApp Files Ultra, Premium, Standard의 세 가지 서비스 수준을 �
 
 
 
+[[3-calculate-the-service-level-at-a-database-volume]]
 === 3. 데이터베이스 볼륨의 서비스 수준 계산
 
 Oracle 데이터베이스 볼륨의 처리량 제한은 다음 요소의 조합에 따라 결정됩니다. 볼륨이 속한 용량 풀의 서비스 수준, 볼륨에 할당된 할당량.
@@ -83,6 +88,7 @@ image:db-ora-azure-anf-factors-001.png["이 이미지는 총 처리량을 결정
 
 
 
+[[storage-layout-and-settings]]
 == 저장 레이아웃 및 설정
 
 NetApp 다음과 같은 스토리지 레이아웃을 권장합니다.
@@ -99,6 +105,7 @@ image:db-ora-azure-anf-factors-003.png["이 이미지는 각각 두 개의 볼�
 
 
 
+[[nfs-configuration]]
 == NFS 구성
 
 가장 흔한 운영체제인 Linux에는 기본 NFS 기능이 포함되어 있습니다.  Oracle은 Oracle에 기본적으로 통합된 직접 NFS(dNFS) 클라이언트를 제공합니다.  Oracle dNFS는 OS 캐시를 우회하고 병렬 처리를 활성화하여 데이터베이스 성능을 향상시킵니다.  Oracle은 20년 이상 NFSv3를 지원해 왔으며, NFSv4는 Oracle 12.1.0.2 이상에서 지원됩니다.

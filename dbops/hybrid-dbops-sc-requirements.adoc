@@ -22,6 +22,7 @@ keywords: requirements, virtualized, bare metal, versions, automation
 
 
 
+[[requirements]]
 == 요구 사항
 
 [cols="3, 9"]

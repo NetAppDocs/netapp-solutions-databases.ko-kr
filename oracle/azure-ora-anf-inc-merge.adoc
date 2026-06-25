@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 Oracle Recovery Manager(RMAN) 백업 도구를 사용하여 Oracle에서 매우 큰 데이터베이스(VLDB)를 복구하는 것은 매우 어려운 작업이 될 수 있습니다.  장애 발생 시 백업 미디어에서 데이터베이스를 복원하는 과정은 시간이 많이 걸릴 수 있으며, 데이터베이스 복구가 지연되고 잠재적으로 서비스 수준 계약(SLA)에 상당한 영향을 미칠 수 있습니다.  그러나 Oracle은 10g 버전부터 사용자가 DB 서버 호스트에 있는 추가 디스크 스토리지에 Oracle 데이터베이스 데이터 파일의 단계적 이미지 복사본을 생성할 수 있는 RMAN 기능을 도입했습니다.  이러한 이미지 복사본은 RMAN을 사용하여 매일 증분적으로 업데이트할 수 있습니다.  장애가 발생한 경우, 데이터베이스 관리자(DBA)는 장애가 발생한 미디어에서 이미지 복사본으로 Oracle 데이터베이스를 신속하게 전환할 수 있으므로 데이터베이스 미디어를 완전히 복원할 필요가 없습니다.  결과적으로 SLA는 크게 향상되었지만, 필요한 데이터베이스 저장 용량은 두 배로 늘어나게 됩니다.
@@ -35,6 +36,7 @@ VLDB에 대한 SLA를 원하고 Oracle 데이터베이스를 Azure와 같은 퍼
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -47,18 +49,21 @@ VLDB에 대한 SLA를 원하고 Oracle 데이터베이스를 Azure와 같은 퍼
 
 
 
+[[solution-test-and-validation-environment]]
 == 솔루션 테스트 및 검증 환경
 
 이 솔루션의 테스트 및 검증은 최종 배포 환경과 일치하지 않을 수 있는 Microsoft ANF 용량 풀 스토리지 및 Azure VM 컴퓨팅 환경에서 수행되었습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
 
 
 
+[[architecture]]
 === 아키텍처
 
 image:azure-ora-anf-vldb-architecture.png["이 이미지는 ANF를 사용하여 Azure 퍼블릭 클라우드에서 Oracle VLDB 증분 병합을 구현하는 방법에 대한 자세한 그림을 제공합니다."]
 
 
 
+[[hardware-and-software-components]]
 === 하드웨어 및 소프트웨어 구성 요소
 
 [cols="33%, 33%, 33%"]
@@ -90,6 +95,7 @@ image:azure-ora-anf-vldb-architecture.png["이 이미지는 ANF를 사용하여 
 |===
 
 
+[[key-factors-for-deployment-consideration]]
 === 배포 고려사항의 핵심 요소
 
 * *RMAN 증분 병합을 위한 Oracle VLDB 저장 레이아웃.*  테스트와 검증에서 Oracle 증분 백업 및 병합을 위한 NFS 볼륨은 볼륨당 100TiB, 총 용량 제한 1000TiB의 단일 ANF 용량 풀에서 할당되었습니다.  임계값을 초과하여 배포하는 경우, 여러 볼륨과 ANF 용량 풀을 여러 NFS 마운트 지점과 병렬로 연결하여 더 높은 용량을 제공할 수 있습니다.
@@ -102,6 +108,7 @@ image:azure-ora-anf-vldb-architecture.png["이 이미지는 ANF를 사용하여 
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 Azure 클라우드 환경 내 VNet에 Oracle VLDB가 이미 배포되어 있다고 가정합니다.  Azure에 Oracle을 배포하는 데 도움이 필요하면 다음 기술 보고서를 참조하세요.
@@ -114,6 +121,7 @@ Oracle VLDB는 ANF 스토리지나 Azure 클라우드 에코시스템 내의 다
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -131,6 +139,7 @@ NOTE: Oracle 설치 파일을 준비할 충분한 공간을 확보하려면 Azur
 ====
 
 
+[[provision-and-export-nfs-volume-to-be-mounted-on-primary-oracle-vldb-server]]
 === 기본 Oracle VLDB 서버에 마운트할 NFS 볼륨을 프로비저닝하고 내보냅니다.
 
 [%collapsible%open]
@@ -183,6 +192,7 @@ sudo chown oracle:oinstall /nfsanf
 ====
 
 
+[[setup-oracle-rman-incremental-merge-to-image-copy-on-anf]]
 === ANF에서 이미지 복사를 위한 Oracle RMAN 증분 병합 설정
 
 [%collapsible%open]
@@ -810,6 +820,7 @@ total 399482176
 ====
 
 
+[[switch-oracle-vldb-to-image-copy-for-quick-recovery]]
 === 빠른 복구를 위해 Oracle VLDB를 이미지 복사본으로 전환
 
 [%collapsible%open]
@@ -1092,6 +1103,7 @@ SQL>
 ====
 
 
+[[oracle-vldb-recovery-from-image-copy-to-a-standby-db-server]]
 === 이미지 복사본에서 스탠바이 DB 서버로 Oracle VLDB 복구
 
 [%collapsible%open]
@@ -1863,6 +1875,7 @@ SQL>
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.

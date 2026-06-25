@@ -17,6 +17,8 @@ Google Cloud NetApp Volumes에서 Oracle Data Guard의 스탠바이 데이터베
 
 
 
+[[step-1-create-standby-redo-log-files]]
+[[standby-redo-log-files]]
 == 1단계: 대기 리두 로그 파일 생성
 
 Fast-Start Failover를 지원하기 위해 두 데이터베이스 호스트 모두에 대기 리두 로그 파일을 생성합니다. 크기는 가장 큰 기본 온라인 리두 로그 파일보다 크거나 같아야 하며, 개수는 (스레드당 온라인 그룹 수) + 1이어야 합니다. GCNV 시딩 후, 복제된 경로를 수정하기 위해 대기 데이터베이스에서 대기 리두 로그 파일을 삭제하고 다시 생성합니다.
@@ -46,6 +48,8 @@ ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT
 
 
 
+[[step-2-enable-flashback-and-start-recovery]]
+[[enable-flashback-on-standby]]
 == 2단계: 플래시백 활성화 및 복구 시작
 
 장애 조치 후 자동 복구를 지원하려면 대기 시스템에서 플래시백 데이터베이스를 활성화한 다음 실시간 적용을 사용하여 관리형 복구를 시작하십시오. MRP가 활성화된 동안에는 플래시백을 활성화할 수 없으므로 관리형 복구를 시작하기 전에 플래시백을 활성화해야 합니다.
@@ -85,6 +89,8 @@ SQL'
 
 
 
+[[step-3-enable-redo-shipping]]
+[[enable-redo-shipping-on-primary]]
 == 3단계: 재실행 로그 전달 활성화
 
 스탠바이 생성 중  `ORA-12154` 오류를 억제하기 위해 스탠바이 초기화 절차의 xref:gcnv-oracle-standby-database.adoc#standby-init-ora-and-nomount[2단계]에서 의도적으로  `DEFER`(으)로 설정했던  `LOG_ARCHIVE_DEST_STATE_2`을(를) 활성화하여 프라이머리에서 스탠바이로의 redo 전송을 활성화합니다.
@@ -121,6 +127,8 @@ SQL'
 
 
 
+[[step-4-verify-data-guard-state]]
+[[verify-target-dg-state]]
 == 4단계: Data Guard 상태 확인
 
 기본 데이터베이스가 READ WRITE 모드인지, 그리고 대기 데이터베이스가 리두 로그를 적용하는 관리형 복구로 마운트되었는지 확인하십시오.
@@ -175,6 +183,7 @@ SQL'
 
 
 
+[[whats-next]]
 == 다음 단계
 
 자동화된 역할 관리 및 장애 조치 보호를 활성화하려면 xref:gcnv-oracle-data-guard.adoc[Oracle Data Guard Broker, Fast-Start Failover 및 Observer 구성]을(를) 계속 진행하십시오.

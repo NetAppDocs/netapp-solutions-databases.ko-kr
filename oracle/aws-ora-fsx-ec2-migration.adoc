@@ -20,6 +20,7 @@ keywords: HA, DR, database, Oracle, RDS, AWS, SnapCenter
 
 
 
+[[ontap-storage-is-available-on-premises]]
 == ONTAP 스토리지는 온프레미스에서 사용 가능합니다.
 
 온프레미스 Oracle 데이터베이스가 ONTAP 스토리지 어레이에 있는 경우 AWS FSx ONTAP 스토리지에 내장된 NetApp SnapMirror 기술을 사용하여 데이터베이스 마이그레이션을 위한 복제를 설정하는 것이 더 쉽습니다.  NetApp BlueXP 콘솔을 사용하여 마이그레이션 프로세스를 조정할 수 있습니다.
@@ -39,6 +40,7 @@ keywords: HA, DR, database, Oracle, RDS, AWS, SnapCenter
 video::c0df32f8-d6d3-4b79-b0bd-b01200f3a2e8[panopto]
 
 
+[[ontap-storage-is-not-available-on-premises]]
 == ONTAP 스토리지는 온프레미스에서 사용할 수 없습니다.
 
 온프레미스 Oracle 데이터베이스가 ONTAP 아닌 타사 스토리지에 호스팅된 경우 데이터베이스 마이그레이션은 Oracle 데이터베이스 백업 복사본의 복원을 기반으로 합니다.  전환하기 전에 보관 로그를 재생하여 최신 상태로 만들어야 합니다.
@@ -58,6 +60,7 @@ AWS S3는 데이터베이스 이동 및 마이그레이션을 위한 스테이�
 
 
 
+[[migrate-on-premises-oracle-databases-to-aws-fsxec2-using-pdb-relocation-with-maximum-availability]]
 == 최대 가용성을 갖춘 PDB 이전을 사용하여 온프레미스 Oracle 데이터베이스를 AWS FSx/EC2로 마이그레이션합니다.
 
 이 마이그레이션 방식은 이미 PDB/CDB 멀티테넌트 모델에 배포된 Oracle 데이터베이스에 가장 적합하며, ONTAP 스토리지는 온프레미스에서 사용할 수 없습니다.  PDB 이전 방법은 Oracle PDB 핫 클론 기술을 활용하여 서비스 중단을 최소화하면서 소스 CDB와 대상 CDB 간에 PDB를 이동합니다.

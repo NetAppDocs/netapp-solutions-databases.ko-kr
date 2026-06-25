@@ -20,6 +20,7 @@ NetApp 솔루션 엔지니어링 팀
 
 
 
+[[purpose]]
 == 목적
 
 이 툴킷은 FSx ONTAP 스토리지와 EC2 컴퓨팅 인스턴스를 대상 인프라로 사용하여 온프레미스에서 AWS 클라우드로 Oracle 데이터베이스를 자동으로 마이그레이션합니다.  이는 고객이 이미 CDB/PDB 모델에 온프레미스 Oracle 데이터베이스를 구축했다고 가정합니다.  이 툴킷을 사용하면 고객은 최대 가용성 옵션이 포함된 Oracle PDB 재배치 절차를 사용하여 Oracle 호스트의 컨테이너 데이터베이스에서 지정된 PDB를 재배치할 수 있습니다.  즉, 온프레미스 스토리지 어레이의 소스 PDB가 최소한의 서비스 중단으로 새로운 컨테이너 데이터베이스로 이전됩니다.  Oracle 이전 절차는 데이터베이스가 온라인 상태인 동안 Oracle 데이터 파일을 이동합니다.  이후 모든 데이터 파일이 AWS 클라우드로 이전될 때 온프레미스에서 이전된 데이터베이스 서비스로 사용자 세션을 다시 라우팅합니다.  밑줄 친 기술은 검증된 Oracle PDB 핫 클론 방법론입니다.
@@ -35,6 +36,7 @@ NOTE: 마이그레이션 툴킷은 AWS 클라우드 인프라에서 개발 및 �
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -47,6 +49,7 @@ NOTE: 마이그레이션 툴킷은 AWS 클라우드 인프라에서 개발 및 �
 
 
 
+[[license]]
 == 특허
 
 이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
@@ -56,10 +59,12 @@ NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -89,6 +94,7 @@ Network connectivity
 ====
 
 
+[[download-the-toolkit]]
 === 툴킷을 다운로드하세요
 
 [%collapsible%open]
@@ -100,6 +106,7 @@ git clone https://github.com/NetApp/na_ora_aws_migration.git
 ====
 
 
+[[host-variables-configuration]]
 === 호스트 변수 구성
 
 [%collapsible%open]
@@ -129,6 +136,7 @@ Target Oracle CDB - define host specific variables for the target CDB including 
 ====
 
 
+[[db-server-host-file-configuration]]
 === DB 서버 호스트 파일 구성
 
 [%collapsible%open]
@@ -144,6 +152,7 @@ AWS EC2 인스턴스는 기본적으로 호스트 명명에 IP 주소를 사용�
 ====
 
 
+[[playbook-execution-executed-in-sequence]]
 === 플레이북 실행 - 순서대로 실행
 
 [%collapsible%open]
@@ -176,6 +185,7 @@ ansible-playbook -i hosts ora_pdb_relocate.yml -u ec2-user --private-key db1.pem
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

@@ -15,6 +15,8 @@ summary: 각 데이터베이스 호스트에 대해 Google Cloud NetApp Volumes 
 
 
 
+[[step-1-install-grid-infrastructure-on-each-db-host]]
+[[install-grid-infrastructure]]
 == 1단계: 각 DB 호스트에 Grid Infrastructure 설치
 
 Oracle Restart 및 ASM을 활성화하려면 각 데이터베이스 호스트에 Oracle Grid Infrastructure GoldImage를 설치하십시오. 두 호스트 모두 각각 고유한 Grid 홈, ASM 인스턴스 및 디스크 그룹이 필요합니다. Data Guard는 공유 스토리지가 아닌 Oracle Net을 통해 데이터를 복제합니다.  `oracdb1`에서 모든 단계를 완료한 후 `oracdb2`에서 반복하십시오.
@@ -136,6 +138,8 @@ sudo /u01/app/26ai/grid/bin/crsctl stat res -t
 
 
 
+[[step-2-install-oracle-database-on-each-db-host]]
+[[install-oracle-db-home]]
 == 2단계: 각 DB 호스트에 Oracle 데이터베이스 설치
 
 최신 릴리스 업데이트가 적용된 상태에서, 무인 방식의 소프트웨어 전용 설치를 통해 각 데이터베이스 호스트에 Oracle Database 26ai 소프트웨어 홈을 설치하십시오.  `oracdb1`에 있는 모든 단계를 완료한 후, `oracdb2`에서 동일한 절차를 반복하십시오.
@@ -204,6 +208,7 @@ EOF
 
 
 
+[[whats-next]]
 == 다음 단계
 
 HA 배포를 위한 프로덕션 기본 인스턴스를 생성하려면  `oracdb1`에서 xref:gcnv-oracle-primary-database.adoc[Oracle 주 데이터베이스 생성](으)로 이동합니다.

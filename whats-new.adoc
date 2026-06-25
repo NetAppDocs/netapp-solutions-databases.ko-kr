@@ -15,6 +15,7 @@ summary: NetApp 데이터베이스 솔루션 담보의 최근 변경 사항 로�
 
 
 
+[[18-august-2025]]
 == 2025년 8월 18일
 
 NetApp Solutions 사이트는 이제link:https://docs.netapp.com/us-en/netapp-solutions-family/index.html["NetApp 솔루션 제품군"^] 다음 사이트를 포함합니다.

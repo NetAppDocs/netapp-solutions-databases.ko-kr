@@ -15,6 +15,7 @@ Google Cloud NetApp Volumes iSCSI 블록 스토리지를 사용하여 단일 서
 
 
 
+[[prerequisites]]
 == 필수 조건
 
 진행하기 전에 Google Cloud 문서에 나와 있는 구성 필수 단계를 완료하세요.
@@ -27,6 +28,7 @@ Google Cloud NetApp Volumes iSCSI 블록 스토리지를 사용하여 단일 서
 
 
 
+[[before-you-begin]]
 == 시작하기 전에
 
 다음 요구 사항을 완료했는지 확인하십시오.
@@ -43,6 +45,7 @@ NOTE: 새로운 Google Cloud 사용자는 link:https://cloud.google.com/free["�
 
 
 
+[[objectives]]
 == 목표
 
 SQL Server Always On 가용성 그룹 구성에는 다음과 같은 주요 작업이 포함됩니다.
@@ -57,6 +60,7 @@ SQL Server Always On 가용성 그룹 구성에는 다음과 같은 주요 작�
 
 
 
+[[cost-considerations]]
 == 비용 고려 사항
 
 이 튜토리얼에서는 link:https://console.cloud.google.com/compute/overview?["Compute Engine 인스턴스"^] 및 link:https://console.cloud.google.com/netapp/volumes?["Google Cloud NetApp Volumes"^] 스토리지 등 Google Cloud의 유료 구성 요소를 사용합니다.
@@ -65,6 +69,7 @@ link:https://cloud.google.com/products/calculator?dl=CjhDaVF4T1dJeU5XRTBZUzFtTmp
 
 
 
+[[configure-domain-accounts]]
 == 도메인 계정 구성
 
 Active Directory에 두 개의 계정을 구성합니다. 하나는 설치 계정(관리자 계정)이고 다른 하나는 두 SQL Server VM 모두에 대한 서비스 계정입니다.
@@ -86,6 +91,7 @@ NOTE: 이 예에서는  `cvsdemo`을(를) 도메인 이름으로 사용합니다
 |===
 
 
+[[create-compute-engine-vms-for-sql-server]]
 == SQL Server용 Compute Engine VM 생성
 
 가용성 그룹 복제본을 호스팅하기 위해 Windows Server 2025에 SQL Server 2022 Enterprise가 사전 설치된 Google Compute Engine VM 인스턴스 두 개를 생성합니다.
@@ -125,6 +131,7 @@ NOTE: 이 예에서는  `cvsdemo`을(를) 도메인 이름으로 사용합니다
 
 
 
+[[join-servers-to-the-domain]]
 === 서버를 도메인에 연결합니다
 
 VM을 생성한 후 Active Directory 도메인에 가입시키고 페일오버 클러스터링 및 iSCSI 연결에 필요한 Windows 기능을 설치하십시오.
@@ -147,6 +154,7 @@ NOTE: SQL 인스턴스는 클러스터링 및 페일오버 설정에 필요한 s
 
 
 
+[[install-required-windows-features]]
 === 필요한 Windows 기능 설치
 
 서버 관리자 또는 PowerShell을 사용하여 두 SQL Server VM에 장애 조치 클러스터링 및 MPIO를 설치합니다.
@@ -178,6 +186,7 @@ Install-WindowsFeature RSAT-AD-PowerShell
 ----
 
 
+[[obtain-iscsi-initiator-names]]
 === iSCSI 이니시에이터 이름을 가져옵니다.
 
 iSCSI 이니시에이터 GUI 또는 PowerShell을 사용하여 호스트 그룹에 포함할 각 SQL Server VM의 iSCSI 정규화된 이름(IQN)을 가져옵니다.
@@ -200,12 +209,14 @@ Get-InitiatorPort | Select-Object NodeAddress
 ----
 
 
+[[create-netapp-block-storage-volumes]]
 == NetApp 블록 스토리지 볼륨을 생성합니다
 
 Google Cloud NetApp Volumes를 사용하여 iSCSI 블록 스토리지 볼륨을 생성하면 SQL Server 데이터베이스에 고성능 공유 스토리지를 제공할 수 있습니다. 이 과정에는 호스트 그룹, 스토리지 풀 그리고 데이터, 로그, 임시 및 백업용 개별 볼륨 생성이 포함됩니다.
 
 
 
+[[create-the-host-group]]
 === 호스트 그룹을 생성합니다
 
 .단계
@@ -242,6 +253,7 @@ image::gcnv-sql-storage-pool.png[스토리지 풀 구성]
 
 
 
+[[create-storage-pool]]
 === 스토리지 풀 생성
 
 .단계
@@ -279,6 +291,7 @@ gcloud netapp storage-pools create POOL_NAME \
 
 
 
+[[create-volumes]]
 === 볼륨 생성
 
 . 데이터, 로그, 임시 및 백업용 볼륨을 생성합니다. 각 볼륨 유형에 대해 다음 명령을 실행하십시오.
@@ -317,6 +330,7 @@ NOTE: 데이터, 로그, 임시 및 백업 등 각 볼륨 유형에 대해 이 �
 
 
 
+[[mount-iscsi-volumes]]
 === iSCSI 볼륨 마운트
 
 각 SQL 인스턴스에 공유되지 않는 iSCSI 볼륨을 마운트합니다.
@@ -371,6 +385,7 @@ $paths | % { New-Item -ItemType Directory -Path $_ -Force }
 
 
 
+[[configure-sql-server]]
 == SQL Server 구성
 
 두 노드 모두에서 SQL Server가 도메인 서비스 계정을 사용하도록 구성하고, 기본 경로를 NetApp 볼륨을 사용하도록 업데이트하고, 시스템 데이터베이스를 새 스토리지 위치로 이동합니다.
@@ -545,12 +560,14 @@ image::gcnv-sql-aoag-003.png[SQL Server 구성 매니저 - 시작 매개변수]
 
 
 
+[[set-up-failover-cluster]]
 == 장애 조치 클러스터 설정
 
 SQL Server의 고가용성을 제공하기 위해 Windows Server 장애 조치 클러스터링을 설정하십시오. 자세한 내용은 link:https://learn.microsoft.com/en-us/windows-server/failover-clustering/failover-clustering-overview["Windows Server 장애 조치 클러스터링 설명서"^]을 참조하십시오.
 
 
 
+[[configure-firewall-rules]]
 === 방화벽 규칙 구성
 
 클러스터 통신, SQL Server 연결 및 가용성 그룹 복제를 활성화하려면 두 SQL 노드 모두에서 필요한 네트워크 포트를 엽니다.
@@ -588,6 +605,7 @@ Get-NetAdapterBinding -ComponentID ms_tcpip6
 
 
 
+[[create-the-failover-cluster]]
 === 페일오버 클러스터를 생성합니다
 
 고가용성 및 자동 페일오버 기능을 사용하도록 설정하려면 두 SQL Server 노드를 모두 사용하여 Windows Server Failover Cluster를 생성합니다.
@@ -609,12 +627,14 @@ image::gcnv-sql-failover-confirm.png[페일오버 클러스터 생성]
 
 
 
+[[configure-cluster-quorum-with-file-share-witness]]
 == 파일 공유 감시자를 사용하여 클러스터 쿼럼 구성
 
 2노드 클러스터 구성에서 쿼럼을 유지하기 위해 파일 공유 감시를 구성합니다. 감시 서버는 추가 투표권을 제공하여 스플릿 브레인 시나리오를 방지하고 클러스터 가용성을 보장합니다.
 
 
 
+[[create-file-share]]
 === 파일 공유 생성
 
 네트워크 연결이 가능하고 동일한 Active Directory 도메인 내에 있는 다른 영역 또는 지역의 VM에 파일 공유를 생성합니다.
@@ -641,6 +661,7 @@ image::gcnv-sql-cluster-new-share.png[클러스터 쿼럼 감시자를 위한 �
 
 
 
+[[configure-quorum-settings]]
 === 쿼럼 설정 구성
 
 클러스터가 쿼럼 투표에 파일 공유 감시를 사용하도록 구성합니다.
@@ -665,6 +686,7 @@ image::gcnv-sql-file-share-confirm.png[파일 공유 감시자로 구성된 클�
 
 
 
+[[enable-always-on-availability-groups]]
 == Always On 가용성 그룹 활성화
 
 두 SQL Server VM 모두에서 Always On 가용성 그룹을 활성화합니다.
@@ -684,6 +706,7 @@ image::gcnv-sql-always-on-group.png[Always On 고가용성 활성화]
 
 
 
+[[create-a-database-on-the-first-sql-server-instance]]
 == 첫 번째 SQL Server 인스턴스에 데이터베이스를 생성합니다
 
 첫 번째 SQL Server 인스턴스에 데이터베이스를 생성합니다.
@@ -704,6 +727,7 @@ GO
 
 
 
+[[create-and-configure-availability-group]]
 == 가용성 그룹 생성 및 구성
 
 SQL Server 데이터베이스에 고가용성을 제공하기 위해 동기식 커밋 및 자동 페일오버 기능을 갖춘 Always On 가용성 그룹을 생성하십시오.
@@ -779,6 +803,7 @@ image::gcnv-sql-avail-group-replica.png[가용성 그룹이 성공적으로 생�
 
 
 
+[[create-dnn-listener-resource]]
 == DNN 리스너 리소스 생성
 
 로드 밸런서 없이도 트래픽을 적절한 클러스터 리소스로 라우팅할 수 있도록 DNN(Distributed Network Name) 리스너를 생성합니다.
@@ -807,6 +832,7 @@ Set-ClusterResourceDependency -Resource $AagResource -Dependency "[$Dns]"
 ----
 
 
+[[configure-possible-owners]]
 === 가능한 소유자 구성
 
 기본적으로 클러스터는 DNN DNS 이름을 모든 노드에 바인딩합니다. 가용성 그룹에 참여하지 않는 노드는 제외하십시오.
@@ -826,6 +852,7 @@ image::gcnv-sql-configure-dns.png[DNN 가능한 소유자 구성]
 
 
 
+[[update-application-connection-strings]]
 == 애플리케이션 연결 문자열 업데이트
 
 DNN 리스너 이름을 사용하고  `MultiSubnetFailover=True` 매개변수를 포함하도록 연결 문자열을 업데이트하세요.
@@ -840,6 +867,7 @@ NOTE: 클라이언트가 MultiSubnetFailover 매개변수를 지원하지 않으
 
 
 
+[[test-failover]]
 == 페일오버 테스트
 
 가용성 그룹 구성을 확인하고 페일오버를 테스트하여 노드 간 자동 페일오버가 올바르게 작동하는지 확인하십시오.
@@ -890,6 +918,7 @@ image::gcnv-sql-success-failover.png[성공적인 페일오버를 보여주는 A
 
 
 
+[[clean-up-resources]]
 == 리소스 정리
 
 튜토리얼을 완료한 후에는 추가 요금이 발생하지 않도록 생성한 리소스를 삭제하세요.
@@ -904,6 +933,7 @@ image::gcnv-sql-success-failover.png[성공적인 페일오버를 보여주는 A
 
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 NetApp 스토리지를 사용하는 Google Cloud의 SQL Server에 대한 자세한 내용은 다음 문서를 참조하십시오.

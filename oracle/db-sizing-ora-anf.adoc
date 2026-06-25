@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 기존 Oracle 워크로드를 한 플랫폼에서 다른 플랫폼으로(예: 온프레미스에서 퍼블릭 클라우드로) 이동하려면 성능 및 서비스 수준 요구 사항을 충족하도록 대상 플랫폼의 컴퓨팅 및 스토리지 크기를 조정해야 합니다.  이 문서는 해당 목표를 달성하기 위한 간단한 툴킷을 보여줍니다.
@@ -34,6 +35,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -45,6 +47,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[license]]
 == 특허
 
 이 툴킷 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://netapp.sharepoint.com/sites/CIEBuilt-OnsTeam-DatabasesandApps/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCIEBuilt%2DOnsTeam%2DDatabasesandApps%2FShared%20Documents%2FDatabases%20and%20Apps%2FDatabase%20Solutions%2FDB%20Sizing%20Toolkits%2FOracle%20Sizing%20Guidance%20for%20ANF%2FLICENSE%2ETXT&parent=%2Fsites%2FCIEBuilt%2DOnsTeam%2DDatabasesandApps%2FShared%20Documents%2FDatabases%20and%20Apps%2FDatabase%20Solutions%2FDB%20Sizing%20Toolkits%2FOracle%20Sizing%20Guidance%20for%20ANF["라이센스 파일"^] .
@@ -54,10 +57,12 @@ NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -71,6 +76,7 @@ NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 ====
 
 
+[[download-the-toolkit]]
 === 툴킷을 다운로드하세요
 
 [%collapsible%open]
@@ -80,6 +86,7 @@ NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 ====
 
 
+[[how-to-use-the-toolkit]]
 === 툴킷을 어떻게 사용하나요?
 
 [%collapsible%open]
@@ -95,6 +102,7 @@ NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 ====
 
 
+[[toolkit-usage-demonstration]]
 === 툴킷 사용 데모
 
 [%collapsible%open]

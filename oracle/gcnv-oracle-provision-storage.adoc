@@ -15,6 +15,8 @@ Google Compute Engine에서 Oracle Database 26ai의 고가용성을 위해 Googl
 
 
 
+[[step-1-create-gcnv-iscsi-pools]]
+[[provision-gcnv-iscsi-volumes]]
 == 1단계: GCNV iSCSI 풀 생성
 
 기본 호스트와 대기 호스트에 iSCSI 볼륨을 제공하기 위해 각 데이터베이스 영역에 Flex Unified 스토리지 풀을 하나씩, 총 두 개를 생성합니다. 각 데이터베이스 호스트는 해당 로컬 영역의 풀에서 볼륨을 사용합니다.
@@ -53,6 +55,8 @@ Google Compute Engine에서 Oracle Database 26ai의 고가용성을 위해 Googl
 
 
 
+[[step-2-create-host-groups]]
+[[create-host-groups]]
 == 2단계: 호스트 그룹 생성
 
 각 VM이 자체 볼륨만 볼 수 있도록 데이터베이스 호스트별로 호스트 그룹을 하나씩 생성하십시오. 독립적인 스토리지를 유지하려면 기본 호스트와 대기 호스트가 GCNV iSCSI 볼륨을 공유해서는 안 됩니다.
@@ -76,6 +80,8 @@ Google Compute Engine에서 Oracle Database 26ai의 고가용성을 위해 Googl
 
 
 
+[[step-3-create-gcnv-iscsi-volumes]]
+[[create-gcnv-iscsi-volumes]]
 == 3단계: GCNV iSCSI 볼륨 생성
 
 각 데이터베이스 호스트에 대해 5개의 GCNV iSCSI 볼륨을 생성합니다. 하나는 `/u01`용이고 나머지 4개는 ASM 백업 장치용입니다. 각 호스트의 볼륨은 해당 호스트 그룹과 함께 로컬 영역의 스토리지 풀에 생성되어야 합니다.
@@ -120,6 +126,8 @@ Google Compute Engine에서 Oracle Database 26ai의 고가용성을 위해 Googl
 
 
 
+[[step-4-configure-iscsi-and-multipath]]
+[[configure-iscsi-and-multipath]]
 == 4단계: iSCSI 및 다중 경로 구성
 
 각 데이터베이스 호스트에서 iSCSI 및 device-mapper-multipath를 구성하여 두 스토리지 포털 IP를 통해 GCNV 볼륨에 액세스하도록 합니다.  `oracdb1`에서 기본 풀의 포털 IP를 사용하여 이 단계를 실행한 다음,  `oracdb2`에서 대기 풀의 포털 IP를 사용하여 동일한 단계를 반복합니다. 호스트 송신이 제한된 경우, 각 데이터베이스 VM에서 GCNV iSCSI 포털 IP로 TCP/3260을 허용해야 합니다(xref:gcnv-oracle-provision-compute.adoc#vpc-firewall-allow-1521[2단계: VPC 방화벽 - 세 영역 모두에서 TCP/1521 허용 목록 추가]에서의 VM 간 TCP/1521 포함).
@@ -206,6 +214,8 @@ ls -l /dev/mapper/ora_$(hostname -s)_*
 
 
 
+[[step-5-partition-asm-devices]]
+[[partition-asm-backing-devices]]
 == 5단계: ASM 장치 분할
 
 4개의 ASM 백업 장치( `u01` 제외)를 각각 ASM 사용을 위한 GPT 파티션 하나씩으로 분할한 다음, 그리드 소유권에 대한 udev 규칙을 구성하십시오. 각 데이터베이스 호스트에서 이러한 단계를 실행하십시오.
@@ -248,6 +258,8 @@ ls -lL /dev/mapper/ora_${HOST}_*p1    # grid:asmadmin 0660
 
 
 
+[[step-6-format-and-mount-u01]]
+[[format-and-mount-u01]]
 == 6단계: 포맷 및 마운트 `/u01`
 
 GCNV 볼륨을 `ora_<host>_u01` XFS로 포맷하고 `/etc/fstab`에서 UUID를 사용하여 영구적으로 마운트합니다. 해당 `/u01` 파일 시스템에는 Grid 홈, Oracle 홈 및 스테이징 파일이 저장됩니다.
@@ -288,6 +300,7 @@ sudo chmod -R 775 /u01/app /u01/stage
 
 
 
+[[whats-next]]
 == 다음 단계
 
 준비된 호스트에 Oracle Grid Infrastructure 및 Database 바이너리를 설치하려면 두 호스트 모두에서 xref:gcnv-oracle-install-software.adoc[Oracle Grid Infrastructure 및 Oracle Database 소프트웨어를 설치합니다.]로 이동하십시오.

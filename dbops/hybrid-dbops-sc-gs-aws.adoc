@@ -18,6 +18,7 @@ keywords: AWS, cloud volumes ontap, cloud manager, deploy
 
 
 
+[[aws-public-cloud]]
 == AWS 퍼블릭 클라우드
 
 
@@ -25,6 +26,7 @@ NOTE: 이해하기 쉽게 하기 위해 AWS 배포를 기반으로 이 문서를
 
 
 
+[[1-pre-flight-check]]
 === 1. 비행 전 점검
 
 배포하기 전에 다음 단계의 배포를 위한 인프라가 제대로 구축되었는지 확인하세요.  여기에는 다음이 포함됩니다.
@@ -38,6 +40,7 @@ NOTE: 이해하기 쉽게 하기 위해 AWS 배포를 기반으로 이 문서를
 
 
 
+[[2-steps-to-deploy-cloud-manager-and-cloud-volumes-ontap-in-aws]]
 === 2. AWS에 Cloud Manager 및 Cloud Volumes ONTAP 배포하는 단계
 
 
@@ -292,6 +295,7 @@ image:cloud-central-replication-013.png["입력/출력 대화 상자 또는 서�
 
 
 
+[[3-deploy-ec2-compute-instance-for-database-workload]]
 === 3. 데이터베이스 워크로드를 위한 EC2 컴퓨팅 인스턴스 배포
 
 AWS는 다양한 작업 부하에 맞춰 EC2 컴퓨팅 인스턴스를 미리 구성했습니다.  인스턴스 유형을 선택하면 CPU 코어 수, 메모리 용량, 스토리지 유형 및 용량, 네트워크 성능이 결정됩니다.  OS 파티션을 제외한 사용 사례의 경우, 데이터베이스 워크로드를 실행하기 위한 주 스토리지는 CVO 또는 FSx ONTAP 스토리지 엔진에서 할당됩니다.  따라서 고려해야 할 주요 요소는 CPU 코어, 메모리, 네트워크 성능 수준의 선택입니다.  일반적인 AWS EC2 인스턴스 유형은 다음에서 확인할 수 있습니다. https://us-east-2.console.aws.amazon.com/ec2/v2/home?region=us-east-2#InstanceTypes:["EC2 인스턴스 유형"] .

@@ -15,6 +15,7 @@ Google Cloud NetApp Volumes는 개발/테스트 환경부터 Data Guard 및 Fast
 
 
 
+[[deployment-requirements]]
 == 배포 요구 사항
 
 Oracle Database 26ai 고가용성을 위한 Google Cloud NetApp Volumes를 프로비저닝하기 전에 다음 항목이 모두 준비되어 있는지 확인하십시오.
@@ -62,6 +63,8 @@ timedatectl
 
 
 
+[[example-deployment-configuration]]
+[[example-configuration]]
 == 예시 배포 구성
 
 이 솔루션은 다음과 같은 배포 구성을 사용합니다:
@@ -83,6 +86,7 @@ timedatectl
 
 
 
+[[deployment-options]]
 == 배포 옵션
 
 다음 표는 고가용성(HA) 및 재해 복구(DR) 구축 패턴을 비교하고 자동화가 운영상 가장 큰 이점을 제공하는 부분을 보여줍니다.
@@ -111,6 +115,7 @@ timedatectl
 
 
 
+[[deployment-tasks-by-ha-tier]]
 == HA 계층별 배포 작업
 
 이 문서 xref:gcnv-oracle-deployment.html[배포 워크플로]에서는 모든 배포 단계에 대한 번호가 매겨진 단계별 순서를 제공합니다. 모든 단계는 아래에 표시된 기본 배포 작업을 완료한 다음 프로덕션 고가용성을 위한 단계별 작업을 추가합니다.
@@ -144,6 +149,7 @@ timedatectl
 |===
 
 
+[[whats-next]]
 == 다음 단계
 
 배포 전에 환경을 준비하려면 xref:gcnv-oracle-access-and-apis.html[Google Cloud NetApp Volumes의 Oracle Database 26ai에 대한 액세스 및 API]을(를) 계속 진행하십시오.

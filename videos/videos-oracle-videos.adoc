@@ -18,6 +18,7 @@ NetApp 의 Oracle용 데이터베이스 솔루션을 소개하는 NetApp의 포�
 
 
 
+[[deployment-and-automation]]
 == 배포 및 자동화
 
 .NFS를 사용한 Azure NetApp Files 에서의 간소화되고 자동화된 Oracle 배포
@@ -32,6 +33,7 @@ video::74062c18-b120-45b7-9bf9-b2db00f73675[panopto,width=360]
 video::VcQMJIRzhoY[youtube,width=360]
 
 
+[[backup-recovery-and-cloning]]
 == 백업, 복구 및 복제
 
 .SnapCenter 사용한 ANF에서의 Oracle 데이터베이스 백업, 복구 및 복제
@@ -46,6 +48,7 @@ video::4b0fd212-7641-46b8-9e55-b01200f9383a[panopto,width=360]
 video::krzMWjrrMb0[youtube,width=360]
 
 
+[[modernization-and-migration]]
 == 현대화와 이주
 
 .1부 - AWS 및 FSx ONTAP 에서 하이브리드 클라우드를 활용한 Oracle 현대화
@@ -56,6 +59,7 @@ video::bb088a3e-bbfb-4927-bf44-b01200f38b17[panopto,width=360]
 video::c0df32f8-d6d3-4b79-b0bd-b01200f3a2e8[panopto,width=360]
 
 
+[[high-availability-disaster-recovery-and-replication]]
 == 고가용성, 재해 복구 및 복제
 
 .3부 - 자동화된 데이터베이스 HA/DR 복제 설정, 장애 조치, 재동기화

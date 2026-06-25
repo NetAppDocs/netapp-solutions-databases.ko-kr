@@ -15,6 +15,8 @@ Google Cloud NetApp Volumes iSCSI 스토리지에 Oracle Database 26ai를 호스
 
 
 
+[[step-1-create-the-vms]]
+[[provision-compute-engine]]
 == 1단계: VM 생성
 
 영역별 장애 격리를 위해 동일 리전의 서로 다른 영역에 Google Compute Engine VM 3개를 생성합니다. Cloud Console,  `gcloud`, Terraform 또는 표준 프로비저닝 워크플로를 사용하십시오.
@@ -54,6 +56,8 @@ Google Cloud NetApp Volumes iSCSI 스토리지에 Oracle Database 26ai를 호스
 
 
 
+[[step-2-configure-vpc-firewall-for-tcp-1521]]
+[[vpc-firewall-allow-1521]]
 == 2단계: TCP 1521에 대한 VPC 방화벽 구성
 
 Oracle Net 리두 전송 및 옵저버 연결을 위해 세 대의 VM 간에 TCP/1521 포트를 허용하는 VPC 방화벽 규칙을 생성하십시오. 규칙이 누락되면 Data Guard 복제가 실패합니다.
@@ -94,6 +98,8 @@ done
 
 
 
+[[step-3-configure-hostname-dns-and-etchosts]]
+[[hostname-dns-and-etchosts]]
 == 3단계: 호스트 이름, DNS 및 `/etc/hosts` 구성
 
 Oracle Net, Data Guard Broker 및 Observer에 대한 정방향 및 역방향 이름 확인이 작동하도록 세 대의 VM 모두에서 호스트 이름 및 DNS 확인을 구성하십시오.
@@ -124,6 +130,8 @@ ping -c 1 oracdb1 && ping -c 1 oracdb2 && ping -c 1 oradg-obs
 
 
 
+[[step-4-prepare-the-os-on-db-hosts-only]]
+[[os-baseline-db-hosts-only]]
 == 4단계: DB 호스트에서만 OS 준비
 
 사전 설치 패키지 설치, 사용자 및 그룹 생성, iSCSI 및 다중 경로 패키지 설치, iSCSI 이니시에이터 구성을 통해 `oracdb1` 및 `oracdb2`의 OS를 Oracle Database 26ai에 맞게 준비합니다. 옵저버 설정은 xref:gcnv-oracle-data-guard.adoc#install-instant-client-on-observer[4단계: Observer 호스트에 Oracle Instant Client 설치]에서 다룹니다.
@@ -185,6 +193,8 @@ sudo reboot
 
 
 
+[[step-5-capture-the-iscsi-initiator-name-iqn]]
+[[capture-iscsi-initiator-iqn]]
 == 5단계: iSCSI 이니시에이터 이름 IQN 캡처
 
 재부팅 후 각 데이터베이스 호스트에서 iSCSI 이니시에이터 이름(IQN)을 캡처하십시오. 이 IQN을 사용하여 xref:gcnv-oracle-provision-storage.adoc#create-host-groups[2단계: 호스트 그룹 생성]에서 GCNV 호스트 그룹을 생성합니다.
@@ -207,6 +217,7 @@ sudo cat /etc/iscsi/initiatorname.iscsi
 
 
 
+[[whats-next]]
 == 다음 단계
 
 Oracle 바이너리 및 ASM 디스크 그룹에 대한 공유 스토리지를 제공하려면 xref:gcnv-oracle-provision-storage.adoc[Google Cloud NetApp Volumes iSCSI 풀, 호스트 그룹 및 볼륨 프로비저닝]으로 이동하십시오.

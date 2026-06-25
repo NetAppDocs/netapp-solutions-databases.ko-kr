@@ -31,12 +31,14 @@ SnapCenter UI 도구는 Oracle 데이터베이스용 SnapCenter 플러그인을 
 
 
 
+[[taking-a-snapshot]]
 == 스냅샷 찍기
 
 EC2/FSx Oracle 데이터베이스는 사용자가 구성한 간격으로 정기적으로 백업됩니다.  사용자는 언제든지 일회성 스냅샷 백업을 수행할 수도 있습니다.  이는 전체 데이터베이스 스냅샷 백업과 아카이브 로그 전용 스냅샷 백업 모두에 적용됩니다.
 
 
 
+[[taking-a-full-database-snapshot]]
 === 전체 데이터베이스 스냅샷 찍기
 
 전체 데이터베이스 스냅샷에는 데이터 파일, 제어 파일, 보관 로그 파일을 포함한 모든 Oracle 파일이 포함됩니다.
@@ -63,6 +65,7 @@ image:aws-rds-custom-deploy-snp-013.png["입력/출력 대화 상자 또는 서�
 
 
 
+[[taking-an-archive-log-snapshot]]
 === 아카이브 로그 스냅샷 찍기
 
 아카이브 로그 스냅샷은 Oracle 아카이브 로그 볼륨에 대해서만 생성됩니다.
@@ -89,6 +92,7 @@ image:aws-rds-custom-deploy-snp-016.png["입력/출력 대화 상자 또는 서�
 
 
 
+[[restoring-to-a-point-in-time]]
 == 특정 시점으로 복원
 
 SnapCenter 기반 복원은 동일한 EC2 인스턴스 호스트에서 실행됩니다.  복원을 수행하려면 다음 단계를 완료하세요.
@@ -160,6 +164,7 @@ image:aws-rds-custom-deploy-snp-029-b.png["입력/출력 대화 상자 또는 �
 
 
 
+[[creating-a-database-clone]]
 == 데이터베이스 복제본 생성
 
 다음 섹션에서는 SnapCenter 복제 워크플로를 사용하여 기본 데이터베이스에서 대기 EC2 인스턴스로 데이터베이스 복제본을 만드는 방법을 보여줍니다.
@@ -247,6 +252,7 @@ NOTE: 기본 Oracle 백업 사본 대신, 동일한 절차를 통해 대상 FSx 
 
 
 
+[[ha-failover-to-standby-and-resync]]
 == HA 페일오버를 대기 모드로 전환하고 다시 동기화합니다.
 
 대기 Oracle HA 클러스터는 컴퓨팅 계층이나 스토리지 계층에서 기본 사이트에 장애가 발생하는 경우 높은 가용성을 제공합니다.  이 솔루션의 가장 큰 이점은 사용자가 언제든지, 원하는 빈도로 인프라를 테스트하고 검증할 수 있다는 것입니다.  장애 조치는 사용자가 시뮬레이션하거나 실제 장애로 인해 트리거될 수 있습니다.  장애 조치 프로세스는 동일하며 빠른 애플리케이션 복구를 위해 자동화할 수 있습니다.

@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 퍼블릭 클라우드의 서버 내 데이터베이스 이미지 백업 사본에서 Oracle VLDB용 NetApp ONTAP 볼륨의 빠른 복제(분) 기능을 활용하면 여러 가지 목적을 달성할 수 있습니다.  보고, 개발 또는 UAT 사용 사례를 위한 거의 실시간의 전체 크기 프로덕션 데이터베이스를 제공합니다.  특히 기본 데이터베이스 백업 볼륨의 씬 복제가 옵션인 경우 저장 비용이 절감됩니다.  Ansible 기반 자동화 툴킷을 사용하면 사용자가 원하는 일정에 따라 복제된 Oracle 데이터베이스를 설정, 복제하고 새로 고침하여 간소화된 수명 주기 관리를 수행할 수 있습니다.  이 툴킷은 Google 퍼블릭 클라우드에 배포된 Oracle VLDB의 사용 사례를 대상으로 하며, GCNV를 서버 내 데이터베이스 백업 저장소로 사용합니다.
@@ -32,6 +33,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -43,6 +45,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[license]]
 == 특허
 
 이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
@@ -52,10 +55,12 @@ NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -83,6 +88,7 @@ NOTE: 단순화를 위해 복제 대상 Oracle 서버는 Oracle 소프트웨어 
 ====
 
 
+[[download-the-toolkit]]
 === 툴킷을 다운로드하세요
 
 [%collapsible%open]
@@ -97,6 +103,7 @@ NOTE: 현재 이 툴킷은 bitbucket 액세스 권한이 있는 NetApp 내부 �
 ====
 
 
+[[ansible-source-and-target-hosts-file-configuration]]
 === Ansible 소스 및 대상 호스트 파일 구성
 
 [%collapsible%open]
@@ -119,6 +126,7 @@ localhost ansible_connection=local
 ====
 
 
+[[global-variables-configuration]]
 === 전역 변수 구성
 
 [%collapsible%open]
@@ -186,6 +194,7 @@ NOTE: 보다 안전한 자동화 배포를 위해 Ansible Vault를 사용하여 
 ====
 
 
+[[host-variables-configuration]]
 === 호스트 변수 구성
 
 [%collapsible%open]
@@ -205,6 +214,7 @@ sga_size: 4096M
 ====
 
 
+[[additional-clone-target-oracle-server-configuration]]
 === 추가 복제 대상 Oracle 서버 구성
 
 [%collapsible%open]
@@ -216,6 +226,7 @@ sga_size: 4096M
 ====
 
 
+[[playbook-execution]]
 === 플레이북 실행
 
 [%collapsible%open]
@@ -249,6 +260,7 @@ NOTE: 다양한 단계에서 툴킷 실행이 일시 중지되어 특정 작업�
 ====
 
 
+[[playbook-execution-details]]
 === 플레이북 실행 세부 정보
 
 [%collapsible%open]
@@ -640,6 +652,7 @@ End Oracle DB clone or refresh at 2025-0627-084452
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

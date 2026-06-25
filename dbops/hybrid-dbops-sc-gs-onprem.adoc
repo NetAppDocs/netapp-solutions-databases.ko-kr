@@ -18,10 +18,12 @@ NetApp SnapCenter 도구는 역할 기반 액세스 제어(RBAC)를 사용하여
 
 
 
+[[on-premises]]
 == 온프레미스
 
 
 
+[[1-setup-database-admin-user-in-snapcenter]]
 === 1. SnapCenter 에서 데이터베이스 관리자 사용자 설정
 
 SnapCenter 가 지원하는 각 데이터베이스 플랫폼에 대해 데이터베이스 백업, 복원 및/또는 재해 복구를 위한 전담 관리자 사용자 ID를 갖는 것이 합리적입니다.  하나의 ID를 사용해 모든 데이터베이스를 관리할 수도 있습니다.  테스트 사례와 데모에서는 Oracle과 SQL Server 각각에 대한 전담 관리자 사용자를 생성했습니다.
@@ -39,6 +41,7 @@ image:snapctr-admin-users.png["입력/출력 대화 상자 또는 서면 내용�
 
 
 
+[[2-snapcenter-plugin-installation-prerequisites]]
 === 2. SnapCenter 플러그인 설치 필수 조건
 
 SnapCenter DB 호스트에서 실행되는 플러그인 에이전트를 사용하여 백업, 복원, 복제 및 기타 기능을 수행합니다.  플러그인 설치 및 기타 관리 기능을 위해 설정 및 자격 증명 탭에서 구성된 자격 증명을 통해 데이터베이스 호스트 및 데이터베이스에 연결합니다.  Linux나 Windows와 같은 대상 호스트 유형과 데이터베이스 유형에 따라 특정 권한 요구 사항이 있습니다.
@@ -70,6 +73,7 @@ Oracle용 Unix 호스트:
 
 
 
+[[3-snapcenter-host-plugin-installation]]
 === 3. SnapCenter 호스트 플러그인 설치
 
 
@@ -161,6 +165,7 @@ image:snapctr-add-linux-host-006.png["입력/출력 대화 상자 또는 서면 
 
 
 
+[[4-database-resource-discovery]]
 === 4. 데이터베이스 리소스 검색
 
 플러그인 설치가 성공적으로 완료되면 호스트의 데이터베이스 리소스를 즉시 검색할 수 있습니다.  왼쪽 메뉴에서 리소스 탭을 클릭하세요.  데이터베이스 플랫폼의 유형에 따라 데이터베이스, 리소스 그룹 등 다양한 뷰를 사용할 수 있습니다.  호스트의 리소스가 검색되어 표시되지 않으면 리소스 새로 고침 탭을 클릭해야 할 수도 있습니다.
@@ -185,6 +190,7 @@ image:snapctr-add-windows-host-011.png["입력/출력 대화 상자 또는 서�
 
 
 
+[[5-setup-storage-cluster-peering-and-db-volumes-replication]]
 === 5. 스토리지 클러스터 피어링 및 DB 볼륨 복제 설정
 
 퍼블릭 클라우드를 대상으로 온프레미스 데이터베이스 데이터를 보호하기 위해 온프레미스 ONTAP 클러스터 데이터베이스 볼륨은 NetApp SnapMirror 기술을 사용하여 클라우드 CVO에 복제됩니다.  복제된 대상 볼륨은 DEV/OPS 또는 재해 복구를 위해 복제될 수 있습니다.  다음의 고급 단계를 통해 클러스터 피어링과 DB 볼륨 복제를 설정할 수 있습니다.
@@ -226,6 +232,7 @@ image:snapctr-vol-snapmirror-003.png["입력/출력 대화 상자 또는 서면 
 
 
 
+[[6-add-cvo-database-storage-svm-to-snapcenter]]
 === 6. SnapCenter 에 CVO 데이터베이스 스토리지 SVM 추가
 
 . SnapCenterAdmin 권한이 있는 사용자 ID로 SnapCenter 에 로그인합니다.
@@ -245,6 +252,7 @@ image:snapctr-add-cvo-svm-003.png["입력/출력 대화 상자 또는 서면 내
 
 
 
+[[7-setup-database-backup-policy-in-snapcenter]]
 === 7. SnapCenter 에서 데이터베이스 백업 정책 설정
 
 다음 절차에서는 전체 데이터베이스 또는 로그 파일 백업 정책을 만드는 방법을 보여줍니다.  그런 다음 정책을 구현하여 데이터베이스 리소스를 보호할 수 있습니다.  복구 지점 목표(RPO) 또는 복구 시간 목표(RTO)는 데이터베이스 및/또는 로그 백업 빈도를 결정합니다.
@@ -392,6 +400,7 @@ image:snapctr-sql-policy-log-006.png["입력/출력 대화 상자 또는 서면 
 
 
 
+[[8-implement-backup-policy-to-protect-database]]
 === 8. 데이터베이스를 보호하기 위한 백업 정책 구현
 
 SnapCenter 서버에 호스팅된 여러 데이터베이스, 동일한 스토리지 볼륨을 공유하는 데이터베이스, 비즈니스 애플리케이션을 지원하는 여러 데이터베이스 등과 같이 데이터베이스 리소스를 논리적으로 그룹화하여 리소스 그룹을 사용하여 데이터베이스를 백업합니다.  단일 데이터베이스를 보호하면 자체 리소스 그룹이 생성됩니다.  다음 절차에서는 섹션 7에서 만든 백업 정책을 구현하여 Oracle 및 SQL Server 데이터베이스를 보호하는 방법을 보여줍니다.
@@ -542,6 +551,7 @@ image:snapctr-sql-rgroup-log-007.png["입력/출력 대화 상자 또는 서면 
 
 
 
+[[9-validate-backup]]
 === 9. 백업 검증
 
 데이터베이스 리소스를 보호하기 위해 데이터베이스 백업 리소스 그룹이 생성된 후, 백업 작업은 미리 정의된 일정에 따라 실행됩니다.  모니터 탭에서 작업 실행 상태를 확인하세요.

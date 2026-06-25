@@ -20,6 +20,7 @@ Oracle Database 워크로드에는 일관된 IO 응답 시간, 대역폭 및 낮
 
 
 
+[[benfits-of-google-cloud-netapp-volumes]]
 == Google Cloud NetApp Volumes 의 이점
 
 Google Cloud NetApp Volumes 다음과 같은 이점을 제공합니다.
@@ -52,6 +53,7 @@ NetApp Volumes는 효율적인 볼륨 복제 기능을 통해 데이터베이스
 
 
 
+[[use-cases]]
 == 사용 사례
 
 *고성능 프로덕션 환경:*
@@ -72,6 +74,7 @@ NetApp Volumes는 지속적인 IOPS와 낮은 지연 성능 특성이 필요한 
 
 
 
+[[architecture]]
 == 아키텍처
 
 하나 이상의 스토리지 볼륨을 사용하여 Google Compute Engine에서 Oracle 데이터베이스를 실행할 수 있습니다.  볼륨의 수는 데이터 분리 수준에 따라 달라집니다.  예를 들어, 더 작은 데이터베이스는 단일 볼륨에 배치될 수 있습니다.  더욱 까다로운 IO 또는 관리 요구 사항이 있는 대규모 데이터베이스에는 개별 데이터 파일, 리두 로그 및 보관 로그 볼륨이 필요할 수 있습니다.  애플리케이션이나 백업 데이터에 대한 추가 볼륨도 추가할 수 있습니다.  각 볼륨은 호스팅할 데이터의 요구 사항에 맞게 적절한 크기를 조정할 수 있습니다.
@@ -80,6 +83,7 @@ image:oracle-gcnv-001.png["입력/출력 대화 상자 또는 서면 내용을 �
 
 
 
+[[preparing-the-google-cloud-netapp-volumes]]
 == Google Cloud NetApp Volumes 준비
 
 원하는 용량과 서비스 수준의 Google Cloud NetApp Volumes 스토리지 풀을 만듭니다.  Google Cloud NetApp Volumes 설정을 위한 빠른 시작을 확인하세요.  온프레미스의 기존 Oracle 데이터베이스를 Google로 마이그레이션하는 경우 Metrics Explorer를 활용하여 Google Cloud NetApp Volumes Storage 풀과 볼륨의 크기를 조정하는 데 필요한 현재 처리량 통계를 얻을 수 있습니다.  해당 서비스 사용 방법에 대한 자세한 내용은 Google의 Oracle 전문가에게 문의하세요.  스토리지 풀의 볼륨에 사용 가능한 처리량은 선택한 스토리지 풀의 크기 및 서비스 수준(Standard, Premium, Extreme 등)에 따라 정의됩니다.
@@ -100,6 +104,7 @@ NetApp 볼륨은 여러 개의 소규모 볼륨을 지원하는 동시에 증가
 
 
 
+[[key-benefits]]
 == 주요 이점
 
 이 이미지(그림 2)는 Oracle Database와 함께 Google Cloud NetApp Volumes 사용하는 이점을 보여줍니다.
@@ -154,6 +159,7 @@ Google Cloud NetApp Volumes 클라우드와 하이브리드 환경 모두에 적
 
 
 
+[[considerations]]
 == 고려 사항
 
 이 솔루션에는 다음과 같은 고려 사항이 적용됩니다.
@@ -213,6 +219,7 @@ Google Cloud NetApp Volumes 포괄적인 보안 조치를 구현하여 데이터
 
 
 
+[[conclusion]]
 == 결론
 
 유연한 확장성, 최적화된 성능, 효율적인 리소스 활용의 조합으로 인해 Google Cloud NetApp Volumes 기업 스토리지 요구 사항에 적합한 비용 효율적인 선택이 됩니다.  저장소와 컴퓨팅 리소스의 크기를 적절하게 조절할 수 있는 기능을 통해 조직은 비용을 효과적으로 통제하는 동시에 높은 성능을 유지할 수 있습니다.

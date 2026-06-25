@@ -18,6 +18,7 @@ keywords: introduction, workflow
 
 
 
+[[on-premises]]
 == 온프레미스
 
 * SnapCenter 에서 데이터베이스 관리자 사용자 설정
@@ -33,6 +34,7 @@ keywords: introduction, workflow
 
 
 
+[[aws-public-cloud]]
 == AWS 퍼블릭 클라우드
 
 * 비행 전 점검

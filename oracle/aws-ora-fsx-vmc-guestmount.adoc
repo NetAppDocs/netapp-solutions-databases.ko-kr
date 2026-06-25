@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 기업들은 수십 년 동안 개인 데이터 센터에서 VMware 기반 Oracle을 운영해 왔습니다.  AWS의 VMware Cloud(VMC)는 VMware의 엔터프라이즈급 소프트웨어 정의 데이터 센터(SDDC) 소프트웨어를 AWS 클라우드의 전용 탄력적 베어메탈 인프라로 가져오는 푸시 버튼 솔루션을 제공합니다.  AWS FSx ONTAP VMC SDDC에 프리미엄 스토리지와 데이터 패브릭을 제공하여 고객이 vSphere 기반 프라이빗, 퍼블릭 및 하이브리드 클라우드 환경에서 Oracle과 같은 비즈니스에 중요한 애플리케이션을 실행하고 AWS 서비스에 대한 최적화된 액세스를 제공할 수 있도록 합니다.  기존 Oracle 워크로드든 새로운 Oracle 워크로드든, AWS의 VMC는 모든 플랫폼 관리 및 최적화를 VMware에 위임하면서 AWS 클라우드의 모든 이점을 제공하는 VMware에서 익숙하고 간소화된 자체 관리형 Oracle 환경을 제공합니다.
@@ -35,6 +36,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -47,18 +49,21 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[solution-test-and-validation-environment]]
 == 솔루션 테스트 및 검증 환경
 
 이 솔루션의 테스트와 검증은 AWS의 VMC를 사용하는 랩 환경에서 수행되었으며, 최종 배포 환경과 일치하지 않을 수 있습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
 
 
 
+[[architecture]]
 === 아키텍처
 
 image:aws-ora-fsx-vmc-architecture.png["이 이미지는 iSCSI 및 ASM을 사용한 AWS 퍼블릭 클라우드의 Oracle 배포 구성에 대한 자세한 그림을 제공합니다."]
 
 
 
+[[hardware-and-software-components]]
 === 하드웨어 및 소프트웨어 구성 요소
 
 [cols="33%, 33%, 33%"]
@@ -105,6 +110,7 @@ image:aws-ora-fsx-vmc-architecture.png["이 이미지는 iSCSI 및 ASM을 사용
 |===
 
 
+[[oracle-database-configuration-in-vmc-on-aws]]
 === AWS의 VMC에서 Oracle 데이터베이스 구성
 
 [cols="33%, 33%, 33%"]
@@ -130,6 +136,7 @@ image:aws-ora-fsx-vmc-architecture.png["이 이미지는 iSCSI 및 ASM을 사용
 |===
 
 
+[[key-factors-for-deployment-consideration]]
 === 배포 고려사항의 핵심 요소
 
 * *FSx에서 VMC로의 연결.*  VMware Cloud on AWS에 SDDC를 배포하면 해당 SDDC는 AWS 계정과 조직 전용 VPC 내에 생성되며 VMware에서 관리합니다.  또한 SDDC를 고객 AWS 계정이라고 하는 귀하의 AWS 계정에 연결해야 합니다.  이 연결을 통해 귀하의 SDDC는 귀하의 고객 계정에 속한 AWS 서비스에 액세스할 수 있습니다.  FSx ONTAP 은 고객 계정에 배포되는 AWS 서비스입니다.  VMC SDDC가 고객 계정에 연결되면 VMC SDDC의 VM에서 FSx 스토리지를 사용하여 게스트에 직접 마운트할 수 있습니다.
@@ -143,12 +150,14 @@ image:aws-ora-fsx-vmc-architecture.png["이 이미지는 iSCSI 및 ASM을 사용
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 다음 섹션에서는 단일 노드의 DB VM에 FSx ONTAP 스토리지를 직접 마운트하여 AWS의 VMC에 Oracle 19c를 배포하는 단계별 절차를 제공합니다. 데이터베이스 볼륨 관리자로 Oracle ASM을 사용하여 구성을 다시 시작합니다.
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -176,6 +185,7 @@ NOTE: Oracle 설치 파일을 준비할 충분한 공간을 확보하려면 Orac
 ====
 
 
+[[db-vm-kernel-configuration]]
 === DB VM 커널 구성
 
 [%collapsible%open]
@@ -396,6 +406,7 @@ chmod 440 /etc/sudoers
 ====
 
 
+[[provision-and-map-fsx-ontap-luns-to-the-db-vm]]
 === FSx ONTAP LUN을 DB VM에 프로비저닝하고 매핑합니다.
 
 [%collapsible%open]
@@ -528,6 +539,7 @@ nim        /vol/ora_02_logs/ora_02_u03_02            ora_02        6  iscsi
 ====
 
 
+[[db-vm-storage-configuration]]
 === DB VM 스토리지 구성
 
 [%collapsible%open]
@@ -821,6 +833,7 @@ systemctl restart multipathd
 ====
 
 
+[[oracle-grid-infrastructure-installation]]
 === Oracle 그리드 인프라 설치
 
 [%collapsible%open]
@@ -1082,6 +1095,7 @@ CRS-4638: Oracle High Availability Services is online
 ====
 
 
+[[oracle-database-installation]]
 === 오라클 데이터베이스 설치
 
 [%collapsible%open]
@@ -1469,6 +1483,7 @@ alter database open;
 ====
 
 
+[[oracle-backup-restore-and-clone-with-snapcenter]]
 === SnapCenter 사용한 Oracle 백업, 복원 및 복제
 
 
@@ -1891,6 +1906,7 @@ SQL>
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.

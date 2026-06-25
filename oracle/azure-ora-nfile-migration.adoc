@@ -22,6 +22,7 @@ Oracle이 단일 인스턴스 데이터베이스를 단계적으로 폐지하기
 
 
 
+[[converting-a-single-instance-non-cdb-to-a-pdb-in-a-multitenant-cdb]]
 == 다중 테넌트 CDB의 단일 인스턴스 비CDB를 PDB로 변환
 
 단일 인스턴스 Oracle 데이터베이스가 있는 경우, Oracle이 조만간 단일 인스턴스 데이터베이스에 대한 지원을 중단할 예정이므로 클라우드로 마이그레이션할지 여부에 관계없이 이를 멀티테넌트 컨테이너 데이터베이스로 변환해야 합니다.
@@ -116,6 +117,7 @@ alter session set container=ncdb;
 
 
 
+[[migrate-on-premises-oracle-databases-to-azure-with-pdb-relocation]]
 == PDB 재배치를 통해 온프레미스 Oracle 데이터베이스를 Azure로 마이그레이션
 
 최대 가용성 옵션을 사용한 Oracle PDB 재배치는 PDB 핫 클론 기술을 사용하여 PDB가 대상에 복사되는 동안에도 소스 PDB를 사용할 수 있도록 합니다.  전환 시 사용자 연결은 자동으로 대상 PDB로 리디렉션됩니다.  따라서 PDB 크기에 관계없이 가동 중지 시간이 최소화됩니다.  NetApp 마이그레이션 절차를 자동화하는 Ansible 기반 툴킷을 제공합니다.
@@ -160,6 +162,7 @@ NOTE: Ansible 컨트롤러는 온프레미스 또는 Azure 클라우드에 위�
 
 
 
+[[additional-oracle-database-migration-options]]
 == 추가 Oracle 데이터베이스 마이그레이션 옵션
 
 추가 마이그레이션 옵션은 Microsoft 설명서를 참조하세요.link:https://learn.microsoft.com/en-us/azure/architecture/example-scenario/oracle-migrate/oracle-migration-overview["Oracle 데이터베이스 마이그레이션 결정 프로세스"^] .

@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 높은 처리량과 미션 크리티컬 Oracle VLDB는 백엔드 데이터베이스 스토리지에 큰 부담을 줍니다.  서비스 수준 계약(SLA)을 충족하려면 데이터베이스 저장소는 밀리초 미만의 지연 시간 성능을 유지하면서 필요한 용량과 초당 높은 입출력 작업 수(IOPS)를 제공해야 합니다.  특히 공유 스토리지 리소스 환경이 있는 퍼블릭 클라우드에 이러한 데이터베이스 워크로드를 배포하는 경우 이는 특히 어렵습니다.  모든 저장 플랫폼이 동일하게 만들어진 것은 아닙니다.  GCNV는 Google 클라우드에서 지속적인 IOPS와 저지연 성능 특성이 필요한 미션 크리티컬 Oracle 데이터베이스 배포를 지원할 수 있는 Google에서 제공하는 프리미엄 스토리지 서비스입니다.  이 아키텍처는 다양한 성능 프로필을 지원하는 구성 가능한 서비스 계층을 통해 OLTP 및 OLAP 워크로드를 수용합니다.  GCNV는 밀리초 미만의 지연 시간으로 매우 빠른 성능을 제공하며, 혼합 읽기/쓰기 워크로드에서 볼륨당 최대 4.5GiBps의 처리량을 달성합니다.
@@ -36,6 +37,7 @@ GCNV의 빠른 스냅샷 백업(초) 및 복제(분) 기능을 활용하면 프�
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -48,18 +50,21 @@ GCNV의 빠른 스냅샷 백업(초) 및 복제(분) 기능을 활용하면 프�
 
 
 
+[[solution-test-and-validation-environment]]
 == 솔루션 테스트 및 검증 환경
 
 이 솔루션의 테스트와 검증은 실제 사용자 배포 환경과 일치하지 않을 수 있는 Google 클라우드 랩 환경에서 수행되었습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
 
 
 
+[[architecture]]
 === 아키텍처
 
 image:gcnv-ora-vldb-dg-architecture.png["이 이미지는 GCNV에서 Google Cloud에 구현된 Oracle Data Guard의 자세한 그림을 제공합니다."]
 
 
 
+[[hardware-and-software-components]]
 === 하드웨어 및 소프트웨어 구성 요소
 
 [cols="33%, 33%, 33%"]
@@ -100,6 +105,7 @@ image:gcnv-ora-vldb-dg-architecture.png["이 이미지는 GCNV에서 Google Clou
 |===
 
 
+[[oracle-vldb-data-guard-configuration-with-a-simulated-ny-to-la-dr-setup]]
 === 시뮬레이션된 NY-LA DR 설정을 사용한 Oracle VLDB Data Guard 구성
 
 [cols="33%, 33%, 33%"]
@@ -119,6 +125,7 @@ image:gcnv-ora-vldb-dg-architecture.png["이 이미지는 GCNV에서 Google Clou
 |===
 
 
+[[key-factors-for-deployment-consideration]]
 === 배포 고려사항의 핵심 요소
 
 * * Google Cloud NetApp Volumes 구성.*  GCNV는 Google 클라우드에 할당됩니다. `Storage Pools` .  이러한 테스트와 검증에서 우리는 East4 지역에 Oracle 기본 데이터베이스를 호스팅하기 위해 2TiB 스토리지 풀을 배포했고, West4 지역에 대기 데이터베이스와 DB 복제본을 호스팅하기 위해 4TiB 스토리지 풀을 배포했습니다.  GCNV 스토리지 풀에는 Flex, Standard, Premium, Extreme의 4가지 서비스 수준이 있습니다.  ANF 용량 풀의 IO 용량은 용량 풀의 크기와 서비스 수준에 따라 결정됩니다.  용량 풀을 생성할 때 스토리지 풀 위치, 서비스 수준, 가용성 영역 및 스토리지 풀 용량을 설정합니다.  Oracle Data Guard 구성의 경우, Data Guard가 영역 수준 장애로 인해 데이터베이스 장애 조치 보호를 제공하므로 영역 가용성이 충분해야 합니다.
@@ -130,12 +137,14 @@ image:gcnv-ora-vldb-dg-architecture.png["이 이미지는 GCNV에서 Google Clou
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 다음 섹션에서는 GCNV 스토리지가 있는 동부 지역의 Google Cloud에 있는 기본 Oracle DB와 GCNV 스토리지가 있는 서부 지역의 Google Cloud에 있는 물리적 대기 Oracle DB 간의 Oracle Data Guard 설정에서 GCNV의 Oracle VLDB에 대한 구성을 보여줍니다.
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -167,6 +176,7 @@ image:gcnv-ora-vldb-dg-vol-001.png["GCNV 환경 구성을 보여주는 스크린
 ====
 
 
+[[primary-oracle-vldb-configuration-for-data-guard]]
 === Data Guard를 위한 기본 Oracle VLDB 구성
 
 [%collapsible%open]
@@ -589,6 +599,7 @@ DIRNAME
 ====
 
 
+[[standby-oracle-vldb-configuration-for-data-guard]]
 === Data Guard를 위한 대기 Oracle VLDB 구성
 
 [%collapsible%open]
@@ -941,6 +952,7 @@ DIRNAME
 ====
 
 
+[[setup-data-guard-broker-and-fsfo-with-an-observer]]
 === Observer를 사용하여 Data Guard Broker 및 FSFO 설정
 
 
@@ -1329,6 +1341,7 @@ NOTE: 데이터 손실을 0으로 설정하려면 Oracle Data Guard 보호 모�
 ====
 
 
+[[clone-standby-database-for-other-use-cases-via-automation]]
 === 자동화를 통해 다른 사용 사례에 대한 대기 데이터베이스 복제
 
 [%collapsible%open]
@@ -1345,6 +1358,7 @@ NOTE: 현재 이 툴킷은 bitbucket 액세스 권한이 있는 NetApp 내부 �
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.

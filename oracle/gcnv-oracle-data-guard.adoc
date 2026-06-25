@@ -19,6 +19,8 @@ Google Cloud NetApp Volumes에서 Oracle Database 26ai에 대한 자동 역할 �
 
 
 
+[[step-1-enable-data-guard-broker]]
+[[enable-broker-on-both-databases]]
 == 1단계: Data Guard Broker 활성화
 
 두 데이터베이스 호스트 모두에서 Data Guard Broker를 활성화하고 기본 데이터베이스와 대기 데이터베이스를 통합 관리하에 연결하는 브로커 구성을 생성합니다.
@@ -72,6 +74,8 @@ DGMGRL> SHOW CONFIGURATION VERBOSE;
 
 
 
+[[step-2-confirm-flashback-for-fsfo]]
+[[confirm-flashback-required-for-fsfo]]
 == 2단계: FSFO에 대한 플래시백 확인
 
 두 호스트 모두에서 플래시백 데이터베이스가 활성화되어 있는지 확인하십시오. 플래시백은 FSFO 자동 복구에 필요하며, 이를 통해 장애 조치 후 이전 기본 호스트가 자동으로 대기 호스트로 구성에 다시 참여할 수 있습니다.
@@ -102,6 +106,8 @@ SQL'
 
 
 
+[[step-3-configure-and-enable-fsfo]]
+[[configure-fsfo-properties-and-enable]]
 == 3단계: FSFO 구성 및 활성화
 
 SYNC 리두 전송을 설정하고, MaxAvailability 보호 모드를 구성하고, 각 데이터베이스에 FSFO 대상을 정의하고, Fast-Start Failover를 활성화합니다.
@@ -138,6 +144,8 @@ DGMGRL> SHOW FAST_START FAILOVER;
 
 
 
+[[step-4-install-instant-client-on-observer]]
+[[install-instant-client-on-observer]]
 == 4단계: Observer에 Instant Client 설치
 
 전용 Observer VM에 Oracle Instant Client를 설치하고(`oradg-obs`, 전용 `oracle` OS 사용자를 생성하고, Observer가 TCP/1521을 통해 두 데이터베이스 멤버 모두에 연결할 수 있도록 Oracle Net 환경을 구성합니다.
@@ -190,6 +198,8 @@ sudo chown oracle:oracle /etc/oracle/network/admin/tnsnames.ora
 
 
 
+[[step-5-run-observer-as-a-systemd-service]]
+[[start-observer-systemd]]
 == 5단계: Observer를 systemd 서비스로 실행
 
 데이터베이스 멤버 두 곳 모두에 대한 자격 증명을 사용하여 자동 로그인 지갑을 생성한 다음, 재부팅 후에도 유지되고 구성에 자동으로 재연결되도록 Observer를 systemd 서비스로 구성하고 시작합니다.
@@ -302,6 +312,8 @@ DGMGRL> SHOW CONFIGURATION;       -- Configuration Status: SUCCESS, FSFO: ENABLE
 
 
 
+[[step-6-test-fsfo]]
+[[test-fsfo-switchover-and-failover]]
 == 6단계: FSFO 테스트
 
 Data Guard 구성을  `VALIDATE DATABASE`으로 검증한 다음 계획된 스위치오버를 수행하고, 테스트 기간 내에 계획되지 않은 VM 재설정 페일오버를 수행하여 FSFO가 엔드 투 엔드로 제대로 작동하는지 확인합니다.
@@ -323,6 +335,7 @@ VM *재설정*(크래시 테스트 방식)을 사용하십시오. 일반적인 *
 
 
 
+[[whats-next]]
 == 다음 단계
 
 이 배포 환경에 Oracle Data Guard Broker, Fast-Start Failover 및 Observer 구성이 완료되었습니다.

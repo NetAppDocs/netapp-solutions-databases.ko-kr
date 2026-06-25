@@ -18,10 +18,12 @@ summary: 이 페이지에서는 NetApp ONTAP 스토리지에서 Oracle19c의 자
 
 
 
+[[awxtower-oracle-data-protection]]
 == AWX/타워 Oracle 데이터 보호
 
 
 
+[[create-the-inventory-group-hosts-and-credentials-for-your-environment]]
 === 사용자 환경에 대한 인벤토리, 그룹, 호스트 및 자격 증명을 만듭니다.
 
 이 섹션에서는 NetApp 자동화 솔루션을 사용하기 위한 환경을 준비하는 AWX/Ansible Tower에서 인벤토리, 그룹, 호스트 및 액세스 자격 증명을 설정하는 방법을 설명합니다.
@@ -217,6 +219,7 @@ extra_vars:
 ====
 
 
+[[create-a-project]]
 === 프로젝트 만들기
 
 . 리소스 → 프로젝트로 가서 추가를 클릭합니다.
@@ -232,6 +235,7 @@ extra_vars:
 
 
 
+[[configure-global-variables]]
 === 전역 변수 구성
 
 이 섹션에 정의된 변수는 모든 Oracle 호스트, 데이터베이스 및 ONTAP 클러스터에 적용됩니다.
@@ -556,6 +560,7 @@ control_files:
 ====
 
 
+[[automation-playbooks]]
 === 자동화 플레이북
 
 실행해야 할 별도의 플레이북이 4개 있습니다.
@@ -687,6 +692,7 @@ NOTE: 이 플레이북은 원격 사이트에서 데이터베이스를 복원할
 ====
 
 
+[[recovering-oracle-database]]
 === Oracle 데이터베이스 복구
 
 . 온프레미스 프로덕션 Oracle 데이터베이스 데이터 볼륨은 2차 데이터 센터의 중복 ONTAP 클러스터나 퍼블릭 클라우드의 Cloud Volume ONTAP 으로의 NetApp SnapMirror 복제를 통해 보호됩니다.  완전히 구성된 재해 복구 환경에서는 보조 데이터 센터나 퍼블릭 클라우드의 복구 컴퓨팅 인스턴스가 대기 상태가 되어 재해 발생 시 프로덕션 데이터베이스를 복구할 준비가 됩니다.  대기 컴퓨팅 인스턴스는 OS 커널 패치 또는 업그레이드에 대한 병렬 업데이트를 동시에 실행하여 온프레미스 인스턴스와 동기화 상태를 유지합니다.

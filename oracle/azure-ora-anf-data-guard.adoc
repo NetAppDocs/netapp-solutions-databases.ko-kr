@@ -18,6 +18,7 @@ summary: '이 솔루션은 Microsoft Azure NetApp Files (ANF)를 기본 및 대�
 
 
 
+[[purpose]]
 == 목적
 
 Oracle Data Guard는 기본 데이터베이스와 스탠바이 데이터베이스 복제 구성에서 엔터프라이즈 데이터의 고가용성, 데이터 보호 및 재해 복구를 보장합니다.  Oracle Active Data Guard는 기본 데이터베이스에서 대기 데이터베이스로의 데이터 복제가 활성화되어 있는 동안 사용자가 대기 데이터베이스에 액세스할 수 있도록 지원합니다.  Data Guard는 Oracle Database Enterprise Edition의 기능입니다.  별도의 라이센스가 필요하지 않습니다.  반면, Active Data Guard는 Oracle Database Enterprise Edition 옵션이므로 별도의 라이선스가 필요합니다.  Active Data Guard 설정에서는 여러 개의 대기 데이터베이스가 기본 데이터베이스로부터 데이터 복제를 수신할 수 있습니다.  그러나 추가된 스탠바이 데이터베이스마다 Active Data Guard 라이선스와 기본 데이터베이스 크기에 맞는 추가 스토리지가 필요합니다.  운영 비용이 빠르게 늘어납니다.
@@ -33,6 +34,7 @@ Oracle 데이터베이스 운영 비용을 절감하고 Azure 클라우드에 Ac
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -45,18 +47,21 @@ Oracle 데이터베이스 운영 비용을 절감하고 Azure 클라우드에 Ac
 
 
 
+[[solution-test-and-validation-environment]]
 == 솔루션 테스트 및 검증 환경
 
 이 솔루션의 테스트와 검증은 실제 사용자 배포 환경과 일치하지 않을 수 있는 Azure 클라우드 랩 환경에서 수행되었습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
 
 
 
+[[architecture]]
 === 아키텍처
 
 image:azure-ora-anf-data-guard-architecture.png["이 이미지는 ANF에서 Azure 클라우드에 구현된 Oracle Data Guard의 자세한 그림을 제공합니다."]
 
 
 
+[[hardware-and-software-components]]
 === 하드웨어 및 소프트웨어 구성 요소
 
 [cols="33%, 33%, 33%"]
@@ -91,6 +96,7 @@ image:azure-ora-anf-data-guard-architecture.png["이 이미지는 ANF에서 Azur
 |===
 
 
+[[oracle-data-guard-configuration-with-hypothetical-ny-to-la-dr-setup]]
 === 가상 NY-LA DR 설정을 사용한 Oracle Data Guard 구성
 
 [cols="33%, 33%, 33%"]
@@ -110,6 +116,7 @@ image:azure-ora-anf-data-guard-architecture.png["이 이미지는 ANF에서 Azur
 |===
 
 
+[[key-factors-for-deployment-consideration]]
 === 배포 고려사항의 핵심 요소
 
 * *대기 데이터베이스 복제.*  기본 데이터베이스에서 트랜잭션 로그를 수신하고 적용하는 동안 물리적 스탠바이 데이터베이스를 복제하여 DB VM에 마운트하여 DEV, TEST 또는 Report와 같은 다른 작업 부하를 지원할 수 있습니다.  클론은 얇거나 두꺼운 클론이 될 수 있습니다.  현재 ANF는 스탠바이 데이터베이스의 전체 복사본인 두꺼운 복제본만 지원합니다.  ANF 씬 클론 옵션이 곧 출시될 예정입니다.  데이터베이스 볼륨의 씬 복제본의 경우, 스탠바이 데이터베이스의 동일한 DB 볼륨을 공유하고 쓰기 시 복사 기술을 활용하여 쓰기 IO를 처리합니다.  따라서 복제본은 새로운 쓰기 IO에 대한 최소한의 증분적 새 스토리지 할당으로 다른 많은 사용 사례에 사용할 수 있을 만큼 스토리지 효율성이 매우 높습니다.  이를 통해 Active Data Guard 스토리지 공간을 대폭 줄여 스토리지 비용을 엄청나게 절감할 수 있습니다.  NetApp Oracle 성능을 높은 수준으로 유지하기 위해 기본 스토리지에서 대기 ANF 스토리지로 데이터베이스를 전환하는 경우 FlexClone 활동을 최소화할 것을 권장합니다.
@@ -123,6 +130,7 @@ image:azure-ora-anf-data-guard-architecture.png["이 이미지는 ANF에서 Azur
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 Oracle Data Guard를 설정하기 위한 시작점으로 VNet 내의 Azure 클라우드 환경에 기본 Oracle 데이터베이스가 이미 배포되어 있다고 가정합니다.  이상적으로 기본 데이터베이스는 NFS 마운트가 있는 ANF 스토리지에 배포됩니다.  Oracle 데이터베이스 저장소에 대해 세 개의 NFS 마운트 지점이 생성됩니다. Oracle 바이너리 파일용 마운트 /u01, Oracle 데이터 파일과 제어 파일용 마운트 /u02, Oracle 현재 및 보관된 로그 파일과 중복 제어 파일용 마운트 /u03입니다.
@@ -131,6 +139,7 @@ Oracle Data Guard를 설정하기 위한 시작점으로 VNet 내의 Azure 클�
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -170,6 +179,7 @@ Vnet 게이트웨이 연결 상태:image:azure-ora-anf-dg-vnet-003.png["Azure �
 ====
 
 
+[[prepare-the-primary-database-for-data-guard]]
 === Data Guard를 위한 기본 데이터베이스 준비
 
 [%collapsible%open]
@@ -480,6 +490,7 @@ log_archive_dest_21                  string
 ====
 
 
+[[prepare-standby-database-and-activate-data-guard]]
 === 대기 데이터베이스를 준비하고 Data Guard를 활성화합니다.
 
 [%collapsible%open]
@@ -842,6 +853,7 @@ SQL>
 ====
 
 
+[[setup-data-guard-broker]]
 === Data Guard Broker 설정
 
 [%collapsible%open]
@@ -939,6 +951,7 @@ DGMGRL>
 ====
 
 
+[[clone-standby-database-for-other-use-cases]]
 === 다른 사용 사례를 위해 대기 데이터베이스를 복제합니다.
 
 [%collapsible%open]
@@ -1139,6 +1152,7 @@ net
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.

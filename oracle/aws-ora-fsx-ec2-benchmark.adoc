@@ -24,10 +24,12 @@ keywords: HA, DR, database, Oracle, RDS, AWS, SnapCenter
 
 
 
+[[test-environment-setup]]
 == 테스트 환경 설정
 
 
 
+[[compute]]
 === 컴퓨팅
 
 우리는 8vCPU, 32G RAM, 10Gps의 네트워크 대역폭을 갖춘 EC2 M5 인스턴스를 배포했습니다.
@@ -36,6 +38,7 @@ image:aws-ora-fsx-ec2-inst-010.png["입력/출력 대화 상자 또는 서면 �
 
 
 
+[[fsx-storage]]
 === FSx 스토리지
 
 다음과 같이 3개의 데이터베이스 볼륨을 생성하고 EC2 인스턴스의 NFS로 볼륨을 마운트했습니다.
@@ -53,6 +56,7 @@ FSx 파일 시스템은 80,000 IOPS 용량과 2GiBps I/O 처리량으로 구성�
 
 
 
+[[oracle-configuration]]
 === 오라클 구성
 
 RU 패치 19.8이 적용된 Oracle 버전 19c를 설치했습니다. 서버에서 dNFS가 활성화되었습니다.
@@ -63,6 +67,7 @@ image:aws-ora-fsx-ec2-inst-011.png["입력/출력 대화 상자 또는 서면 �
 
 
 
+[[swingbench-configuration]]
 === 스윙벤치 구성
 
 우리는 8vCPU와 32G RAM이 있는 Windows 호스트에 Swingbench 2.6(최신 버전)을 배포했습니다.  우리는 벤치마크를 위해 SOE plsql 테스트 모듈 버전 2를 사용했습니다.  기본 부하 프로필은 실제 OLTP 트랜잭션 작업 부하를 시뮬레이션하기 위해 80/20 읽기/쓰기 비율을 제공합니다.
@@ -77,6 +82,7 @@ image:aws-ora-fsx-ec2-swin-001.png["입력/출력 대화 상자 또는 서면 �
 
 
 
+[[test-results-analysis]]
 == 테스트 결과 분석
 
 우리는 각 테스트 실행에 대한 Swingbench 결과를 수집하고 성능 분석을 위해 해당 Oracle AWR 보고서를 얻었습니다.

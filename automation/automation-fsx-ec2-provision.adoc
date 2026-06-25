@@ -20,6 +20,7 @@ NetApp 솔루션 엔지니어링 팀
 
 
 
+[[purpose]]
 == 목적
 
 이 툴킷은 AWS FSx ONTAP 스토리지 클러스터와 EC2 컴퓨팅 인스턴스의 프로비저닝 작업을 자동화하여 이후 데이터베이스 배포에 사용할 수 있습니다.
@@ -32,6 +33,7 @@ NetApp 솔루션 엔지니어링 팀
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -44,6 +46,7 @@ NetApp 솔루션 엔지니어링 팀
 
 
 
+[[license]]
 == 특허
 
 이 GitHub 저장소의 콘텐츠에 액세스하거나 다운로드, 설치 또는 사용함으로써 귀하는 본 라이선스에 명시된 조건에 동의하는 것입니다.link:https://github.com/NetApp/na_ora_hadr_failover_resync/blob/master/LICENSE.TXT["라이센스 파일"^] .
@@ -53,10 +56,12 @@ NOTE: 이 GitHub 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -84,6 +89,7 @@ Network configuration
 ====
 
 
+[[download-the-toolkit]]
 === 툴킷을 다운로드하세요
 
 [%collapsible%open]
@@ -95,6 +101,7 @@ git clone https://github.com/NetApp/na_aws_fsx_ec2_deploy.git
 ====
 
 
+[[connectivity-and-authentication]]
 === 연결 및 인증
 
 [%collapsible%open]
@@ -104,6 +111,7 @@ git clone https://github.com/NetApp/na_aws_fsx_ec2_deploy.git
 ====
 
 
+[[terraform-provider-tf-and-main-tf-files-configuration]]
 === Terraform provider.tf 및 main.tf 파일 구성
 
 [%collapsible%open]
@@ -141,6 +149,7 @@ main.tf:
 ====
 
 
+[[terraform-variables-tf-and-terraform-tfvars-configuration]]
 === Terraform 변수.tf 및 terraform.tfvars 구성
 
 [%collapsible%open]
@@ -180,6 +189,7 @@ root_volume_size        = 30
 ====
 
 
+[[step-by-step-procedures-executed-in-sequence]]
 === 단계별 절차 - 순서대로 실행
 
 [%collapsible%open]
@@ -245,6 +255,7 @@ terraform destroy
 ====
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 NetApp 솔루션 자동화에 대해 자세히 알아보려면 다음 웹사이트를 검토하세요.link:https://docs.netapp.com/us-en/netapp-solutions-dataops/automation/automation-introduction.html["NetApp 솔루션 자동화^"^]

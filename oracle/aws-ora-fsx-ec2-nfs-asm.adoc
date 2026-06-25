@@ -20,6 +20,7 @@ Allen Cao, Niyaz Mohamed, NetApp
 
 
 
+[[purpose]]
 == 목적
 
 ASM(자동 스토리지 관리)은 많은 Oracle 설치에 사용되는 인기 있는 Oracle 스토리지 볼륨 관리자입니다.  이는 Oracle에서 권장하는 스토리지 관리 솔루션이기도 합니다.  기존 볼륨 관리자와 파일 시스템에 대한 대안을 제공합니다.  Oracle 버전 11g부터 ASM은 데이터베이스가 아닌 그리드 인프라와 함께 패키징되었습니다.  따라서 RAC 없이 스토리지 관리를 위해 Oracle ASM을 활용하려면 Oracle Restart라고도 하는 독립형 서버에 Oracle Grid Infrastructure을 설치해야 합니다.  그렇게 하면 그렇지 않으면 더 간단했을 Oracle 데이터베이스 배포에 복잡성이 더 추가됩니다.  하지만 이름에서 알 수 있듯이 Oracle을 재시작 모드로 배포하면 실패한 Oracle 서비스는 사용자 개입 없이 호스트 재부팅 후 다시 시작되므로 일정 수준의 고가용성 또는 HA 기능이 제공됩니다.
@@ -35,6 +36,7 @@ Oracle ASM은 일반적으로 FC, iSCSI 스토리지 프로토콜 및 LUN을 원
 
 
 
+[[audience]]
 == 대상
 
 이 솔루션은 다음과 같은 사람들을 위해 만들어졌습니다.
@@ -47,18 +49,21 @@ Oracle ASM은 일반적으로 FC, iSCSI 스토리지 프로토콜 및 LUN을 원
 
 
 
+[[solution-test-and-validation-environment]]
 == 솔루션 테스트 및 검증 환경
 
 이 솔루션의 테스트와 검증은 최종 배포 환경과 일치하지 않을 수 있는 AWS FSx 및 EC2 환경에서 수행되었습니다. 자세한 내용은 다음 섹션을 참조하세요. <<배포 고려사항의 핵심 요소>> .
 
 
 
+[[architecture]]
 === 아키텍처
 
 image:aws-ora-fsx-ec2-nfs-asm-architecture.png["이 이미지는 iSCSI 및 ASM을 사용한 AWS 퍼블릭 클라우드의 Oracle 배포 구성에 대한 자세한 그림을 제공합니다."]
 
 
 
+[[hardware-and-software-components]]
 === 하드웨어 및 소프트웨어 구성 요소
 
 [cols="33%, 33%, 33%"]
@@ -93,6 +98,7 @@ image:aws-ora-fsx-ec2-nfs-asm-architecture.png["이 이미지는 iSCSI 및 ASM�
 |===
 
 
+[[key-factors-for-deployment-consideration]]
 === 배포 고려사항의 핵심 요소
 
 * *EC2 컴퓨팅 인스턴스.*  이러한 테스트와 검증에서는 Oracle 데이터베이스 컴퓨팅 인스턴스에 AWS EC2 t2.xlarge 인스턴스 유형을 사용했습니다.  NetApp 데이터베이스 워크로드에 최적화되어 있으므로 프로덕션 배포 시 Oracle의 컴퓨팅 인스턴스로 M5 유형 EC2 인스턴스를 사용할 것을 권장합니다.  실제 작업 부하 요구 사항에 따라 vCPU 수와 RAM 양에 맞게 EC2 인스턴스 크기를 적절히 조정해야 합니다.
@@ -106,12 +112,14 @@ image:aws-ora-fsx-ec2-nfs-asm-architecture.png["이 이미지는 iSCSI 및 ASM�
 
 
 
+[[solution-deployment]]
 == 솔루션 구축
 
 다음 섹션에서는 단계별 배포 절차를 제공합니다.
 
 
 
+[[prerequisites-for-deployment]]
 === 배포를 위한 전제 조건
 
 [%collapsible%open]
@@ -134,6 +142,7 @@ NOTE: Oracle 설치 파일을 준비할 충분한 공간을 확보하려면 EC2 
 ====
 
 
+[[ec2-instance-kernel-configuration]]
 === EC2 인스턴스 커널 구성
 
 [%collapsible%open]
@@ -243,6 +252,7 @@ usermod -a -G asm oracle
 ====
 
 
+[[provision-and-export-nfs-volumes-to-be-mounted-to-ec2-instance-host]]
 === EC2 인스턴스 호스트에 마운트할 NFS 볼륨을 프로비저닝하고 내보냅니다.
 
 [%collapsible%open]
@@ -295,6 +305,7 @@ svm_ora   svm_ora_root aggr1        online     RW          1GB    972.1MB    0%
 ====
 
 
+[[database-storage-configuration]]
 === 데이터베이스 저장소 구성
 
 [%collapsible%open]
@@ -404,6 +415,7 @@ chmod 640 /oralogs/asm/*
 ====
 
 
+[[oracle-grid-infrastructure-installation]]
 === Oracle 그리드 인프라 설치
 
 [%collapsible%open]
@@ -540,6 +552,7 @@ ora.evmd            ONLINE  ONLINE       ip-172-30-15-58          STABLE
 ====
 
 
+[[oracle-database-installation]]
 === 오라클 데이터베이스 설치
 
 [%collapsible%open]
@@ -895,18 +908,21 @@ This completes Oracle 19c version 19.18 Restart deployment on an Amazon FSx ONTA
 ====
 
 
+[[automated-deployment-option]]
 === 자동 배포 옵션
 
 NetApp 이 솔루션의 구현을 용이하게 하기 위해 Ansible을 활용한 완전 자동화된 솔루션 배포 툴킷을 출시할 예정입니다.  툴킷의 가용성을 다시 확인해 주세요.  출시 후 여기에 링크가 게시될 예정입니다.
 
 
 
+[[oracle-database-backup-restore-and-clone-with-snapcenter-service]]
 == SnapCenter 서비스를 사용한 Oracle 데이터베이스 백업, 복원 및 복제
 
 현재 NFS 및 ASM 스토리지 옵션이 있는 Oracle 데이터베이스는 기존 SnapCenter Server UI 도구에서만 지원됩니다.link:../dbops/hybrid-dbops-snapcenter-usecases.html["SnapCenter 활용한 하이브리드 클라우드 데이터베이스 솔루션"^] NetApp SnapCenter UI 도구를 사용한 Oracle 데이터베이스 백업, 복원 및 복제에 대한 자세한 내용은 다음을 참조하세요.
 
 
 
+[[where-to-find-additional-information]]
 == 추가 정보를 찾을 수 있는 곳
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.

@@ -18,10 +18,12 @@ summary: 이 페이지에서는 NetApp ONTAP 스토리지에 Oracle19c를 배포
 
 
 
+[[awxtower-deployment-oracle-19c-database]]
 == AWX/Tower 배포 Oracle 19c 데이터베이스
 
 
 
+[[1-create-the-inventory-group-hosts-and-credentials-for-your-environment]]
 === 1. 사용자 환경에 대한 인벤토리, 그룹, 호스트 및 자격 증명을 만듭니다.
 
 이 섹션에서는 NetApp 자동화 솔루션을 사용하기 위한 환경을 준비하는 AWX/Ansible Tower에서 인벤토리, 그룹, 호스트 및 액세스 자격 증명을 설정하는 방법을 설명합니다.
@@ -91,6 +93,7 @@ extra_vars:
 
 
 
+[[2-create-a-project]]
 === 2. 프로젝트 만들기
 
 . 리소스 → 프로젝트로 가서 추가를 클릭합니다.
@@ -106,6 +109,7 @@ extra_vars:
 
 
 
+[[3-configure-oracle-hostvars]]
 === 3. Oracle host_vars 구성
 
 이 섹션에 정의된 변수는 각 Oracle 서버와 데이터베이스에 적용됩니다.
@@ -118,6 +122,7 @@ NOTE: 파란색 항목은 환경에 맞게 변경해야 합니다.
 
 
 
+[[host-vars-config]]
 === 호스트 VARS 구성
 
 [source, shell]
@@ -164,6 +169,7 @@ host_datastores_nfs:
 
 
 
+[[4-configure-global-variables]]
 === 4. 전역 변수 구성
 
 이 섹션에 정의된 변수는 모든 Oracle 호스트, 데이터베이스 및 ONTAP 클러스터에 적용됩니다.
@@ -274,6 +280,7 @@ initial_pwd_all: "netapp123"
 
 
 
+[[5-configure-and-launch-the-job-template]]
 === 5. 작업 템플릿을 구성하고 시작합니다.
 
 . 작업 템플릿을 만듭니다.
@@ -321,6 +328,7 @@ NOTE: requirements_config는 다른 역할을 실행하는 데 필요한 올바�
 
 
 
+[[6-deploy-additional-database-on-same-oracle-host]]
 === 6. 동일한 Oracle 호스트에 추가 데이터베이스 배포
 
 플레이북의 Oracle 부분은 실행 당 Oracle 서버에 단일 Oracle 컨테이너 데이터베이스를 생성합니다.  동일한 서버에 추가 컨테이너 데이터베이스를 만들려면 다음 단계를 완료하세요.
@@ -424,6 +432,7 @@ CDB2_PDB1
 
 
 
+[[where-to-go-for-help]]
 === 도움을 받으려면 어디로 가야 하나요?
 
 툴킷 사용에 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 슬랙 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.

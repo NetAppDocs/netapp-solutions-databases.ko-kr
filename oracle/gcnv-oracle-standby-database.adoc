@@ -15,6 +15,8 @@ Google Cloud NetApp Volumes 스토리지 계층 복제, 스냅샷 또는 클론�
 
 
 
+[[step-1-configure-listener-and-data-guard-parameters]]
+[[primary-sys-password-and-dg-params]]
 == 1단계: 리스너 및 Data Guard 매개변수 구성
 
 두 데이터베이스 호스트 모두에서 Data Guard 연결을 지원하도록 리스너를 구성하고, 브로커에 필요한 서비스도 설정하십시오. `_DGMGRL` 기본 데이터베이스에서 암호 파일을 설정하고 아카이브 로그 매개변수를 구성하십시오.
@@ -61,6 +63,8 @@ $GRID_HOME/bin/lsnrctl status
 
 
 
+[[step-2-prepare-standby-pfile-and-nomount]]
+[[standby-init-ora-and-nomount]]
 == 2단계: 대기 pfile 및 NOMOUNT 준비
 
 기본 데이터베이스에서 암호 파일을 복사하고, Data Guard 매개변수가 포함된 최소한의 init.ora pfile을 생성하고, 인스턴스를 NOMOUNT 모드로 시작하여 대기 데이터베이스 인스턴스를 준비합니다.
@@ -140,6 +144,8 @@ SQL
 
 
 
+[[step-3-initialize-standby-storage-with-gcnv]]
+[[gcnv-standby-initialization]]
 == 3단계: GCNV를 사용하여 대기 스토리지 초기화
 
 대기 볼륨을  `oracle-pool-b`에 시드하고,  `oracdb2`에 연결하고, ASM 디스크 그룹을 마운트한 다음, 대기 인스턴스를 MOUNT 상태로 최종화합니다.
@@ -148,6 +154,7 @@ SQL
 
 
 
+[[choose-the-seeding-path]]
 === 시딩 경로를 선택합니다
 
 사용 환경 및 복구 요구 사항에 따라 대기 시드 방법을 선택하십시오.
@@ -160,6 +167,8 @@ SQL
 
 
 
+[[check-prerequisites]]
+[[gcnv-seed-prereqs]]
 === 필수 조건을 확인합니다
 
 대기 볼륨을 시드하기 전에 다음 필수 조건을 확인하십시오.
@@ -190,6 +199,8 @@ gcloud netapp storage-pools create oracle-pool-b \
 
 
 
+[[create-and-sync-replications]]
+[[create-volume-replications]]
 === 복제본 생성 및 동기화
 
 기본 볼륨에서 대기 볼륨으로 복제 관계를 생성한 다음 초기 동기화가 완료될 때까지 기다립니다.
@@ -212,6 +223,8 @@ gcloud netapp volumes replications create repl-oracdb2-reco \
 
 
 
+[[cut-over-and-attach-standby-volumes]]
+[[cutover-quiesce-stop-repl-attach]]
 === 전환 후 대기 볼륨 연결
 
 기본 서버를 정지시키고, 최종 동기화 후 복제를 중지한 다음, 대상 볼륨을 대기 호스트 그룹에 연결합니다.
@@ -252,6 +265,8 @@ ALTER DATABASE END BACKUP;
 ----
 
 
+[[seed-from-snapshot]]
+[[snapshot-seed]]
 === 스냅샷에서 시드
 
 지속적인 복제가 필요하지 않은 경우 이 경로를 사용하여 일회성 랩 시딩을 수행하십시오.
@@ -260,6 +275,8 @@ ALTER DATABASE END BACKUP;
 
 
 
+[[mount-standby-asm-disk-groups]]
+[[standby-iscsi-and-asm-before-rman]]
 === 대기 ASM 디스크 그룹 마운트
 
 대기 호스트에서 연결된 스토리지 경로를 검색하고 데이터베이스 복구 전에 ASM 디스크 그룹을 마운트합니다.
@@ -274,6 +291,8 @@ ALTER DISKGROUP FRA MOUNT FORCE;
 ----
 
 
+[[finalize-the-standby-instance]]
+[[oracle-finalize]]
 === 대기 인스턴스를 완료합니다.
 
 대기 제어 파일을 복원하고, 캡처된 SCN으로 복구하고, 물리적 대기 상태로 전환한 다음 관리형 복구를 시작합니다.
@@ -299,6 +318,8 @@ ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
 
 
 
+[[step-4-register-standby-with-oracle-restart]]
+[[register-standby-with-oracle-restart]]
 == 4단계: Oracle Restart에 대기 상태 등록
 
 대기 데이터베이스를 Oracle Restart에 등록하여 재부팅 시 ASM 디스크 그룹이 자동으로 복구되고, 대기 데이터베이스가 마운트되고, 관리형 복구가 다시 시작되도록 합니다. 또한 애플리케이션 서비스를 두 데이터베이스 리소스 모두에 추가합니다.
@@ -379,6 +400,7 @@ srvctl status database -db orcls
 
 
 
+[[whats-next]]
 == 다음 단계
 
 *등급별 특징:*
