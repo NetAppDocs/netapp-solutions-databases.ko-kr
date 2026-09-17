@@ -62,13 +62,13 @@ indexpage:
     - title: 온프레미스 SQL 워크로드를 FSx ONTAP 으로 마이그레이션
       url: "/mssql/customer-usecase-mssql-fsx1.html"
     - title: 클러스터형 데이터 ONTAP 사용하는 Windows 기반 Microsoft SQL Server와 SAP
-      url: https://www.netapp.com/pdf.html?item=/media/16865-tr-4467pdf.pdf
+      url: https://www.netapp.com/pdf.html?item=/media/16865-tr-4467.pdf
     - title: Microsoft SQL Server 현대화
       url: https://www.netapp.com/pdf.html?item=/media/15613-na-446.pdf
     - title: ONTAP 사용한 Microsoft SQL Server 모범 사례
       url: https://www.netapp.com/pdf.html?item=/media/8585-tr4590.pdf
     - title: EF 시리즈를 사용한 Microsoft SQL Server 모범 사례
-      url: https://www.netapp.com/pdf.html?item=/media/17086-tr4764pdf.pdf
+      url: https://www.netapp.com/pdf.html?item=/media/17086-tr4764.pdf
   - title: 하이브리드 클라우드 데이터베이스 솔루션
     links:
     - title: VCF에서 vVols 사용하여 Oracle RAC 배포 및 보호
@@ -82,7 +82,7 @@ indexpage:
     - title: 자동화를 통해 ONTAP 에 Oracle19c 배포
       url: "/automation/db-protection-overview.html"
     - title: NetApp EF-Series에서 Oracle 데이터베이스 실행
-      url: https://www.netapp.com/pdf.html?item=/media/17248-tr4794pdf.pdf
+      url: https://www.netapp.com/pdf.html?item=/media/17248-tr4794.pdf
   - title: 오픈 소스 데이터베이스
     links:
     - title: AWS FSx/EC2에서 PostgreSQL 데이터베이스를 배포하고 재해 복구를 설정합니다.

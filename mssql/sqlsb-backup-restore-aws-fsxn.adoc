@@ -622,9 +622,9 @@ image:sqlsb-aws-093.png["입력/출력 대화 상자 또는 서면 내용을 나
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.
 
-* https://www.netapp.com/pdf.html?item=/media/12400-tr4714pdf.pdf["TR-4714: NetApp SnapCenter 사용한 Microsoft SQL Server 모범 사례 가이드"^]
+* https://www.netapp.com/pdf.html?item=/media/12400-tr4714.pdf["TR-4714: NetApp SnapCenter 사용한 Microsoft SQL Server 모범 사례 가이드"^]
 +
-https://www.netapp.com/pdf.html?item=/media/12400-tr4714pdf.pdf["https://www.netapp.com/pdf.html?item=/media/12400-tr4714pdf.pdf"^]
+https://www.netapp.com/pdf.html?item=/media/12400-tr4714.pdf["https://www.netapp.com/pdf.html?item=/media/12400-tr4714pdf.pdf"^]
 
 * https://docs.netapp.com/us-en/snapcenter-45/protect-scsql/concept_requirements_for_restoring_a_database.html["데이터베이스 복원을 위한 요구 사항"^]
 +

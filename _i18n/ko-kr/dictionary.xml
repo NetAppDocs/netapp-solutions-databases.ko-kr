@@ -310,8 +310,6 @@
   <block id="91935697a3dec69875fc666d39a8fef8" category="inline-link-macro">게스트 마운트 FSx ONTAP 통해 AWS의 VMware Cloud에서 간소화되고 자체 관리되는 Oracle</block>
   <block id="d49572b6f320bb9c7fb90a4c4fc671fe" category="paragraph">TR-4979를 참조하세요<block ref="b3e18c7c22919dcba778748c61b50f2e" category="inline-link-macro-rx"></block> 부분<block ref="d372b360dda93a1ed98b047b474a8d14" prefix=" " category="inline-code"></block> SnapCenter 설정 및 데이터베이스 백업, 복원, 복제 워크플로우 실행에 대한 자세한 내용은 다음을 참조하세요.</block>
   <block id="6a56c935b27efdd9e9fde9e036ca687b" category="list-text">NETAPP ASA: 올플래시 SAN 어레이</block>
-  <block id="fa78b7e09f15ae55ea12cbcb34d44847" category="inline-link-macro"><block ref="fa78b7e09f15ae55ea12cbcb34d44847" category="inline-link-rx"></block></block>
-  <block id="1d2dc43013dd6328b22d33484061bd50" category="paragraph"><block ref="1d2dc43013dd6328b22d33484061bd50" category="inline-link-macro-rx"></block></block>
   <block id="5424ed1a1b4c4815e1d1676f23aa1da4" category="list-text">새 데이터베이스 설치로 독립형 서버에 Oracle Grid Infrastructure 설치</block>
   <block id="a7410994d191ba6c350f0f764df86934" category="inline-link-macro"><block ref="a7410994d191ba6c350f0f764df86934" category="inline-link-rx"></block></block>
   <block id="094328bca120efd3d6fba90d69b806f8" category="paragraph"><block ref="094328bca120efd3d6fba90d69b806f8" category="inline-link-macro-rx"></block></block>
@@ -431,7 +429,6 @@
   <block id="5803335e5bcae83badcbc5583ac2d60e" category="inline-link-macro">게스트 마운트 FSx ONTAP 통해 AWS에서 VMware Cloud의 간소화된 자체 관리형 Oracle</block>
   <block id="7747db3e6614970aeeeeaef060f430c8" category="paragraph">NetApp C-Series에 배포된 Oracle 데이터베이스를 관리하기 위해 SnapCenter UI 도구를 권장합니다.  TR-4979를 참조하세요<block ref="353ca98728b30d2ae31625a468ea2722" category="inline-link-macro-rx"></block> 부분<block ref="d372b360dda93a1ed98b047b474a8d14" prefix=" " category="inline-code"></block> SnapCenter 설정 및 데이터베이스 백업, 복원, 복제 워크플로우 실행에 대한 자세한 내용은 다음을 참조하세요.</block>
   <block id="0f48ba7e158160e65859ff8d64ceec40" category="inline-link-macro">NetApp AFF C 시리즈</block>
-  <block id="2f76b6fc093e529f4873d6981e8dfccb" category="list-text"><block ref="2f76b6fc093e529f4873d6981e8dfccb" category="inline-link-macro-rx"></block></block>
   <block id="f18e1c3f82c945878e4905241940fa6b" category="list-text"><block ref="f18e1c3f82c945878e4905241940fa6b" category="inline-link-macro-rx"></block></block>
   <block id="77848b259d26eb7f84ae5e2cbfc59ed1" category="summary">이 솔루션은 ASM 구성을 사용하여 Azure NetApp Files 스토리지의 Azure 클라우드에 호스팅된 Oracle Data Guard의 물리적 스탠바이 데이터베이스에서 Oracle 복제 데이터베이스를 설정, 복제 및 새로 고치기 위한 Ansible 기반 자동화 툴킷을 제공합니다.</block>
   <block id="93a5d2dc01885a305bad9a0a7f8be64b" category="doc">ASM을 사용한 ANF의 자동화된 Oracle 복제 수명 주기</block>
@@ -851,7 +848,6 @@
   <block id="593581e466784760a050bceaea5e0c48" category="admonition">Cloud Manager와 Cloud Volumes ONTAP 배포하는 방법은 여러 가지가 있습니다. 이 방법은 가장 간단하지만 가장 많은 권한이 필요합니다.  이 방법이 귀하의 AWS 환경에 적합하지 않은 경우 다음을 참조하십시오.<block ref="97a20614f8c0e53f461a9353634e5e51" category="inline-link-rx"></block> .</block>
   <block id="bb3e779fdf877143137572122cf424e3" category="section-title">Cloud Manager 커넥터 배포</block>
   <block id="1273c8a63109161e6fd1f18d6998523f" category="inline-link">NetApp BlueXP</block>
-  <block id="1bb916142b871b5d3ca15de98567916e" category="list-text">로 이동<block ref="830bc671a5f7a65e4c0ded8f63d397ba" category="inline-link-rx"></block> 로그인하거나 회원가입하세요.</block>
   <block id="e282a5afe40f9227d1f4acfdd3e5e741" category="paragraph"><block ref="e282a5afe40f9227d1f4acfdd3e5e741" category="inline-image-macro-rx" type="image"></block></block>
   <block id="2300b8579a8761e452d89a2af6636b7d" category="list-text">로그인 후 Canvas로 이동하게 됩니다.</block>
   <block id="7ac8c7bcb29721730eca3892f6e6f8c7" category="paragraph"><block ref="7ac8c7bcb29721730eca3892f6e6f8c7" category="inline-image-macro-rx" type="image"></block></block>
@@ -1481,7 +1477,6 @@
   <block id="68236fcee9bee8dbdc1c54b7b2d84b34" category="list-text">마지막 트랜잭션이 모든 로그 파일 복제 및 복구를 통해 복제되고 복구되었는지 확인합니다.</block>
   <block id="84796a21de5593c952d0ae1c4869387f" category="paragraph"><block ref="84796a21de5593c952d0ae1c4869387f" category="inline-image-macro-rx" type="image"></block></block>
   <block id="50159c53d6f87eb33c314abd9f0bd28f" category="list-text">SQL Server 로그 백업을 위해 DR 서버에 새로운 SnapCenter 로그 디렉토리를 구성합니다.</block>
-  <block id="50f8c30e062c542679b96127a844db6a" category="paragraph">이 솔루션과 사용 사례에 대한 도움이 필요하면 가입하세요.<block ref="f9456f3b54a140d5d3858823c684363f" category="inline-link-macro-rx"></block> 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.</block>
   <block id="d89002d36151bd13d2bba69f3533ee5f" category="summary">이 솔루션은 NetApp 현장 및 고객에게 NetApp SnapCenter GUI 기반 도구와 퍼블릭 클라우드의 NetApp 스토리지 서비스 CVO를 사용하여 하이브리드 클라우드 환경으로 데이터베이스를 구성, 운영 및 마이그레이션하기 위한 지침과 안내를 제공합니다.</block>
   <block id="8269707c3930f3cbcd49193be33bc125" category="doc">TR-4908: SnapCenter 활용한 하이브리드 클라우드 데이터베이스 솔루션 개요</block>
   <block id="7c4d94e1b484fb577b0aeafbec788ea1" category="paragraph">Alan Cao, 펠릭스 멜리건, NetApp</block>
@@ -2224,9 +2219,7 @@
   <block id="990f2c472997ae0e656e936d74d82472" category="paragraph"><block ref="990f2c472997ae0e656e936d74d82472" category="inline-image-macro-rx" type="image"></block></block>
   <block id="7d5b957cd473f6eaf5ad335a9c63c4ff" category="paragraph">이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.</block>
   <block id="425103b894468ffe6015f984f2683d74" category="inline-link">TR-4714: NetApp SnapCenter 사용한 Microsoft SQL Server 모범 사례 가이드</block>
-  <block id="9c42feba6d2410200720e2ceda752e13" category="list-text"><block ref="9c42feba6d2410200720e2ceda752e13" category="inline-link-rx"></block></block>
   <block id="ee50ef71e7fa5dbc3292cb856c5f8ee5" category="inline-link"><block ref="ee50ef71e7fa5dbc3292cb856c5f8ee5" category="inline-link-rx"></block></block>
-  <block id="822d30d1b5bfcb219aa830739d5b89a0" category="paragraph"><block ref="822d30d1b5bfcb219aa830739d5b89a0" category="inline-link-rx"></block></block>
   <block id="818095849ac39056a1077a0f3a155684" category="inline-link">데이터베이스 복원을 위한 요구 사항</block>
   <block id="0305a2a48c225d49081b5bccd776b23d" category="list-text"><block ref="0305a2a48c225d49081b5bccd776b23d" category="inline-link-rx"></block></block>
   <block id="9f413d2e154ecad28af03b6125df6837" category="inline-link"><block ref="9f413d2e154ecad28af03b6125df6837" category="inline-link-rx"></block></block>
@@ -2237,7 +2230,6 @@
   <block id="ebcadd0d5b1096e72d18133b1e0e3098" category="doc">TR-4467: Windows에서 Microsoft SQL Server를 사용하는 SAP - NetApp Clustered Data ONTAP 및 SnapCenter 사용한 모범 사례</block>
   <block id="611a4a6b98272a717f8e1f6bf5ba787b" category="paragraph">마르코 쇼엔, NetApp</block>
   <block id="dbd408dfbba42c9529974244acc200aa" category="paragraph">TR-4467은 Windows 환경의 Microsoft SQL Server에서 실행되는 SAP Business Suite 솔루션을 지원하는 클러스터형 NetApp Data ONTAP 배포하기 위한 모범 사례를 고객과 파트너에게 제공합니다.</block>
-  <block id="d90b6dfa1c90883fc207f3309f98b1bf" category="paragraph"><block ref="d90b6dfa1c90883fc207f3309f98b1bf" category="inline-link-macro-rx"></block></block>
   <block id="0502e6755528910223db364699e71622" category="doc">TR-4590: ONTAP 사용한 Microsoft SQL Server 모범 사례 가이드</block>
   <block id="7788b16f8e56867380c0e39b9e9a9b73" category="paragraph">Manohar Kulkarni 및 Pat Sinthusan, NetApp</block>
   <block id="cf2906d4a365d3dbf40f1f495ff7a0eb" category="paragraph">이 문서에서는 모범 사례를 설명하고 NetApp ONTAP 소프트웨어를 실행하는 NetApp 스토리지 시스템에 SQL Server를 배포할 때의 설계 고려 사항에 대한 통찰력을 제공합니다. 이를 통해 효과적이고 효율적인 스토리지 배포와 종단 간 데이터 보호 및 보존 계획을 달성하는 것이 목표입니다.</block>
@@ -2246,7 +2238,6 @@
   <block id="046c9e52934c311f81497ca664d86a24" category="doc">TR-4764: NetApp EF 시리즈를 사용한 Microsoft SQL Server 모범 사례</block>
   <block id="d9cd8ac988f5ea26e28a2da5f3485ff9" category="paragraph">미치 블랙번, 팻 신투산, NetApp</block>
   <block id="9db08b91ae68a77b71af230b40b31325" category="paragraph">이 모범 사례 가이드는 스토리지 관리자와 데이터베이스 관리자가 NetApp EF 시리즈 스토리지에 Microsoft SQL Server를 성공적으로 배포하는 데 도움을 주기 위해 작성되었습니다.</block>
-  <block id="730874cec0e792d7ebad5a796a90b3be" category="paragraph"><block ref="730874cec0e792d7ebad5a796a90b3be" category="inline-link-macro-rx"></block></block>
   <block id="d79b12332bd4254f1e9cd6c23201a104" category="doc">TR-4722: NetApp ONTAP 의 MySQL 데이터베이스 모범 사례</block>
   <block id="ecb384a7266ef6f8f011aa654a810c39" category="paragraph">Anup Bharti, Manohar Kulkarni, Jeffrey Steiner NetApp</block>
   <block id="ccf4f5e223b1332c8f679f6a75664cae" category="paragraph">MySQL과 MariaDB, Percona를 포함한 그 변형은 다양한 엔터프라이즈 애플리케이션에 널리 사용됩니다.  이러한 애플리케이션은 글로벌 소셜 네트워킹 사이트와 대규모 전자상거래 시스템부터 수천 개의 데이터베이스 인스턴스가 포함된 SMB 호스팅 시스템까지 다양합니다.  이 문서에서는 NetApp ONTAP 데이터 관리 소프트웨어에 MySQL을 배포하기 위한 구성 요구 사항을 설명하고 튜닝 및 스토리지 구성에 대한 지침을 제공합니다.  이 보고서에 지정된 환경, 구성 및 버전이 사용자 환경을 지원하는지 확인하려면 상호 운용성 매트릭스 도구(IMT)를 참조하세요.</block>
@@ -3858,8 +3849,6 @@
   <block id="d61fd641d504e6b15572a5b645d11d7d" category="paragraph">저장소에서 툴킷을 검색합니다<block ref="9d80dd73d3a7a092e6605ac547074b0f" category="inline-link-macro-rx"></block></block>
   <block id="ef67c85019e8ac817ecbbb2983bd0153" category="section-title">툴킷을 어떻게 사용하나요?</block>
   <block id="e0849abccea244e0fba40c3aa575d398" category="paragraph">이 툴킷은 웹 기반 HTML 파서와 Oracle 데이터베이스 정보를 수집하는 두 개의 SQL 스크립트로 구성되어 있습니다.  그런 다음 출력은 Oracle 데이터베이스 서버의 컴퓨팅 및 스토리지 크기 조정 지침을 생성하는 데 사용되는 Excel 템플릿에 입력됩니다.</block>
-  <block id="f5db9a220f11d7b08f96f33f94122f33" category="inline-link-macro">HTML 파서</block>
-  <block id="e82f0c37b6bd3400eddaf0d48fac4a76" category="list-text">사용하다<block ref="735c7742f70fe756ee1537fe41775ee0" category="inline-link-macro-rx"></block> AWR 보고서에서 현재 Oracle 데이터베이스의 크기 정보를 검색하는 AWR 모듈입니다.</block>
   <block id="c000aa7f2c0d2b7df671b9d059b39d9a" category="list-text">DBA로서 ora_db_data_szie.sql을 실행하여 데이터베이스에서 실제 Oracle 데이터 파일 크기를 검색합니다.</block>
   <block id="7e56648a80a16947fe5208c82f20d2f8" category="list-text">DBA 권한으로 ora_db_logs_size.sql을 실행하여 원하는 보관 로그 보존 기간(일)에 따라 Oracle 보관 로그 크기를 검색합니다.</block>
   <block id="d4cc69ca96964b53d4dc4a8c8e70fa45" category="list-text">위에서 얻은 크기 정보를 Excel 템플릿 파일 oracle_db_sizing_template_anf.xlsx에 입력하여 Oracle DB 서버의 컴퓨팅 및 스토리지에 대한 크기 조정 지침을 만듭니다.</block>
@@ -4583,7 +4572,6 @@
   <block id="6e170e4c0b9eb50546a09aafc90dc157" category="doc">TR-4794: NetApp EF 시리즈의 Oracle 데이터베이스</block>
   <block id="9b6fc59469e9f5ee36cb85b08daacec3" category="paragraph">미치 블랙번, 에빈 카다비, NetApp</block>
   <block id="fa8b4902d0c1e464dcf9256a434920ba" category="paragraph">TR-4794는 스토리지 관리자와 데이터베이스 관리자가 NetApp EF 시리즈 스토리지에 Oracle을 성공적으로 배포하는 데 도움을 주기 위해 고안되었습니다.</block>
-  <block id="c6f1106d361e6595d08ff6340c004516" category="paragraph"><block ref="c6f1106d361e6595d08ff6340c004516" category="inline-link-macro-rx"></block></block>
   <block id="fe9155886965f88b4bb029103061156b" category="summary">이 솔루션은 vSphere Virtual Volumes(vVols)를 기본 데이터베이스 스토리지로 사용하고 RAC(Real Application Clusters) 구성에서 Oracle 데이터베이스를 사용하는 VMware Cloud Foundation(VCF)에서 Oracle을 배포하고 보호하기 위한 개요와 세부 정보를 제공합니다.</block>
   <block id="d04e05cc6f5337608b6ccfaae12a4905" category="doc">TR-4997: vVols 사용한 VCF에서의 Oracle RAC 배포 및 보호</block>
   <block id="ac91541ff82c6ee76b58150eca1250c7" category="paragraph">VMware vSphere Virtual Volumes(vVols)는 가상 디스크를 기본 스토리지 개체로 노출하고 가상 디스크 수준에서 어레이 기반 작업을 지원하는 SAN/NAS 관리 및 통합 프레임워크입니다.  즉, vVols SAN/NAS 장치가 VM을 인식할 수 있도록 하고, 단일 가상 디스크 단위로 VM 중심 접근 방식을 통해 어레이 기반 데이터 서비스를 활용할 수 있는 기능을 제공합니다. vVols 통해 고객은 현재 스토리지 투자의 고유한 기능을 활용하고 모든 스토리지 유형에서 작동하는 가상 환경에 최적화된 더 간단하고 효율적인 운영 모델로 중단 없이 전환할 수 있습니다.</block>
@@ -5471,7 +5459,6 @@
   <block id="8e9e0674f514401c315626d105eebbcd" category="list-text">방화벽을 통해 SQL Server와 클러스터 통신을 허용하려면 두 서버 모두에서 다음 체크포인트를 실행하십시오.</block>
   <block id="e3e7cd0f4a7ef7b2159e33cd0495d21b" category="paragraph">사용자 지정 구성이 있는 경우 포트 번호를 조정하십시오.</block>
   <block id="06880fa41019c1cec71a1f1d0dee33b1" category="inline-link-macro">Windows Server 서비스 및 네트워크 포트 요구 사항</block>
-  <block id="ea1bfb4e0199bc61655220a3e7ae9a8f" category="paragraph">자세한 방화벽 요구 사항은 <block ref="7d6297f1cd817785a1254289ad7b65fa" category="inline-link-macro-rx"></block>을(를) 참조하십시오.</block>
   <block id="1eeb53e050d9b4e4e35834f4b471cba7" category="list-text">클러스터를 생성하기 전에 두 노드 모두에서 유효성 검사를 실행하십시오.</block>
   <block id="4572920938cf8d7680040c800198b6b8" category="section-title">페일오버 클러스터를 생성합니다</block>
   <block id="0ffad8e207b70ed5bd0af63d94e2b285" category="paragraph">고가용성 및 자동 페일오버 기능을 사용하도록 설정하려면 두 SQL Server 노드를 모두 사용하여 Windows Server Failover Cluster를 생성합니다.</block>
@@ -6243,4 +6230,17 @@
   <block id="c43a14b15d77a2ca0858f8c596a9f3ff" category="sidebar">Oracle HA를 위한 Google Cloud NetApp Volumes에 대해 알아보기</block>
   <block id="a2627b9fc881a72aff56f8dd68b20ea1" category="sidebar">Oracle HA를 지원하는 Google Cloud NetApp Volumes 배포</block>
   <block id="1b3c2813631c4b890b70d7b8abe4c245" category="sidebar">Compute Engine 인스턴스 프로비저닝</block>
+  <block id="d609d95c74f58af0677b17d65554005e" category="inline-link-macro"><block ref="d609d95c74f58af0677b17d65554005e" category="inline-link-rx"></block></block>
+  <block id="59aaa217ee0cb94ce796b376789a5f5f" category="paragraph"><block ref="59aaa217ee0cb94ce796b376789a5f5f" category="inline-link-macro-rx"></block></block>
+  <block id="1d9c6b8d8daec693aaf6605491f3b203" category="list-text"><block ref="1d9c6b8d8daec693aaf6605491f3b203" category="inline-link-macro-rx"></block></block>
+  <block id="06f70bdc0632629a375dc5c072f431f5" category="list-text"><block ref="bd65f9bfe577af0daae332de597fcfc1" category="inline-link-rx"></block>로 이동하여 로그인하거나 회원가입하세요.</block>
+  <block id="dd490b81914dd945601e442a41cb4222" category="inline-link-macro">NetApp 커뮤니티</block>
+  <block id="8e201ca2438da0190f1d4fee8db9f98d" category="paragraph">툴킷 사용에 도움이 필요하시면 <block ref="a6159e77c91be3ab1d481e4c7c939636" category="inline-link-macro-rx"></block>을 방문하여 질문을 올려주세요.</block>
+  <block id="bf8fb7dd8b2627d1d3eacf1fabdecec0" category="paragraph">자세한 방화벽 요구 사항은 <block ref="348f1f08867f112c105b3a78ffb586df" category="inline-link-macro-rx"></block>을(를) 참조하십시오.</block>
+  <block id="5247fab54f9e8bcfd8158ac966c09566" category="list-text"><block ref="5247fab54f9e8bcfd8158ac966c09566" category="inline-link-rx"></block></block>
+  <block id="98ec22f1e633b44d85c251abe3d76431" category="paragraph"><block ref="98ec22f1e633b44d85c251abe3d76431" category="inline-link-rx"></block></block>
+  <block id="4df8ff916c96ff6c46fc2671c04b77e0" category="paragraph"><block ref="4df8ff916c96ff6c46fc2671c04b77e0" category="inline-link-macro-rx"></block></block>
+  <block id="b06c01ad278ddcf98874b5b5267765b6" category="paragraph"><block ref="b06c01ad278ddcf98874b5b5267765b6" category="inline-link-macro-rx"></block></block>
+  <block id="052b909238ebf4917da28464c5adb557" category="list-text">HTML 파서 AWR 모듈을 사용하여 AWR 보고서에서 현재 Oracle 데이터베이스의 크기 정보를 가져옵니다.</block>
+  <block id="a6a77e0f909108a38e794073d621e60b" category="paragraph"><block ref="a6a77e0f909108a38e794073d621e60b" category="inline-link-macro-rx"></block></block>
 </blocks>

@@ -693,6 +693,6 @@ NetApp C-Series에 배포된 Oracle 데이터베이스를 관리하기 위해 Sn
 
 이 문서에 설명된 정보에 대해 자세히 알아보려면 다음 문서 및/또는 웹사이트를 검토하세요.
 
-* link:https://www.netapp.com/pdf.html?item=/media/81583-da-4240-aff-c-series.pdf["NetApp AFF C 시리즈"^]
+* link:https://www.netapp.com/pdf.html?item=/media/81583-ds-4240-aff-c-series.pdf["NetApp AFF C 시리즈"^]
 * link:https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/deploying-dnfs.html#GUID-D06079DB-8C71-4F68-A1E3-A75D7D96DCE2["Oracle Direct NFS 배포"^]
 

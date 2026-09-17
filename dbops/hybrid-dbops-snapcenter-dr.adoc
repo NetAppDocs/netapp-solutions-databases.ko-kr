@@ -186,4 +186,4 @@ image:snapctr-sql-dr-012.png["입력/출력 대화 상자 또는 서면 내용�
 [[where-to-go-for-help]]
 == 도움을 받으려면 어디로 가야 하나요?
 
-이 솔루션과 사용 사례에 대한 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 Slack 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.
+툴킷 사용에 도움이 필요하시면 link:https://community.netapp.com/["NetApp 커뮤니티"^]을 방문하여 질문을 올려주세요.

@@ -93,7 +93,7 @@ NOTE: 이 툴킷 저장소의 콘텐츠를 사용하여 파생 작품을 제작 
 ====
 이 툴킷은 웹 기반 HTML 파서와 Oracle 데이터베이스 정보를 수집하는 두 개의 SQL 스크립트로 구성되어 있습니다.  그런 다음 출력은 Oracle 데이터베이스 서버의 컴퓨팅 및 스토리지 크기 조정 지침을 생성하는 데 사용되는 Excel 템플릿에 입력됩니다.
 
-* 사용하다link:https://app.atroposs.com/#/awr-module["HTML 파서"^] AWR 보고서에서 현재 Oracle 데이터베이스의 크기 정보를 검색하는 AWR 모듈입니다.
+* HTML 파서 AWR 모듈을 사용하여 AWR 보고서에서 현재 Oracle 데이터베이스의 크기 정보를 가져옵니다.
 * DBA로서 ora_db_data_szie.sql을 실행하여 데이터베이스에서 실제 Oracle 데이터 파일 크기를 검색합니다.
 * DBA 권한으로 ora_db_logs_size.sql을 실행하여 원하는 보관 로그 보존 기간(일)에 따라 Oracle 보관 로그 크기를 검색합니다.
 * 위에서 얻은 크기 정보를 Excel 템플릿 파일 oracle_db_sizing_template_anf.xlsx에 입력하여 Oracle DB 서버의 컴퓨팅 및 스토리지에 대한 크기 조정 지침을 만듭니다.
