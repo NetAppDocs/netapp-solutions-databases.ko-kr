@@ -153,10 +153,3 @@ image:snapctr-sql-clone-010.png["입력/출력 대화 상자 또는 서면 내�
 . 복제된 데이터베이스를 삭제하고 클라우드 DB 서버 환경을 정리합니다.  그런 다음 이전 절차에 따라 최신 데이터로 새 DB를 복제합니다.  새로운 데이터베이스를 복제하는 데는 몇 분 밖에 걸리지 않습니다.
 . 복제 데이터베이스를 종료하고 CLI를 사용하여 복제 새로 고침 명령을 실행합니다.  자세한 내용은 다음 SnapCenter 문서를 참조하세요.link:https://docs.netapp.com/us-en/snapcenter/protect-sco/task_refresh_a_clone.html["클론 새로 고침"^] .
 
-
-
-
-[[where-to-go-for-help]]
-== 도움을 받으려면 어디로 가야 하나요?
-
-이 솔루션과 사용 사례에 대한 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 Slack 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.

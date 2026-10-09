@@ -366,10 +366,3 @@ CDB2_PDB1
 이는 Oracle 리스너가 제대로 작동하고 있음을 확인합니다.
 
 
-
-
-
-[[where-to-go-for-help]]
-=== 도움을 받으려면 어디로 가야 하나요?
-
-툴킷 사용에 도움이 필요하면 가입하세요.link:https://netapppub.slack.com/archives/C021R4WC0LC["NetApp 솔루션 자동화 커뮤니티 지원 슬랙 채널"] 질문이나 문의사항이 있으면 솔루션 자동화 채널을 찾아 게시하세요.
