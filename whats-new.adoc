@@ -15,6 +15,13 @@ summary: NetApp 데이터베이스 솔루션 담보의 최근 변경 사항 로�
 
 
 
+[[9-november-2026]]
+== 2026년 11월 9일
+
+SQL Server SMB 문서를 추가했습니다: link:https://docs.netapp.com/us-en/mssql/sql-smb3-aff.html["NetApp AFF에서 SMB 3 지속 가용성 공유를 사용하여 Windows Server 2025에 Microsoft SQL Server 2025 배포"^]
+
+
+
 [[18-august-2025]]
 == 2025년 8월 18일
 

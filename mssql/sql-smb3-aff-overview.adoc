@@ -1,0 +1,115 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-smb3-aff-overview.html 
+keywords: Microsoft SQL server, SMB 3, AFF, ONTAP, continuous availability 
+summary: SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 SMB 3 지속적 가용성 공유에 데이터베이스를 저장할 수 있습니다. 이점, 솔루션 구성 요소, 설계 원칙 및 컨트롤러 장애 조치 중에 지속적인 가용성이 데이터베이스를 온라인 상태로 유지하는 방법에 대해 알아보십시오. 
+---
+= SMB 3 지속적 가용성을 지원하는 NetApp AFF 기반 SQL Server 2025에 대해 알아보십시오
+:allow-uri-read: 
+:icons: font
+:experimental: 
+:nofooter: 
+:source-highlighter: highlight.js
+:svm: a50-sql
+:host: sql-1
+:svc-account: SAPCC\sql1admin
+:imagesdir: ../media/
+
+
+[role="lead"]
+SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 SMB 3 CA(지속적 가용성) 공유에 데이터베이스를 저장할 수 있습니다. 이 구성의 이점, 솔루션 구성 요소 및 설계 원칙과 컨트롤러 장애 조치 중에 지속적 가용성이 데이터베이스를 온라인 상태로 유지하는 방법에 대해 알아보십시오.
+
+Microsoft SQL Server는 SQL Server 2012부터 데이터베이스 파일을 SMB 파일 공유에 저장하는 것을 지원해 왔습니다. SMB 3 지속적 사용 가능(CA) 공유를 사용하면 파일 공유는 SQL Server 데이터베이스를 위한 지원되는 스토리지 옵션이며 블록 스토리지(iSCSI 또는 FCP LUN)를 대체할 수 있습니다.
+
+AFF 올플래시 시스템의 ONTAP은 SMB 3을 기본적으로 구현합니다. SQL Server 2025 및 Windows Server 2025와 결합하면 NetApp 데이터 보호와 통합되는 내결함성 스토리지 아키텍처를 제공합니다.
+
+이 구성을 배포하려면 link:sql-smb3-aff.html["SMB 3 상시 사용 가능 공유를 사용하여 NetApp AFF에 SQL Server 2025를 배포합니다"]을(를) 참조하십시오.
+
+
+
+[[benefits-of-sql-server-on-smb-3-with-netapp-ontap]]
+[[why]]
+== NetApp ONTAP을 사용하는 SMB 3 환경에서의 SQL Server 이점
+
+[cols="1,3"]
+|===
+| 혜택 | 설명 
+
+
+| 간편한 프로비저닝 | 관리해야 할 LUN, igroup, MPIO, 디스크 초기화 또는 드라이브 문자가 없습니다. 데이터베이스 파일 위치는  `+\\a50-sql\sql1_data+` 등과 같은 UNC 경로일 뿐입니다. 
+
+
+| 온라인 용량 관리 | ONTAP에서 온라인으로 볼륨을 확장(또는 축소)하면 SQL Server에서 새 용량을 즉시 인식합니다. Windows 디스크 또는 파티션 작업은 필요하지 않으며 자동 확장 기능을 통해 자동으로 수행할 수 있습니다. 
+
+
+| 무중단 운영 | CA 공유는 ONTAP 테이크오버/기브백, 무중단 업그레이드(NDU), LIF 마이그레이션 및 볼륨 이동 중에 SQL Server가 계속 실행되도록 합니다. 
+
+
+| 성능 및 복원력 | SMB 멀티채널은 I/O를 여러 네트워크 경로 및 NIC에 분산시켜 하나의 경로에 장애가 발생하더라도 서비스가 중단되지 않도록 합니다. 또한 SMB 공유는 SQL Server 장애 조치 클러스터 인스턴스(FCI)를 지원합니다. 
+
+
+| 스토리지 효율성 | 인라인 중복 제거, 압축 및 컴팩션은 씬 프로비저닝과 함께 데이터베이스 및 백업에 사용되는 물리적 용량을 줄여줍니다. 
+
+
+| 통합 데이터 보호 | ONTAP 스냅샷, SnapRestore, FlexClone 및 SnapMirror는 NetApp SnapCenter를 통해 오케스트레이션되어 몇 초 만의 백업, 몇 분 만의 복원 및 즉각적인 데이터베이스 클론을 제공합니다. 
+
+
+| 유연성 | 데이터베이스는 스토리지 재매핑 없이 다른 서버에 연결하기만 하면 호스트 간에 이동할 수 있습니다. 동일한 SVM을 사용하여 홈 디렉터리, 파일 서비스 또는 기타 애플리케이션도 제공할 수 있습니다. 
+|===
+
+
+[[solution-components]]
+[[architecture]]
+== 솔루션 구성 요소
+
+이 솔루션은 다음과 같은 구성 요소로 구성됩니다:
+
+[cols="1,3"]
+|===
+| 구성 요소 | 역할 
+
+
+| Windows Server 2025 호스트 (`{host}`) | SQL Server 2025가 실행됩니다. SQL Server 바이너리와 시스템 데이터베이스는 로컬 디스크에 있으며, 모든 사용자 데이터베이스, 로그, TempDB 및 백업은 SMB 3을 통해 액세스됩니다. 
+
+
+| SQL Server 2025 | SMB 공유에 접근 권한이 있는 도메인 서비스 계정(`{svc-account}`)으로 실행되는 데이터베이스 엔진. 
+
+
+| Active Directory 및 DNS | SQL Server 서비스 계정과 CIFS 서버(Kerberos)를 인증하고 이름 확인 및 시간 동기화를 제공합니다. 
+
+
+| NetApp AFF A50 HA 페어 | NVMe 스토리지를 공유하는 두 개의 컨트롤러입니다. 한 컨트롤러에 장애가 발생하거나 업그레이드될 경우, 파트너 컨트롤러가 해당 컨트롤러의 스토리지 및 네트워크 인터페이스를 인계받습니다. 
+
+
+| SVM `{svm}` | 노드당 하나의 SMB 데이터 LIF를 갖춘 전용 Active Directory 조인 CIFS 서버로, CA 공유가 있는 4개의 볼륨을 호스팅합니다. 
+|===
+image::sql25_smb_bp_001.svg[솔루션 아키텍처: NetApp AFF를 사용하는 SMB 3 CA 공유의 SQL Server 2025]
+
+
+
+[[design-principles]]
+[[design]]
+== 설계 원칙
+
+이 설계는 SMB를 통한 SQL Server에 대한 NetApp 모범 사례를 따릅니다:
+
+* *파일 유형별로 별도의 볼륨을 사용합니다.* 데이터, 트랜잭션 로그, TempDB 및 백업은 각각 별도의 FlexVol 볼륨과 공유 폴더에 저장됩니다. 각 볼륨은 크기, QoS, 효율성, 스냅샷 및 복제 설정을 개별적으로 지정할 수 있습니다. TempDB는 백업에서 제외됩니다.
+* *볼륨이 두 노드에 분산됩니다.* 데이터 및 백업 볼륨은 노드 1에 있고, 로그 및 TempDB 볼륨은 노드 2에 있으므로 두 컨트롤러 모두 유용한 작업을 수행할 수 있습니다.
+* *노드당 하나의 SMB 데이터 LIF.* 호스트는 항상 볼륨을 소유한 노드에 대한 직접 경로를 가지며, SMB 멀티채널은 두 경로를 모두 사용할 수 있습니다.
+* *NTFS 보안 스타일 및 CA 공유.* 이는 ONTAP에서 SMB를 통한 SQL Server에 필수입니다.
+* *데이터베이스 볼륨에 예약된 ONTAP 스냅샷이 없습니다.* 백업은 애플리케이션 정합성이 보장되어야 하며, SnapCenter에서 생성됩니다.
+
+
+image::sql25_smb_bp_002.svg[스토리지 레이아웃: SQL Server 파일을 SMB 공유에 저장]
+
+
+
+[[how-continuous-availability-works]]
+[[ca]]
+== 지속적인 가용성이 작동하는 방식
+
+표준 SMB 공유의 경우 컨트롤러 장애 조치가 발생하면 열려 있는 파일 핸들이 닫힙니다. 그러면 SQL Server는 영향을 받는 데이터베이스를 주의 대상으로 표시하며, 수동으로 복구해야 합니다.
+
+CA 공유를 사용하면 ONTAP은 열린 파일 상태(영구 핸들)를 HA 파트너에 미러링하여 유지합니다. 테이크오버가 발생하면 장애가 발생한 노드의 SMB LIF가 파트너로 마이그레이션됩니다. SQL Server 호스트의 SMB 3 클라이언트는 자동으로 다시 연결하여 핸들을 회수합니다. SQL Server는 몇 초간의 짧은 I/O 일시 중단만 경험하며, 데이터베이스는 온라인 상태를 유지하고 트랜잭션 손실은 발생하지 않습니다. ONTAP 업그레이드, 기브백, LIF 마이그레이션 및 볼륨 이동 등 계획된 이벤트에도 동일하게 적용됩니다.
+
+image::sql25_smb_bp_003.svg[SMB 3 지속적 가용성이 SQL Server를 보호하는 방법]
