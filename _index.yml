@@ -51,6 +51,14 @@ indexpage:
       url: "/oracle/gcp-oracle-gcnv-overview.html"
   - title: 클라우드 및 온프레미스용 SQL 서버 솔루션
     links:
+    - title: SMB를 사용하는 NetApp AFF의 SQL Server 2025에 대해 알아보십시오.
+      url: "/mssql/sql-smb3-aff-overview.html"
+    - title: SMB를 사용하여 NetApp AFF에 SQL Server 2025 배포
+      url: "/mssql/sql-smb3-aff.html"
+    - title: iSCSI를 사용하는 NetApp AFF에서 SQL Server 2025에 대해 알아보십시오.
+      url: "/mssql/sql-iscsi-aff-overview.html"
+    - title: iSCSI를 사용하여 NetApp AFF에 SQL Server 2025 배포
+      url: "/mssql/sql-iscsi-aff.html"
     - title: AWS FSx ONTAP 에서 SQL Server 백업 및 복구
       url: "/mssql/sqlsb-backup-restore-aws-fsxn.html"
     - title: FSx ONTAP 사용하여 AWS EC2에서 SQL Server 실행
@@ -59,10 +67,6 @@ indexpage:
       url: "/mssql/sql-srv-anf-overview.html"
     - title: Google Cloud NetApp Volumes에서 SQL Server 실행
       url: "/mssql/gcnv-sql-aoag-setup.html"
-    - title: SMB 3 지속적 가용성을 지원하는 NetApp AFF 기반 SQL Server 2025에 대해 알아보십시오
-      url: "/mssql/sql-smb3-aff-overview.html"
-    - title: SMB 3 상시 사용 가능 공유를 사용하여 NetApp AFF에 SQL Server 2025를 배포합니다
-      url: "/mssql/sql-smb3-aff.html"
     - title: 온프레미스 SQL 워크로드를 FSx ONTAP 으로 마이그레이션
       url: "/mssql/customer-usecase-mssql-fsx1.html"
     - title: 클러스터형 데이터 ONTAP 사용하는 Windows 기반 Microsoft SQL Server와 SAP

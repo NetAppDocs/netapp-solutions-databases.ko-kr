@@ -1,0 +1,1149 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-iscsi-aff.html 
+keywords: Microsoft SQL server, iSCSI, AFF, ONTAP, MPIO 
+summary: NetApp AFF 시스템의 iSCSI LUN에 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 로그 백업을 배치하여 Windows Server 2025에 SQL Server 2025를 배포합니다. 이 절차에는 ONTAP SVM, 이니시에이터 그룹 및 LUN, Windows iSCSI 이니시에이터, MPIO 및 디스크에 대한 iSCSI 구성과 SQL Server 설치가 포함됩니다. 
+---
+= iSCSI LUN을 사용하여 NetApp AFF에 SQL Server 2025 배포
+:allow-uri-read: 
+
+
+[role="lead"]
+NetApp AFF 시스템의 iSCSI LUN에 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 로그 백업을 배치하여 Windows Server 2025에 SQL Server 2025를 배포합니다. 이 절차에는 ONTAP SVM, 이니시에이터 그룹 및 LUN, Windows iSCSI 이니시에이터, MPIO 및 디스크에 대한 iSCSI 구성과 SQL Server 설치가 포함됩니다.
+
+
+
+[[scope]]
+[[intro-scope]]
+== 범위
+
+이 절차에서는 단일 Windows Server 2025 호스트에 독립 실행형 SQL Server 2025 인스턴스를 배포하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 로그 백업을 iSCSI LUN에 저장합니다. 동일한 스토리지 설계는 SQL Server 장애 조치 클러스터 인스턴스(FCI) 및 Always On 가용성 그룹에도 적용되지만, 클러스터별 구성은 다루지 않습니다. SQL Server 성능 튜닝 및 크기 조정 또한 이 절차의 범위를 벗어납니다. 이점, 솔루션 구성 요소, 설계 원칙, 다중 경로 작동 방식에 대한 설명 및 NetApp Console 백업 및 복구를 사용한 데이터 보호에 대한 자세한 내용은 link:sql-iscsi-aff-overview.html["iSCSI LUN을 사용하는 NetApp AFF의 SQL Server 2025에 대해 알아보십시오."]를 참조하십시오.
+
+
+
+[[audience]]
+[[intro-audience]]
+== 대상
+
+이 절차의 대상은 다음과 같습니다:
+
+* ONTAP 클러스터, SVM, iSCSI LIF, 이니시에이터 그룹 및 LUN을 구성하는 *스토리지 관리자*.
+* Windows Server 2025 호스트, iSCSI 이니시에이터, MPIO 및 디스크를 준비하는 *Windows 관리자*.
+* *데이터베이스 관리자*는 SQL Server 2025를 설치 및 구성하고 백업 및 복구를 설정합니다.
+
+
+ONTAP System Manager, Windows Server 및 SQL Server 관리에 대한 기본 지식이 있다고 가정합니다.
+
+
+
+[[lab-environment]]
+[[overview]]
+== 랩 환경
+
+이 절차의 스크린샷은 다음 랩 환경에서 캡처되었습니다. 해당 값을 사용자의 환경에 맞는 값으로 교체하십시오.
+
+[cols="1,2"]
+|===
+| 구성 요소 | 실험실에서 사용된 값 
+
+
+| 스토리지 시스템 | NetApp AFF A50 HA 페어, 클러스터 `{cluster}` (노드 `{node1}`, `{node2}`), ONTAP 9.19.1 
+
+
+| SVM | `{svm}` 
+
+
+| iSCSI 타겟 이름 | `{tgt-iqn}` (별칭 `{svm}`) 
+
+
+| iSCSI LIF | 192.168.175.134 및 192.168.175.135(노드 `{node1}`), 192.168.175.136 및 192.168.175.137(노드 `{node2}`), 서브넷 /24, 브로드캐스트 도메인 `MT9000` 
+
+
+| Active Directory 도메인 | `{domain}` (`{fqdn-domain}`) 
+
+
+| SQL Server 호스트 | `{host}.{fqdn-domain}`, Windows Server 2025 Datacenter(데스크톱 환경) 
+
+
+| 호스트 iSCSI 이니시에이터 | `{init-iqn}`, iSCSI IP 주소 192.168.175.44 
+
+
+| 이니시에이터 그룹 | `{igroup}`, 호스트 OS *Windows* 
+
+
+| SQL 서버 | SQL Server 2025 Enterprise Edition, 기본 인스턴스 `MSSQLSERVER` 
+|===
+[cols="2,2,1,1,2"]
+|===
+| LUN | 볼륨 | 크기 | 드라이브 | 콘텐츠 
+
+
+| `sql_iscsi_1_data_1` | `sql_iscsi_1_data` | 520 GiB | `E:` (데이터) | 사용자 데이터베이스 데이터 파일 (`.mdf`, `.ndf`) 위치: `E:\data` 
+
+
+| `sql_iscsi_1_log_1` | `sql_iscsi_1_log` | 250 GiB | `F:` (로그) | 사용자 데이터베이스 트랜잭션 로그 파일 (`.ldf`) in `F:\log` 
+
+
+| `sql_iscsi_1_tempdb_1` | `sql_iscsi_1_tempdb` | 150 GiB | `G:` (tempdb) |  `G:\tempdb\data` 및  `G:\tempdb\log`의 TempDB 데이터 및 로그 파일 
+
+
+| `sql_iscsi_1_logbackup_1` | `sql_iscsi_1_logbackup` | 300 GiB | `H:` (로그 백업) | 네이티브 SQL Server 백업 파일 (`.bak`, `.trn`) 내 `H:\backup` 
+|===
+
+TIP: 볼륨당 하나의 LUN을 사용하고 데이터, 로그, TempDB 및 백업용으로 볼륨을 분리하십시오. 이렇게 하면 볼륨별로 서로 다른 QoS, 스냅샷, 효율성 및 복제 설정을 적용할 수 있습니다. 또한 지속적으로 변경되는 TempDB를 사용자 데이터베이스의 스냅샷에서 제외할 수 있습니다.
+
+
+TIP: 부하를 분산하려면 추가 보조 데이터 파일(.ndf)을 위해 다른 컨트롤러의 추가 LUN을 사용하십시오.
+
+
+
+[[prerequisites]]
+== 필수 조건
+
+시작하기 전에 다음 요구 사항을 충족하는지 확인하십시오:
+
+.NetApp ONTAP
+* AFF HA 페어가 설치되었고 클러스터가 설정되어 정상 작동합니다.
+* iSCSI 라이센스가 설치되어 있습니다. ONTAP One에 포함되어 있습니다.
+* 각 노드에는 최소한 하나의 데이터 애그리게이트(로컬 계층)가 존재합니다.
+* SVM이 존재합니다. 이 절차에서는 기존 SVM `{svm}`을 사용하며, 여기에 iSCSI를 추가합니다. SAN 전용 SVM을 생성하려면 menu:Cluster[Storage VMs > Add]를 사용하고 *iSCSI*를 액세스 프로토콜로 선택합니다.
+* iSCSI LIF용 데이터 네트워크 포트, 브로드캐스트 도메인 및 (선택적으로) VLAN이 구성됩니다. 실습 환경에서는 브로드캐스트 도메인 `MT9000`이 점보 프레임을 사용합니다.
+* 클러스터, 호스트 및 Active Directory 간의 시간은 NTP를 통해 동기화됩니다.
+
+
+.네트워크
+* SQL Server 호스트에는 iSCSI 서브넷 또는 VLAN에 iSCSI 전용 NIC가 하나 이상, 가급적 두 개 이상 있어야 합니다.
+* MTU는 종단 간(호스트 NIC, 스위치, ONTAP 포트) 동일합니다. 호스트에서  `ping -f -l 8972 <LIF-IP>`(으)로 점보 프레임을 확인하십시오.
+
+
+.윈도우 서버
+* Windows Server 2025(데스크톱 환경)가 설치, 패치 및 도메인 가입이 완료되었습니다.
+* Windows Server 2025에서 지원되는 버전의 NetApp Windows 호스트 유틸리티를 사용할 수 있습니다( https://imt.netapp.com/matrix/["NetApp 상호 운용성 매트릭스 툴(IMT)"^] 참조).
+* SQL Server 2025 설치 미디어(ISO)와 유효한 제품 키(또는 무료 버전)가 준비되어 있습니다.
+
+
+
+NOTE: SMB 파일 공유와 달리 LUN은 SQL Server 서비스에 도메인 계정이 필요하지 않습니다. 기본 가상 계정 (`NT Service\MSSQLSERVER`)을 사용할 수 있습니다. 예를 들어 파일 공유에 백업하거나 Kerberos 인증을 위해 인스턴스에 네트워크 액세스가 필요한 경우에는 여전히 도메인 계정 또는 gMSA를 사용하는 것이 좋습니다.
+
+
+
+[[step-1-enable-iscsi-on-the-storage-vm]]
+[[svm-iscsi]]
+== 1단계: 스토리지 VM에서 iSCSI를 활성화합니다
+
+SVM에 iSCSI 프로토콜을 추가하고 HA 쌍의 각 노드에 두 개의 iSCSI LIF를 생성합니다.
+
+.단계
+. SVM에서 iSCSI를 활성화하고 System Manager 또는 CLI를 사용하여 iSCSI LIF를 생성합니다:
++
+[role="tabbed-block"]
+====
+.System Manager
+--
+.. 웹 브라우저를 열고  `+https://<cluster-management-IP>+`에서 ONTAP System Manager에 접속하십시오. 클러스터 관리자 계정으로 로그인하십시오.
+.. menu:Cluster[Storage VMs]로 이동하여 SVM `{svm}`을 클릭하고 *설정* 탭을 엽니다. *프로토콜* 아래의 *iSCSI* 타일에 *구성되지 않음*이 표시됩니다. *iSCSI* 타일의 톱니바퀴 아이콘을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_004.png["iSCSI가 구성되지 않은 스토리지 VM a50-sql 설정,width=800"]
+
+=====
+.. *iSCSI 구성* 대화 상자에서 iSCSI 네트워크 인터페이스를 생성합니다. System Manager는 노드당 두 개의 네트워크 인터페이스를 권장합니다. 다음 값을 입력하십시오.
++
+*** 노드 `{node1}`: IP 주소 `192.168.175.134`, 서브넷 마스크 `24`, *브로드캐스트 도메인 및 포트* `MT9000`
+*** *다음 모든 인터페이스에 동일한 서브넷 마스크, 게이트웨이 및 브로드캐스트 도메인 사용*을 선택하십시오.
+***  `{node1}`의 두 번째 인터페이스: `192.168.175.135`
+*** 노드 `{node2}`: `192.168.175.136` 및 `192.168.175.137`
++
+*저장*을 클릭합니다.
+
++
+
+TIP: 호스트와 LIF가 동일한 서브넷에 있는 경우 게이트웨이가 필요하지 않습니다. iSCSI 트래픽을 라우팅하지 마십시오.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_005.png["노드당 두 개의 LIF가 있는 iSCSI 구성 대화 상자,width=800"]
+
+=====
+
+
+.. System Manager가 iSCSI 서비스와 4개의 LIF를 생성합니다. 이제 *iSCSI* 타일에 *활성화됨*, *대상 노드 이름* (`{tgt-iqn}`) 및 *대상 별칭* `{svm}`이 표시됩니다. 대상 노드 이름을 기록해 두십시오. 호스트에서 연결을 확인하려면 이 이름이 필요합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_006.png["대상 노드 이름 및 별칭으로 iSCSI 활성화됨,width=800"]
+
+=====
+
+
+--
+.ONTAP CLI
+--
+다음 명령은 CLI에서 동일한 구성을 생성합니다. 꺾쇠괄호 안의 자리 표시자 값을 바꾸십시오.  `vserver iscsi show`의 출력에서 대상 이름을 확인하십시오. 호스트에서 연결을 확인하려면 이 이름이 필요합니다.
+
+[source, console]
+----
+cluster::> vserver add-protocols -vserver a50-sql -protocols iscsi
+cluster::> vserver iscsi create -vserver a50-sql -target-alias a50-sql
+
+cluster::> network interface create -vserver a50-sql -lif a50-sql_iscsi_n1_1 -service-policy default-data-iscsi -home-node SAPCC-A50-01 -home-port <port> -address 192.168.175.134 -netmask 255.255.255.0
+cluster::> network interface create -vserver a50-sql -lif a50-sql_iscsi_n1_2 -service-policy default-data-iscsi -home-node SAPCC-A50-01 -home-port <port> -address 192.168.175.135 -netmask 255.255.255.0
+cluster::> network interface create -vserver a50-sql -lif a50-sql_iscsi_n2_1 -service-policy default-data-iscsi -home-node SAPCC-A50-02 -home-port <port> -address 192.168.175.136 -netmask 255.255.255.0
+cluster::> network interface create -vserver a50-sql -lif a50-sql_iscsi_n2_2 -service-policy default-data-iscsi -home-node SAPCC-A50-02 -home-port <port> -address 192.168.175.137 -netmask 255.255.255.0
+
+cluster::> vserver iscsi show -vserver a50-sql
+cluster::> network interface show -vserver a50-sql -data-protocol iscsi
+----
+--
+====
+
+
+
+NOTE: iSCSI LIF는 테이크오버 중에 마이그레이션되지 않습니다. 고가용성은 파트너 노드의 LIF 경로를 통해 제공되므로 HA 쌍의 두 노드 모두에 항상 iSCSI LIF를 생성해야 합니다.
+
+
+
+[[step-2-prepare-the-windows-host]]
+[[host-prep]]
+== 2단계: Windows 호스트 준비
+
+Microsoft iSCSI 이니시에이터를 시작하고 MPIO 및 NetApp Windows 호스트 유틸리티를 설치합니다. 로컬 관리자로서 SQL Server 호스트 `{host}`에서 다음 단계를 수행합니다.
+
+
+IMPORTANT: LUN에 연결하기 *전에* MPIO를 설치하고 구성하십시오. MPIO가 없으면 Windows는 각 LUN에 대한 경로마다 디스크 하나씩을 표시합니다(이 구성에서는 LUN당 4개의 디스크).
+
+.단계
+. [[host-initiator,iSCSI 이니시에이터 시작]] 서버 관리자 또는 PowerShell을 사용하여 iSCSI 이니시에이터를 시작하고 이니시에이터 이름을 가져옵니다:
++
+[role="tabbed-block"]
+====
+.서버 관리자
+--
+.. *서버 관리자*에서 menu:툴[iSCSI 이니시에이터]를 엽니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_007.png["iSCSI 이니시에이터가 포함된 서버 관리자 툴 메뉴, width=800"]
+
+=====
+.. iSCSI 이니시에이터를 처음 시작할 때 Microsoft iSCSI 서비스가 실행 중이 아니라는 메시지가 표시됩니다. *예*를 클릭하여 서비스를 시작하고 자동으로 시작되도록 설정하십시오.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_008.png["Microsoft iSCSI 서비스가 실행 중이 아님 대화 상자,width=800"]
+
+=====
+.. *iSCSI 이니시에이터 속성*에서 *구성* 탭을 엽니다. *이니시에이터 이름*(`{init-iqn}`)을 복사합니다. ONTAP에서 이니시에이터 그룹을 생성하려면 이 정보가 필요합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_009.png["이니시에이터 이름이 포함된 iSCSI 이니시에이터 속성 구성 탭, width=800"]
+
+=====
+
+
+--
+.PowerShell
+--
+마지막 명령은 이니시에이터 이름을 반환합니다. ONTAP에서 이니시에이터 그룹을 생성하려면 이 이름이 필요합니다.
+
+[source, powershell]
+----
+PS C:\> Set-Service -Name MSiSCSI -StartupType Automatic
+PS C:\> Start-Service -Name MSiSCSI
+PS C:\> (Get-InitiatorPort | Where-Object ConnectionType -eq 'iSCSI').NodeAddress
+----
+--
+====
+. 서버 관리자 또는 PowerShell을 사용하여 멀티패스 I/O를 설치하고 iSCSI 장치에 대한 MPIO 지원을 활성화합니다:
++
+[role="tabbed-block"]
+====
+.서버 관리자
+--
+.. *서버 관리자*에서 menu:관리[역할 및 기능 추가]를 클릭합니다. *기능* 페이지에서 *멀티패스 I/O*를 선택하고 *설치*를 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_010.png["역할 및 기능 추가 마법사 기능 선택 페이지,width=800"]
+
+=====
+.. menu:툴[MPIO]를 열고 *다중 경로 검색* 탭을 선택한 다음 *iSCSI 장치 지원 추가*를 선택하고 *추가*를 클릭합니다. 메시지가 나타나면 서버를 다시 시작하십시오.
++
+다시 시작한 후 확인란이 선택되고 회색으로 표시됩니다. 이는 MPIO가 모든 iSCSI 장치를 클레임함을 의미합니다. LUN이 연결된 후(<<connect>> 참조),  `Get-Disk`은(는) PowerShell 창에 표시된 것처럼 각 NetApp LUN을 한 번씩만 나열합니다.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_011.png["iSCSI 지원 및 Get-Disk 출력이 포함된 MPIO 속성 다중 경로 검색,width=800"]
+
+=====
+
+
+--
+.PowerShell
+--
+[source, powershell]
+----
+PS C:\> Install-WindowsFeature -Name Multipath-IO
+PS C:\> Enable-MSDSMAutomaticClaim -BusType iSCSI
+PS C:\> Restart-Computer
+----
+--
+====
+. *NetApp Windows 호스트 유틸리티*를 설치하고( `.msi`를 실행하여 *멀티패스 I/O 지원*을 선택), 메시지가 표시되면 서버를 다시 시작하십시오. 호스트 유틸리티는 호스트가 ONTAP 테이크오버 및 기브백을 안정적으로 넘길 수 있도록 NetApp에서 권장하는 Windows 디스크 및 iSCSI 타임아웃과 MPIO 매개변수를 설정합니다.
+
+
+
+
+[[step-3-create-the-initiator-group]]
+[[igroup]]
+== 3단계: 이니시에이터 그룹 생성
+
+이니시에이터 그룹(igroup)은 LUN에 액세스할 수 있는 호스트를 정의합니다. 호스트당(또는 FCI의 경우 클러스터당) 하나의 igroup을 생성합니다.
+
+.단계
+. System Manager 또는 CLI를 사용하여 이니시에이터 그룹을 생성합니다:
++
+[role="tabbed-block"]
+====
+.System Manager
+--
+.. System Manager에서 메뉴:Hosts[SAN initiator groups]로 이동하고 *+ Add*를 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_012.png["SAN 이니시에이터 그룹 페이지,width=800"]
+
+=====
+.. *이니시에이터 그룹 추가* 대화 상자에 다음을 입력합니다.
++
+*** *이름*: `{igroup}`
+*** *호스트 운영 체제*: *Windows*
+*** *스토리지 VM*: `{svm}`
+*** *이니시에이터 그룹 구성원*: *호스트 이니시에이터*
+*** *iSCSI 이니시에이터* > *새 이니시에이터*: 호스트의 이니시에이터 이름을 붙여넣습니다, `{init-iqn}`
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_013.png["\"이름, 운영 체제 및 IQN이 포함된 이니시에이터 그룹 추가 대화 상자\",width=800"]
+
+=====
+
+
+.. 이니시에이터가 목록에 추가됩니다. *저장*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_014.png["이니시에이터 그룹에 추가된 이니시에이터 IQN,width=800"]
+
+=====
+.. 이니시에이터 그룹 `{igroup}`이 생성되었습니다. 첫 번째 LUN이 매핑될 때까지 연결 상태는 *매핑된 LUN 없음*입니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_015.png["매핑된 LUN이 없는 이니시에이터 그룹 sql-iscsi-1, width=800"]
+
+=====
++
+
+NOTE: System Manager는 프로토콜이 *혼합(iSCSI 및 FC)*인 igroup을 생성합니다. 이는 iSCSI에서 작동합니다. 표준에 iSCSI 전용 igroup이 필요한 경우, *ONTAP CLI* 탭에 표시된 대로 CLI(`-protocol iscsi`)를 사용하여 생성하십시오.
+
+
+
+--
+.ONTAP CLI
+--
+[source, console]
+----
+cluster::> lun igroup create -vserver a50-sql -igroup sql-iscsi-1 -protocol iscsi -ostype windows -initiator iqn.1991-05.com.microsoft:sql-iscsi-1.sapcc.stl.netapp.com
+cluster::> lun igroup show -vserver a50-sql -igroup sql-iscsi-1
+----
+--
+====
+
+
+
+
+[[step-4-create-the-sql-server-luns]]
+[[luns]]
+== 4단계: SQL Server LUN 생성
+
+파일 형식별로 LUN을 하나씩 생성합니다. System Manager는 *이름 접두사*로 명명된 FlexVol 볼륨과 접미사 `_1`가 포함된 LUN을 생성하고, 해당 LUN을 선택한 igroup에 매핑합니다.
+
+.단계
+. 시스템 관리자 또는 CLI를 사용하여 데이터, 로그, TempDB 및 로그 백업 LUN을 생성합니다:
++
+[role="tabbed-block"]
+====
+.System Manager
+--
+.. System Manager에서 *스토리지*를 확장하고 *LUN*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_016.png["LUN이 선택된 스토리지 메뉴, width=800"]
+
+=====
+.. *+ 추가*를 클릭하고 데이터 LUN에 대해 다음 값을 입력하십시오:
++
+*** *이름 접두사*: `sql_iscsi_1_data`
+*** *스토리지 VM*: `{svm}`
+*** *LUN 개수*: `1`, *LUN당 용량*: `520 GiB`
+*** *성능 서비스 수준*: *사용자 지정*, *QoS 정책 그룹 할당*: *기존* > `none`
+*** *보호*: *스냅샷 활성화(로컬)* 및 *SnapMirror 활성화(로컬 또는 원격)*를 선택 해제된 상태로 두십시오. 애플리케이션 정합성 보장 백업은 NetApp Console 백업 및 복구를 통해 생성됩니다(link:sql-iscsi-aff-overview.html#console["NetApp Console 백업 및 복구를 통한 데이터 보호"] 참조).
+*** *호스트 정보*: *호스트 운영 체제* *Windows*, *LUN 형식* *Windows 2008* (이 형식은 Windows Server 2008 이후의 모든 Windows 버전(Windows Server 2025 포함)에서 올바릅니다.)
+*** *호스트 매핑*: *기존 이니시에이터 그룹*을 선택합니다 `{igroup}`
++
+*저장*을 클릭합니다.
+
++
+
+TIP: 볼륨을 생성할 노드를 제어하려면 *수동 배치*를 선택하고 로컬 계층을 선택하십시오. 데이터 및 백업 볼륨은 노드 1에, 로그 및 TempDB 볼륨은 노드 2에 배치하십시오.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_017.png["520 GiB 데이터 LUN에 대한 LUN 추가 대화 상자,width=600"]
+
+=====
+
+
+.. *LUN이 추가되었습니다* 메시지가 표시되고, LUN `sql_iscsi_1_data_1`이 볼륨 `sql_iscsi_1_data`에 나열됩니다.
+.. <<overview>>에 나열된 이름과 크기로 로그, TempDB 및 로그 백업 LUN에 대해 이 단계를 반복하십시오.
+.. 이제 4개의 LUN이 모두 SVM `{svm}`에 생성되어 igroup `{igroup}`에 매핑되었습니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_024.png["나열된 4개의 SQL Server LUN 모두,width=800"]
+
+=====
+
+
+--
+.ONTAP CLI
+--
+다음 명령은 데이터 볼륨과 LUN을 생성하고 LUN을 igroup에 매핑합니다. 로그, TempDB 및 로그 백업 LUN에 대해  `volume create`,  `lun create` 및  `lun mapping create`을 반복합니다(<<cli-script>> 참조).
+
+[source, console]
+----
+cluster::> volume create -vserver a50-sql -volume sql_iscsi_1_data -aggregate <aggr_node1> -size 560GB -space-guarantee none -snapshot-policy none -percent-snapshot-space 0
+cluster::> lun create -vserver a50-sql -path /vol/sql_iscsi_1_data/sql_iscsi_1_data_1 -size 520GB -ostype windows_2008 -space-reserve disabled -space-allocation enabled
+cluster::> lun mapping create -vserver a50-sql -path /vol/sql_iscsi_1_data/sql_iscsi_1_data_1 -igroup sql-iscsi-1
+
+cluster::> lun show -vserver a50-sql -fields path,size,ostype,mapped,state
+cluster::> lun mapping show -vserver a50-sql
+----
+--
+====
+
+
+
+
+[[step-5-review-the-volume-and-lun-settings]]
+[[volume-settings]]
+== 5단계: 볼륨 및 LUN 설정을 검토합니다
+
+네 개의 볼륨에 대한 공간 및 스냅샷 설정을 검토하십시오. System Manager는 적절한 기본값을 사용하며, SQL Server LUN의 경우 다음과 같은 설정을 권장합니다.
+
+[cols="1,1,3"]
+|===
+| 환경 | 가치 | 이유 
+
+
+| 공간 보장(볼륨) | `none` (씬) | 용량은 데이터가 기록될 때만 소모됩니다. 
+
+
+| LUN 공간 예약 | `disabled` (씬) | 씬 볼륨의 씬 LUN. 
+
+
+| LUN 공간 할당 | `enabled` | SCSI UNMAP을 활성화하여 NTFS에서 해제된 공간이 ONTAP으로 반환되도록 하고, 볼륨의 공간이 부족할 때 호스트가 올바르게 대응할 수 있도록 합니다. 
+
+
+| 스냅샷 정책 | `none` | 애플리케이션 정합성이 보장되지 않는 스냅샷은 SQL Server에 사용할 수 없습니다. 백업은 NetApp Console 백업 및 복구를 통해 생성됩니다. 
+
+
+| 스냅샷 예약 | `0` % | 스냅샷 공간은 대신 볼륨 자동 크기 조정으로 모니터링됩니다. 
+
+
+| 자동 크기 조정 | `grow`, 볼륨 크기의 최대 약 130% | 스냅샷이 공간을 차지할 때 LUN이 오프라인 상태가 되는 것을 방지합니다. 
+
+
+| 스토리지 효율성 | 활성화됨(AFF에서 기본값) | 인라인 중복 제거, 압축 및 컴팩션은 SQL Server 성능에 측정 가능한 영향을 미치지 않습니다. 
+|===
+다음 명령을 사용하여 설정을 적용하고 확인하십시오( `sql_iscsi_1_data`에 대해 표시됨):
+
+[source, console]
+----
+cluster::> volume modify -vserver a50-sql -volume sql_iscsi_1_data -snapshot-policy none -percent-snapshot-space 0 -autosize-mode grow -max-autosize 730GB
+cluster::> lun modify -vserver a50-sql -path /vol/sql_iscsi_1_data/sql_iscsi_1_data_1 -space-allocation enabled
+cluster::> volume show -vserver a50-sql -volume sql_iscsi_1_* -fields aggregate,size,space-guarantee,snapshot-policy,autosize-mode
+----
+
+NOTE: 기존 LUN에서  `space-allocation`을(를) 변경하려면 LUN이 오프라인 상태여야 합니다. 생성 시 또는 호스트가 LUN에 연결하기 전에 설정하십시오.
+
+
+
+[[step-6-connect-the-host-to-the-iscsi-target]]
+[[connect]]
+== 6단계: 호스트를 iSCSI 타겟에 연결
+
+각 LUN에 4개의 경로가 있도록 4개의 iSCSI LIF 각각에 하나의 iSCSI 세션을 사용하여 Windows 호스트를 SVM에 연결합니다.
+
+.단계
+. 대상 포털을 탐색하고 iSCSI 이니시에이터 또는 PowerShell을 사용하여 iSCSI 세션을 연결합니다:
++
+[role="tabbed-block"]
+====
+.iSCSI 이니시에이터
+--
+.. *iSCSI 이니시에이터*(menu:서버 관리자[툴 > iSCSI 이니시에이터])를 열고 *탐색* 탭을 선택한 다음 *포털 탐색...*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_025.png["iSCSI 이니시에이터 속성 탐색 탭,width=500"]
+
+=====
+.. SVM의 iSCSI LIF 중 하나의 IP 주소(실습 환경에서는  `192.168.175.135`)와 포트 `3260`를 입력하고 *확인*을 클릭합니다. ONTAP은 SVM의 모든 iSCSI LIF를 이니시에이터로 반환하므로(SendTargets 탐색), 포털 하나만으로 충분합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_026.png["IP 192.168.175.135 및 포트 3260이 있는 대상 포털 탐색 대화 상자,width=500"]
+
+=====
+.. 해당 포털은 *타겟 포털* 목록에 있습니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_027.png["타겟 포털 192.168.175.135 포트 3260 나열됨,width=500"]
+
+=====
+.. *타겟* 탭을 선택합니다. 타겟 `{tgt-iqn}`이 *비활성* 상태로 표시됩니다. 해당 타겟을 선택하고 *연결*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_028.png["NetApp 타겟이 비활성화된 타겟 탭, width=500"]
+
+=====
+.. *대상에 연결* 대화 상자에서 다음을 선택합니다.
++
+*** *이 연결을 즐겨찾는 대상 목록에 추가*하여 재시작 후 세션이 자동으로 복원되도록 하십시오.
+*** *다중 경로 활성화*
++
+*고급...*을 클릭합니다.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_029.png["즐겨찾기 및 다중 경로가 선택된 타겟 연결 대화 상자, width=500"]
+
+=====
+
+
+.. *고급 설정*에서 다음을 선택합니다:
++
+*** *로컬 어댑터*: *Microsoft iSCSI 이니시에이터*
+*** *이니시에이터 IP*: 호스트의 iSCSI IP 주소 (`192.168.175.44`)
+*** *타겟 포털 IP*: 첫 번째 iSCSI LIF(실험실 환경 `192.168.175.137 / 3260`)
++
+보안 정책에서 요구하지 않는 한 CHAP를 해제된 상태로 두십시오. CHAP가 필요한 경우, 먼저  `vserver iscsi security`을(를) 사용하여 ONTAP SVM에서 호스트의 이니시에이터 IQN에 대해 일치하는 자격 증명을 구성한 다음, Windows iSCSI 이니시에이터에 해당 자격 증명을 입력하십시오. *확인*을 두 번 클릭하십시오.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_030.png["이니시에이터 IP 및 타겟 포털 IP를 사용한 고급 설정, width=500"]
+
+=====
+
+
+.. 타겟의 상태가 *연결됨*으로 변경됩니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_031.png["NetApp 타겟이 연결된 타겟 탭, width=500"]
+
+=====
+.. 하나의 세션은 하나의 경로만 사용합니다. 나머지 iSCSI LIF 각각에 대해 세션을 하나씩 추가합니다: *타겟* 탭에서 타겟을 선택하고 *속성...*을 클릭합니다. *세션* 탭에서 *세션 추가*를 클릭합니다.
+.. *타겟에 연결* 대화 상자에서 *다중 경로 사용* 및 *이 연결을 즐겨찾는 타겟 목록에 추가*를 선택하고 *고급...*을 클릭한 다음 동일한 *이니시에이터 IP*와 다음 *타겟 포털 IP*를 선택하고 *확인*을 두 번 클릭합니다.
++
+
+IMPORTANT: 각 세션에 대해 *다중 경로 사용*이 선택되어 있는지 확인하십시오. 스크린샷은 확인란을 선택하기 전의 대화 상자를 보여줍니다.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_032.png["세션 추가 대화 상자가 포함된 대상 속성 세션 탭,width=500"]
+
+=====
+.. *세션* 탭에 각 타겟 포털(192.168.175.134, .135, .136, .137)에 대해 하나씩, 총 4개의 세션이 표시될 때까지 이전 단계를 반복합니다. 호스트에 iSCSI NIC가 두 개 있는 경우 두 이니시에이터 IP 주소 모두에서 세션을 생성합니다.
+
+
+--
+.PowerShell
+--
+다음 명령은 타겟 포털을 탐색하고 각 iSCSI LIF에 대해 멀티패스가 활성화된 영구 세션을 하나씩 생성합니다.
+
+[source, powershell]
+----
+PS C:\> New-IscsiTargetPortal -TargetPortalAddress 192.168.175.135 -InitiatorPortalAddress 192.168.175.44
+P PS C:\> $target = Get-IscsiTarget -NodeAddress '<target-IQN-recorded-in-Step-1>'
+PS C:\> foreach ($lif in '192.168.175.134','192.168.175.135','192.168.175.136','192.168.175.137') {
+          Connect-IscsiTarget -NodeAddress $target.NodeAddress -TargetPortalAddress $lif `
+            -InitiatorPortalAddress 192.168.175.44 -IsMultipathEnabled $true -IsPersistent $true
+        }
+PS C:\> Get-IscsiSession | Format-Table TargetNodeAddress,InitiatorPortalAddress,IsConnected,IsPersistent
+----
+--
+====
+. [[connect-verify,경로 검증]]각 LUN이 MPIO에 클레임되고 4개의 경로(그 중 2개는 *활성/최적화*)가 있는지 확인합니다:
++
+[source, powershell]
+----
+PS C:\> mpclaim -s -d
+PS C:\> mpclaim -s -d <MPIO-disk-number>
+----
++
+로드 밸런싱 정책은 *RRWS*(부분집합을 사용한 라운드 로빈)입니다.
+
+. ONTAP에서 세션 및 LUN 경로를 확인하십시오:
++
+[source, console]
+----
+cluster::> vserver iscsi session show -vserver a50-sql
+cluster::> vserver iscsi connection show -vserver a50-sql
+cluster::> lun mapping show -vserver a50-sql -igroup sql-iscsi-1
+----
+
+
+
+
+[[step-7-initialize-and-format-the-disks]]
+[[disks]]
+== 7단계: 디스크 초기화 및 포맷
+
+Windows에서 4개의 NetApp LUN을 온라인 상태로 전환하고 초기화한 다음, 각 LUN에 드라이브 문자가 할당된 NTFS 볼륨을 하나씩 생성합니다.
+
+.단계
+. 디스크 관리 또는 PowerShell을 사용하여 디스크를 초기화하고 포맷합니다:
++
+[role="tabbed-block"]
+====
+.디스크 관리
+--
+.. menu:서버 관리자[툴 > 컴퓨터 관리]를 열고 menu:저장소[디스크 관리]를 선택합니다. 4개의 NetApp LUN이 *디스크 1*부터 *디스크 4*(520, 250, 150 및 300GB)로 표시됩니다. Windows Server의 기본 SAN 정책에 따라 새 공유 디스크는 오프라인 상태로 유지되므로 해당 디스크들은 *오프라인*입니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_033.png["4개의 오프라인 NetApp 디스크를 사용한 디스크 관리, width=800"]
+
+=====
+.. 새 디스크를 각각 마우스 오른쪽 버튼으로 클릭하고 *온라인*을 선택합니다. 그런 다음 디스크 중 하나를 마우스 오른쪽 버튼으로 클릭하고 *디스크 초기화*를 선택합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_034.png["디스크 초기화가 포함된 디스크 관리 컨텍스트 메뉴, width=800"]
+
+=====
+.. 네 개의 디스크를 모두 선택하고 *GPT(GUID 파티션 테이블)*를 선택한 다음 *확인*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_035.png["디스크 4개 및 GPT가 있는 디스크 초기화 대화 상자, width=800"]
+
+=====
+.. *디스크 1*(520GB)의 할당되지 않은 공간을 마우스 오른쪽 버튼으로 클릭하고 *새 단순 볼륨...*을 선택합니다.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_036.png["디스크 1의 컨텍스트 메뉴 새 단순 볼륨,width=800"]
+
+=====
+.. *새 단순 볼륨 마법사*가 시작됩니다. *다음*을 클릭하고 최대 볼륨 크기를 수락하십시오.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_037.png["새 단순 볼륨 마법사 시작 페이지,width=800"]
+
+=====
+.. *다음 드라이브 문자 할당* `E`을 선택하고 *다음*을 클릭합니다.
++
+
+TIP: 데이터베이스가 많은 인스턴스의 경우 드라이브 문자를 사용하는 대신 비어 있는 NTFS 폴더(마운트 지점)에 LUN을 마운트할 수 있습니다.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_038.png["드라이브 문자 E를 사용하여 드라이브 문자 또는 경로 할당, width=800"]
+
+=====
+.. *다음 설정으로 이 볼륨을 포맷합니다*를 선택하십시오.
++
+*** *파일 시스템*: *NTFS*
+*** *할당 단위 크기*: *64K* (SQL Server 데이터, 로그 및 TempDB 볼륨에 권장됩니다. 실습 스크린샷에는 *기본값*이 표시되어 있습니다.)
+*** *볼륨 라벨*: `data`
+*** *빠른 포맷 실행*: 선택됨
++
+*다음*을 클릭합니다.
+
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_039.png["NTFS 및 볼륨 레이블 data로 파티션 포맷,width=800"]
+
+=====
+
+
+.. 설정을 검토하고 *완료*를 클릭하십시오.
++
+.예제 표시
+[%collapsible]
+=====
+image:sql25_iscsi_bp_040.png["새 단순 볼륨 마법사 완료,width=800"]
+
+=====
+.. 나머지 디스크에 대해서도 앞의 다섯 단계를 반복하십시오:
++
+[cols="1,1,1,1"]
+|===
+| 디스크 | 크기 | 드라이브 레터 | 볼륨 라벨 
+
+
+| 디스크 1 | 520 GB | `E:` | `data` 
+
+
+| 디스크 2 | 250 GB | `F:` | `log` 
+
+
+| 디스크 3 | 150 GB | `G:` | `tempdb` 
+
+
+| 디스크 4 | 300 GB | `H:` | `Log backup` 
+|===
+.. SQL Server용 폴더를 생성합니다: `E:\data`, `F:\log`, `G:\tempdb\data`, `G:\tempdb\log` 및  `H:\backup`.
+
+
+--
+.PowerShell
+--
+다음 명령은 NetApp 디스크를 온라인 상태로 만들고, GPT로 초기화하고, 각 디스크에 64K 할당 단위 크기의 NTFS 볼륨을 하나씩 생성 및 포맷하고, SQL Server용 폴더를 생성합니다.
+
+[source, powershell]
+----
+PS C:\> $layout = @{ 520GB = 'E','data'; 250GB = 'F','log'; 150GB = 'G','tempdb'; 300GB = 'H','Log backup' }
+PS C:\> foreach ($d in Get-Disk | Where-Object FriendlyName -like 'NETAPP*') {
+          $l = $layout[[int64]$d.Size]
+          Set-Disk -Number $d.Number -IsOffline $false
+          Set-Disk -Number $d.Number -IsReadOnly $false
+          Initialize-Disk -Number $d.Number -PartitionStyle GPT
+          New-Partition -DiskNumber $d.Number -UseMaximumSize -DriveLetter $l[0] |
+            Format-Volume -FileSystem NTFS -AllocationUnitSize 65536 -NewFileSystemLabel $l[1] -Confirm:$false
+        }
+PS C:\> 'E:\data','F:\log','G:\tempdb\data','G:\tempdb\log','H:\backup' | ForEach-Object { New-Item -ItemType Directory -Path $_ }
+PS C:\> Get-Volume -DriveLetter E,F,G,H | Format-Table DriveLetter,FileSystemLabel,FileSystem,AllocationUnitSize,Size
+----
+
+CAUTION: 이 LUN이 시스템에 연결된 유일한 RAW LUN인 경우에만 이 명령을 실행하십시오. 시스템에 다른 RAW LUN이 연결되어 있는 경우, 폴더를 수동으로 생성하고 볼륨을 포맷해야 합니다.
+
+--
+====
+
+
+
+TIP: 데이터베이스 파일을 드라이브의 루트에 직접 배치하지 마십시오. 폴더를 사용하면 권한 설정, 마운트 지점 지정 및 향후 마이그레이션이 더 쉬워집니다.
+
+
+
+[[step-8-install-sql-server-2025]]
+[[sql-install]]
+== 8단계: SQL Server 2025 설치
+
+설치 마법사를 사용하여 Windows Server 호스트에 SQL Server 2025를 설치합니다. 바이너리와 시스템 데이터베이스를 로컬 디스크에 설치하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 백업 위치를 NetApp LUN의 폴더로 지정합니다.
+
+.단계
+. SQL Server 설치 센터에서 독립 실행형 설치를 시작하십시오.
++
+.. SQL Server 2025 ISO 이미지를 마운트합니다. 파일 탐색기에서 DVD 드라이브(`D:` 랩 환경에서)를 열고 *setup*을 두 번 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_041.png["파일 탐색기의 SQL Server 2025 설치 미디어,width=800"]
+
+====
+.. *SQL Server 설치 센터*가 열립니다. 왼쪽 창에서 *설치*를 선택하고 *새 SQL Server 독립 실행형 설치 또는 기존 설치에 기능 추가*를 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_042.png["SQL Server 설치 센터,width=800"]
+
+====
+
+
+. SQL Server 에디션을 선택하고 라이선스 약관에 동의한 다음 설치 프로그램이 제품 업데이트를 확인하도록 하십시오.
++
+.. *에디션* 페이지에서 *제품 키 입력*을 선택하고 제품 키를 입력하거나 무료 에디션(평가판, 엔터프라이즈 개발자, 스탠다드 개발자 또는 익스프레스)을 선택합니다. 자신에게 해당하는 라이선스 유형(실습 환경에서는 *Software Assurance 또는 SQL 소프트웨어 구독이 포함된 SQL Server 라이선스가 있습니다*)을 선택하고 *다음*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_043.png["에디션 페이지(제품 키 삭제됨),width=800"]
+
+====
+.. *라이선스 약관* 페이지에서 약관을 읽고 *라이선스 약관 및 개인정보 보호정책에 동의합니다*를 선택한 후 *다음*을 클릭하십시오.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_044.png["라이선스 약관 페이지,width=800"]
+
+====
+.. *Microsoft 업데이트* 페이지에서 *Microsoft 업데이트를 사용하여 업데이트 확인(권장)*을 선택하고 *다음*을 클릭합니다. 그러면 설치 프로그램이 *전역 규칙*, *제품 업데이트*, *설치 파일 설치* 및 *설치 규칙* 검사를 실행합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_045.png["Microsoft Update 페이지, width=800"]
+
+====
+
+
+. 설치할 SQL Server 기능과 인스턴스를 선택하십시오. 바이너리 파일은 로컬 디스크에 유지되고, 데이터베이스 파일만 NetApp LUN에 저장됩니다.
++
+.. *기능 선택* 페이지에서 *데이터베이스 엔진 서비스*와 필요한 추가 기능을 선택합니다. *인스턴스 루트 디렉터리*와 *공유 기능 디렉터리*는 로컬 디스크에 그대로 둡니다 `C:`.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_046.png["데이터베이스 엔진 서비스가 포함된 기능 선택 페이지, width=800"]
+
+====
+.. *인스턴스 구성* 페이지에서 *기본 인스턴스* (`MSSQLSERVER`)를 선택하거나 명명된 인스턴스를 입력하고 *다음*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_047.png["인스턴스 구성 페이지,width=800"]
+
+====
+
+
+. SQL Server 데이터베이스 엔진 및 SQL Server 에이전트의 서비스 계정을 검토하십시오.
++
+.. *서버 구성* 페이지의 *서비스 계정* 탭에서 서비스 계정을 검토하십시오. 이 실습에서는 데이터베이스 엔진에 대한 기본 가상 계정(`NT Service\MSSQLSERVER`을 사용합니다). 데이터베이스가 로컬 NTFS 볼륨에 있으므로 추가 권한은 필요하지 않습니다. SQL Server Agent 작업이나 로그 백업을 사용하는 경우 *SQL Server Agent*의 *시작 유형*을 *자동*으로 설정하십시오.
++
+
+TIP: *SQL Server 데이터베이스 엔진 서비스에 볼륨 유지 관리 작업 수행 권한 부여*를 선택합니다(스크린샷에서는 선택 해제됨). 이렇게 하면 파일 초기화가 즉시 수행되어 데이터베이스 생성, 파일 크기 증가 및 복원 속도가 크게 향상됩니다.
+
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_048.png["서버 구성 - 서비스 계정,width=800"]
+
+====
+
+
+. 인증 모드와 SQL Server 관리자를 설정하고, 사용자 데이터베이스, 트랜잭션 로그, 백업 및 TempDB 파일에 대한 NetApp LUN의 폴더를 입력합니다.
++
+.. *데이터베이스 엔진 구성* 페이지의 *서버 구성* 탭에서 인증 모드를 선택합니다. 이 실습에서는  `sa` 계정에 강력한 암호를 사용하는 *혼합 모드*를 사용합니다. *현재 사용자 추가* 및 *추가...*를 클릭하여 SQL Server 관리자(사용자 또는 가급적이면 AD 그룹)를 추가합니다.
++
+
+TIP: 응용 프로그램에서 SQL Server 로그인이 필요한 경우가 아니면 *Windows 인증 모드*를 사용하십시오.
+
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_049.png["데이터베이스 엔진 구성 - 인증, width=800"]
+
+====
+.. *데이터 디렉터리* 탭에서 NetApp LUN의 폴더를 입력합니다:
++
+[cols="1,2"]
+|===
+| 환경 | 가치 
+
+
+| 데이터 루트 디렉터리 | `C:\Program Files\Microsoft SQL Server\` (로컬; 시스템 데이터베이스는  `C:`에 유지됩니다) 
+
+
+| 사용자 데이터베이스 디렉터리 | `E:\data` 
+
+
+| 사용자 데이터베이스 로그 디렉터리 | `F:\log` 
+
+
+| 백업 디렉터리 | `H:\backup` 
+|===
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_050.png["\"E:\data, F:\log 및 H:\backup이 포함된 데이터 디렉터리\",width=800"]
+
+====
+.. *TempDB* 탭에서 기본 데이터 및 로그 디렉터리는 설치 프로그램에서 설정합니다. *데이터 디렉터리*에서 해당 항목을 선택하고 *제거*를 클릭한 다음 *추가...*를 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_051.png["기본 디렉터리가 있는 TempDB 탭,width=800"]
+
+====
+.. *폴더 찾아보기* 대화 상자에서 드라이브 *tempdb (G:)*와 폴더 `G:\tempdb\data`를 선택합니다. 폴더가 아직 없으면 *새 폴더 만들기*를 사용하여 생성합니다. *확인*을 클릭합니다.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_052.png["G:의 tempdb 데이터 및 로그 폴더가 있는 폴더 찾아보기,width=800"]
+
+====
+.. *로그 디렉터리*를  `G:\tempdb\log`(으)로 설정하십시오(*...* 클릭). 이 실습 환경에서는 8개의 TempDB 데이터 파일을 사용합니다.
++
+
+TIP: 논리적 CPU 코어당 하나의 TempDB 데이터 파일을 사용하며, 최대 8개까지 가능합니다. 초기 크기는 예상되는 TempDB 작업 세트 크기로 설정하여 TempDB가 작동 중에 크기를 늘릴 필요가 없도록 합니다. 모든 데이터 파일은 동일한 크기와 자동 증가 기능을 가져야 합니다.
+
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_053.png["G:\tempdb\data 및 G:\tempdb\log에 구성된 TempDB,width=800"]
+
+====
+.. 사이징에 맞게 *MaxDOP* 및 *Memory* 탭을 구성하고(권장 기본값이 좋은 시작점입니다) *다음*을 클릭하십시오.
+
+
+. 설치 요약을 검토하고, 설치를 실행한 후 모든 기능이 성공적으로 설치되었는지 확인하십시오.
++
+.. *설치 준비 완료* 페이지에서 요약을 검토하고 *설치*를 클릭하십시오.
++
+
+TIP: *구성 파일 경로* 아래에 표시된  `ConfigurationFile.ini`을 복사하십시오. 추가 SQL Server 호스트의 무인 설치에 사용할 수 있습니다(`setup.exe /ConfigurationFile=<path>`).
+
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_054.png["설치 준비 완료 요약, width=800"]
+
+====
+.. 설치가 완료되면 모든 기능에 *성공* 표시가 나타나는지 확인하고 *닫기*를 클릭하십시오.
++
+.예제 표시
+[%collapsible]
+====
+image:sql25_iscsi_bp_055.png["설치 완료,width=800"]
+
+====
+
+
+
+
+
+
+[[step-9-verify-the-installation]]
+[[post-install]]
+== 9단계: 설치를 확인합니다
+
+테스트 데이터베이스를 생성하고, 해당 데이터베이스의 데이터 및 로그 파일이 NetApp LUN에 있는지, 그리고 스토리지 경로가 정상인지 확인합니다.
+
+.단계
+. Windows 방화벽에서 SQL Server 포트를 여십시오:
++
+[source, powershell]
+----
+PS C:\> New-NetFirewallRule -DisplayName "SQL Server (TCP 1433)" -Direction Inbound -Protocol TCP -LocalPort 1433 -Action Allow
+----
+. 설치 센터의 *SQL Server 관리 툴 설치* 링크 또는 Microsoft 웹사이트에서 SQL Server Management Studio(SSMS)를 설치하십시오.
+. SSMS를 시작하고 Windows 인증을 사용하여 인스턴스(`{host}`)에 연결합니다. 테스트 데이터베이스를 생성합니다. 해당 데이터 및 로그 파일은 기본적으로  `E:\data` 및  `F:\log`에 저장됩니다.
+. T-SQL을 사용하여 파일 위치를 확인하십시오:
++
+[source, sql]
+----
+SELECT DB_NAME(database_id) AS database_name,
+       type_desc,
+       name AS logical_name,
+       physical_name,
+       size * 8 / 1024 AS size_mb
+FROM   sys.master_files
+ORDER  BY database_id, type_desc;
+----
+. 즉시 파일 초기화가 활성화되어 있는지 확인하십시오:
++
+[source, sql]
+----
+SELECT servicename, service_account, instant_file_initialization_enabled
+FROM   sys.dm_server_services;
+----
+. 호스트 및 ONTAP에서 스토리지를 확인합니다:
++
+[source, powershell]
+----
+PS C:\> Get-Disk | Where-Object FriendlyName -like 'NETAPP*' | Format-Table Number,FriendlyName,Size,OperationalStatus,PartitionStyle
+PS C:\> mpclaim -s -d
+----
++
+[source, console]
+----
+cluster::> lun show -vserver a50-sql -fields path,size,mapped,state
+cluster::> vserver iscsi session show -vserver a50-sql
+cluster::> qos statistics volume latency show -vserver a50-sql
+----
+. 선택 사항: 고가용성을 테스트합니다. 테스트 데이터베이스에 대해 워크로드를 실행하고 데이터 볼륨을 소유한 노드의 ONTAP 테이크오버 및 기브백을 수행합니다 (`storage failover takeover -ofnode <node>` / `storage failover giveback -ofnode <node>`). 워크로드는 몇 초간 일시 중지되었다가 다시 시작되며 데이터베이스는 온라인 상태를 유지합니다.
+
+
+.다음 단계
+애플리케이션 정합성 보장 스냅샷 백업으로 데이터베이스를 보호하십시오. 아키텍처, 백업 워크플로 및 이점에 대해서는 link:sql-iscsi-aff-overview.html#console["NetApp Console 백업 및 복구를 통한 데이터 보호"]을 참조하십시오.
+
+
+
+[[use-an-ontap-cli-script-to-configure-the-storage-in-one-pass]]
+[[cli-script]]
+== ONTAP CLI 스크립트를 사용하여 한 번에 스토리지를 구성하십시오
+
+다음 스크립트에는 이 절차의 전체 스토리지 구성이 포함되어 있습니다. 실행하기 전에 꺾쇠괄호 안의 값을 바꾸십시오.
+
+[source, console]
+----
+# --- iSCSI service and LIFs ----------------------------------------------
+vserver add-protocols -vserver a50-sql -protocols iscsi
+vserver iscsi create -vserver a50-sql -target-alias a50-sql
+
+network interface create -vserver a50-sql -lif a50-sql_iscsi_n1_1 -service-policy default-data-iscsi -home-node SAPCC-A50-01 -home-port <port> -address 192.168.175.134 -netmask 255.255.255.0
+network interface create -vserver a50-sql -lif a50-sql_iscsi_n1_2 -service-policy default-data-iscsi -home-node SAPCC-A50-01 -home-port <port> -address 192.168.175.135 -netmask 255.255.255.0
+network interface create -vserver a50-sql -lif a50-sql_iscsi_n2_1 -service-policy default-data-iscsi -home-node SAPCC-A50-02 -home-port <port> -address 192.168.175.136 -netmask 255.255.255.0
+network interface create -vserver a50-sql -lif a50-sql_iscsi_n2_2 -service-policy default-data-iscsi -home-node SAPCC-A50-02 -home-port <port> -address 192.168.175.137 -netmask 255.255.255.0
+
+# --- Initiator group -----------------------------------------------------
+lun igroup create -vserver a50-sql -igroup sql-iscsi-1 -protocol iscsi -ostype windows -initiator iqn.1991-05.com.microsoft:sql-iscsi-1.sapcc.stl.netapp.com
+
+# --- Volumes -------------------------------------------------------------
+volume create -vserver a50-sql -volume sql_iscsi_1_data      -aggregate <aggr_node1> -size 560GB -space-guarantee none -snapshot-policy none -percent-snapshot-space 0 -autosize-mode grow -max-autosize 730GB
+volume create -vserver a50-sql -volume sql_iscsi_1_log       -aggregate <aggr_node2> -size 270GB -space-guarantee none -snapshot-policy none -percent-snapshot-space 0 -autosize-mode grow -max-autosize 350GB
+volume create -vserver a50-sql -volume sql_iscsi_1_tempdb    -aggregate <aggr_node2> -size 165GB -space-guarantee none -snapshot-policy none -percent-snapshot-space 0 -autosize-mode grow -max-autosize 210GB
+volume create -vserver a50-sql -volume sql_iscsi_1_logbackup -aggregate <aggr_node1> -size 325GB -space-guarantee none -snapshot-policy none -percent-snapshot-space 0 -autosize-mode grow -max-autosize 420GB
+
+# --- LUNs ----------------------------------------------------------------
+lun create -vserver a50-sql -path /vol/sql_iscsi_1_data/sql_iscsi_1_data_1           -size 520GB -ostype windows_2008 -space-reserve disabled -space-allocation enabled
+lun create -vserver a50-sql -path /vol/sql_iscsi_1_log/sql_iscsi_1_log_1             -size 250GB -ostype windows_2008 -space-reserve disabled -space-allocation enabled
+lun create -vserver a50-sql -path /vol/sql_iscsi_1_tempdb/sql_iscsi_1_tempdb_1       -size 150GB -ostype windows_2008 -space-reserve disabled -space-allocation enabled
+lun create -vserver a50-sql -path /vol/sql_iscsi_1_logbackup/sql_iscsi_1_logbackup_1 -size 300GB -ostype windows_2008 -space-reserve disabled -space-allocation enabled
+
+# --- LUN mapping ---------------------------------------------------------
+lun mapping create -vserver a50-sql -path /vol/sql_iscsi_1_data/sql_iscsi_1_data_1           -igroup sql-iscsi-1
+lun mapping create -vserver a50-sql -path /vol/sql_iscsi_1_log/sql_iscsi_1_log_1             -igroup sql-iscsi-1
+lun mapping create -vserver a50-sql -path /vol/sql_iscsi_1_tempdb/sql_iscsi_1_tempdb_1       -igroup sql-iscsi-1
+lun mapping create -vserver a50-sql -path /vol/sql_iscsi_1_logbackup/sql_iscsi_1_logbackup_1 -igroup sql-iscsi-1
+
+# --- Verification ----------------------------------------------------------
+vserver iscsi show -vserver a50-sql
+network interface show -vserver a50-sql -data-protocol iscsi
+lun show -vserver a50-sql -fields path,size,ostype,space-allocation,mapped,state
+lun mapping show -vserver a50-sql
+vserver iscsi session show -vserver a50-sql
+----
+
+TIP: 예를 들어 데이터 및 로그 백업은 노드 1에, 로그 및 TempDB는 노드 2에 저장하는 등 두 노드의 애그리게이트에 볼륨을 분산합니다. 이렇게 하면 두 컨트롤러의 리소스를 모두 활용할 수 있습니다.
+
+
+
+[[use-a-powershell-script-to-configure-the-host-in-one-pass]]
+[[ps-script]]
+== PowerShell 스크립트를 사용하여 호스트를 한 번에 구성하십시오
+
+다음 스크립트에는 이 절차에 따른 전체 호스트 구성이 포함되어 있습니다. 관리자 권한 PowerShell 세션에서 실행하십시오. MPIO 부분은 재시작이 필요합니다.
+
+[source, powershell]
+----
+# --- Part 1: iSCSI service and MPIO (restart required) ------------------------
+Set-Service -Name MSiSCSI -StartupType Automatic
+Start-Service -Name MSiSCSI
+(Get-InitiatorPort | Where-Object ConnectionType -eq 'iSCSI').NodeAddress   # initiator IQN for the igroup
+Install-WindowsFeature -Name Multipath-IO
+Enable-MSDSMAutomaticClaim -BusType iSCSI
+# Install NetApp Windows Host Utilities (MPIO support) now, then:
+Restart-Computer
+
+# --- Part 2: connect the iSCSI sessions (after the LUNs are mapped in ONTAP) ---
+$initiatorIP = '192.168.175.44'
+$lifs        = '192.168.175.134','192.168.175.135','192.168.175.136','192.168.175.137'
+New-IscsiTargetPortal -TargetPortalAddress $lifs[0] -InitiatorPortalAddress $initiatorIP
+$target = Get-IscsiTarget | Where-Object NodeAddress -like 'iqn.1992-08.com.netapp:*'
+foreach ($lif in $lifs) {
+    Connect-IscsiTarget -NodeAddress $target.NodeAddress -TargetPortalAddress $lif `
+        -InitiatorPortalAddress $initiatorIP -IsMultipathEnabled $true -IsPersistent $true
+}
+Get-IscsiSession | Format-Table TargetNodeAddress,InitiatorPortalAddress,IsConnected,IsPersistent
+mpclaim -s -d
+
+# --- Part 3: disks, volumes and folders ---------------------------------------
+$layout = @{ 520GB = 'E','data'; 250GB = 'F','log'; 150GB = 'G','tempdb'; 300GB = 'H','Log backup' }
+foreach ($d in Get-Disk | Where-Object FriendlyName -like 'NETAPP*') {
+    $l = $layout[[int64]$d.Size]
+    Set-Disk -Number $d.Number -IsOffline $false
+    Set-Disk -Number $d.Number -IsReadOnly $false
+    Initialize-Disk -Number $d.Number -PartitionStyle GPT
+    New-Partition -DiskNumber $d.Number -UseMaximumSize -DriveLetter $l[0] |
+        Format-Volume -FileSystem NTFS -AllocationUnitSize 65536 -NewFileSystemLabel $l[1] -Confirm:$false
+}
+'E:\data','F:\log','G:\tempdb\data','G:\tempdb\log','H:\backup' | ForEach-Object { New-Item -ItemType Directory -Path $_ -Force }
+
+# --- Part 4: firewall for SQL Server -----------------------------------------
+New-NetFirewallRule -DisplayName "SQL Server (TCP 1433)" -Direction Inbound -Protocol TCP -LocalPort 1433 -Action Allow
+----
+
+NOTE: 각 부분을 별도로 실행하십시오. 파트 1은 호스트를 재부팅해야 하므로 재부팅 후에는 나머지 부분이 진행되지 않습니다.
+
+
+CAUTION: 이 LUN들이 시스템에 연결된 유일한 RAW LUN인 경우에만 3부의 명령을 실행하십시오. 시스템에 다른 RAW LUN이 연결되어 있는 경우, 폴더를 수동으로 생성하고 볼륨을 포맷해야 합니다.
+
+
+
+[[additional-information]]
+[[references]]
+== 추가 정보
+
+이 절차의 주제에 대한 자세한 내용은 다음 자료를 참조하십시오:
+
+* NetApp: https://docs.netapp.com/us-en/ontap-apps-dbs/mssql/mssql-overview.html["ONTAP 기반 Microsoft SQL Server"]
+* NetApp: https://docs.netapp.com/us-en/ontap/san-admin/index.html["ONTAP SAN 스토리지 관리"]
+* NetApp: https://docs.netapp.com/us-en/ontap-sanhost/index.html["ONTAP SAN 호스트 구성"]
+* NetApp: https://docs.netapp.com/us-en/ontap-sanhost/hu-wuhu-80.html["NetApp Windows 호스트 유틸리티"]
+* Microsoft: https://learn.microsoft.com/en-us/powershell/module/mpio/["MPIO PowerShell 모듈"]
+* Microsoft: https://learn.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server["SQL Server 설치"]
+* NetApp: https://docs.netapp.com/us-en/data-services-backup-recovery/["NetApp Backup and Recovery 설명서"]
+* NetApp: https://imt.netapp.com/matrix/["상호 운용성 매트릭스 툴(IMT)"]
+

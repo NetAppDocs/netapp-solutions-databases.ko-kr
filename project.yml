@@ -148,12 +148,28 @@ sidebar:
         url: "/oracle/tr-4794.html"
   - title: 마이크로소프트 SQL 서버
     entries:
-    - title: AWS FSx ONTAP 에서 Microsoft SQL Server 백업 및 복구
-      pdf-filename: AWS FSx ONTAP 에서 Microsoft SQL Server 백업 및 복구
-      url: "/mssql/sqlsb-backup-restore-aws-fsxn.html"
-    - title: Amazon FSx ONTAP 사용한 AWS EC2의 SQL Server
-      pdf-filename: Amazon FSx ONTAP 사용한 AWS EC2의 SQL Server
-      url: "/mssql/sql-aws-ec2.html"
+    - title: NetApp AFF 기반 SQL Server
+      entries:
+      - title: SMB 기반 SQL Server 2025 정보
+        pdf-filename: SMB 기반 SQL Server 2025 정보
+        entries:
+        - title: NetApp AFF에 SMB를 사용하여 SQL Server 2025 배포
+          url: "/mssql/sql-smb3-aff.html"
+        url: "/mssql/sql-smb3-aff-overview.html"
+      - title: iSCSI를 지원하는 SQL Server 2025에 대한 정보
+        pdf-filename: iSCSI를 지원하는 SQL Server 2025에 대한 정보
+        entries:
+        - title: iSCSI를 사용하여 SQL Server 2025 배포
+          url: "/mssql/sql-iscsi-aff.html"
+        url: "/mssql/sql-iscsi-aff-overview.html"
+    - title: AWS FSx ONTAP 기반 SQL Server
+      entries:
+      - title: AWS FSx ONTAP 에서 Microsoft SQL Server 백업 및 복구
+        pdf-filename: AWS FSx ONTAP 에서 Microsoft SQL Server 백업 및 복구
+        url: "/mssql/sqlsb-backup-restore-aws-fsxn.html"
+      - title: Amazon FSx ONTAP 사용한 AWS EC2의 SQL Server
+        pdf-filename: Amazon FSx ONTAP 사용한 AWS EC2의 SQL Server
+        url: "/mssql/sql-aws-ec2.html"
     - title: Azure NetApp Files 의 SQL Server
       pdf-filename: Azure NetApp Files 의 SQL Server
       entries:
@@ -170,13 +186,6 @@ sidebar:
     - title: Google Cloud NetApp Volumes를 사용한 SQL Server Always On
       pdf-filename: Google Cloud NetApp Volumes를 사용한 SQL Server Always On
       url: "/mssql/gcnv-sql-aoag-setup.html"
-    - title: NetApp AFF 기반 SQL Server
-      pdf-filename: NetApp AFF 기반 SQL Server
-      entries:
-      - title: NetApp AFF 기반 SQL Server 2025 정보
-        url: "/mssql/sql-smb3-aff-overview.html"
-      - title: NetApp AFF에 SQL Server 2025 배포
-        url: "/mssql/sql-smb3-aff.html"
     - title: Windows에서 Clustered Data ONTAP 사용하는 Microsoft SQL Server가 포함된 SAP
       pdf-filename: Windows에서 Clustered Data ONTAP 사용하여 Microsoft SQL Server와 SAP를
         함께 사용

@@ -6262,7 +6262,6 @@
   <block id="fd18465573ec21a6218982055981f6b1" category="cell">스토리지 효율성</block>
   <block id="e90342eadcdbbde63477faa85e7759f3" category="cell">인라인 중복 제거, 압축 및 컴팩션은 씬 프로비저닝과 함께 데이터베이스 및 백업에 사용되는 물리적 용량을 줄여줍니다.</block>
   <block id="e9552b607b183029e792a5ae3c72820f" category="cell">통합 데이터 보호</block>
-  <block id="72bf6e4cd7f88ed4ad150bfa8e586930" category="cell">ONTAP 스냅샷, SnapRestore, FlexClone 및 SnapMirror는 NetApp SnapCenter를 통해 오케스트레이션되어 몇 초 만의 백업, 몇 분 만의 복원 및 즉각적인 데이터베이스 클론을 제공합니다.</block>
   <block id="44cc246b0c3bc5602ca81ab19e6a364f" category="cell">유연성</block>
   <block id="35558d3f65b3d3fc51d1c7623d42c263" category="cell">데이터베이스는 스토리지 재매핑 없이 다른 서버에 연결하기만 하면 호스트 간에 이동할 수 있습니다. 동일한 SVM을 사용하여 홈 디렉터리, 파일 서비스 또는 기타 애플리케이션도 제공할 수 있습니다.</block>
   <block id="7e897f23ed71aef1c0a8acf1ae54e9e4" category="section-title">솔루션 구성 요소</block>
@@ -6290,7 +6289,6 @@
   <block id="a0b539c0ef7a8f8540d1f81601e6279a" category="paragraph">표준 SMB 공유의 경우 컨트롤러 장애 조치가 발생하면 열려 있는 파일 핸들이 닫힙니다. 그러면 SQL Server는 영향을 받는 데이터베이스를 주의 대상으로 표시하며, 수동으로 복구해야 합니다.</block>
   <block id="9a9611a2fc2b0e3111b95798abee853b" category="paragraph">CA 공유를 사용하면 ONTAP은 열린 파일 상태(영구 핸들)를 HA 파트너에 미러링하여 유지합니다. 테이크오버가 발생하면 장애가 발생한 노드의 SMB LIF가 파트너로 마이그레이션됩니다. SQL Server 호스트의 SMB 3 클라이언트는 자동으로 다시 연결하여 핸들을 회수합니다. SQL Server는 몇 초간의 짧은 I/O 일시 중단만 경험하며, 데이터베이스는 온라인 상태를 유지하고 트랜잭션 손실은 발생하지 않습니다. ONTAP 업그레이드, 기브백, LIF 마이그레이션 및 볼륨 이동 등 계획된 이벤트에도 동일하게 적용됩니다.</block>
   <block id="68a7fec81dacdbb2eb199d187d47c01d" category="image-alt">SMB 3 지속적 가용성이 SQL Server를 보호하는 방법</block>
-  <block id="b1bdda888100157c9145c80c4415c635" category="summary">NetApp AFF 시스템의 SMB 3 상시 사용 가능 공유에 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 백업을 두고 Windows Server 2025에 SQL Server 2025를 배포합니다. 이 절차에는 ONTAP SVM, 볼륨 및 공유 구성, SQL Server 설치, SnapCenter를 사용한 데이터베이스 보호가 포함됩니다.</block>
   <block id="5d113f2038d289f391614c39043629e8" category="section-title">범위</block>
   <block id="ef8f344fc12b771b420c627513b85bab" category="paragraph">이 절차에서는 단일 Windows Server 2025 호스트에 독립 실행형 SQL Server 2025 인스턴스를 배포하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 백업을 SMB 3 지속적 가용성(CA) 공유에 저장합니다. 동일한 스토리지 설계는 SQL Server 장애 조치 클러스터 인스턴스(FCI) 및 Always On 가용성 그룹에도 적용되지만, 클러스터별 구성은 다루지 않습니다. SQL Server 성능 튜닝 및 크기 조정 또한 범위를 벗어납니다. 이점, 솔루션 구성 요소, 설계 원칙 및 지속적 가용성의 작동 방식에 대한 설명은 <block ref="7c0cf893e1efe2282bb825673eeea746" category="inline-link-macro-rx"></block>을(를) 참조하십시오.</block>
   <block id="8d241ce2b8937cc22e15c547dc425518" category="paragraph">이 절차의 대상은 다음과 같습니다:</block>
@@ -6413,7 +6411,6 @@
   <block id="2e9c9da433717e3904b631c17a098e1d" category="list-text">*용량*:<block ref="a4d507be1fa6eb57912137f10a4d585f" prefix=" " category="inline-code"></block></block>
   <block id="f32838a8c552a77ff5623e82dd018b3d" category="list-text">*성능 서비스 수준*: *사용자 지정*, *QoS 정책 그룹 할당*: *기존* &gt;<block ref="334c4a4c42fdb79d7ebc3e73b517e6f8" prefix=" " category="inline-code"></block></block>
   <block id="ef796e380e6d5499f8eb2466ca8c2e14" category="list-text">*액세스 권한*: *SMB/CIFS를 통한 공유*를 선택합니다. 공유 이름<block ref="1db0e2a92e9428ed5a57e01255595054" prefix=" " category="inline-code"></block>, 사용자에게 액세스 권한 부여<block ref="f9ae5e5c44e59f94680af569879f704a" prefix=" " category="inline-code"></block>, 권한 *모든 권한*.</block>
-  <block id="569ed61f1e2cfb2cfd75db609e5c1b3d" category="list-text">*보호*: *스냅샷 사용(로컬)* 옵션을 해제된 상태로 두십시오. 애플리케이션 정합성 보장 백업은 NetApp SnapCenter에서 생성됩니다.</block>
   <block id="4cc186df234138a57b2e8c5d8e5f7f8d" category="paragraph">*저장*을 클릭합니다.</block>
   <block id="3de97c3b26b1ae011bf44baba4c8d59b" category="inline-image-macro">볼륨 sql1_data 추가,width=450</block>
   <block id="2a9e3cd6688299a4bb67c67224a554d6" category="paragraph"><block ref="2a9e3cd6688299a4bb67c67224a554d6" category="inline-image-macro-rx" type="image"></block></block>
@@ -6436,7 +6433,6 @@
   <block id="1fcd93cf125cc9a73c8daecf349ece95" category="list-text">*부분 예약 활성화(100%)*: 해제됨</block>
   <block id="0dd0b5f20877c8e5fcf3b32a226f6e46" category="list-text">*보안 유형*:<block ref="bead6bebc11dade4ccad97fa037b72a6" prefix=" " category="inline-code"></block></block>
   <block id="c387a4387bc3c1be71901787cffc8336" category="list-text">*스냅샷 예약 %*:<block ref="e4da3b7fbbce2345d7772b0674a318d5" prefix=" " category="inline-code"></block> <block ref="cfcd208495d565ef66e7dff9f98764da" prefix="(" category="inline-code"></block> <block ref="ecd1cf5febfdccaf7a3f8d1731f7f412" prefix=" " category="inline-code"></block>용)</block>
-  <block id="2fb2bd83802e486a5b59ba5ff6a12a39" category="list-text">*스냅샷 예약*: 해제됨. 애플리케이션 정합성 보장이 되지 않는 스냅샷은 SQL Server에서 소용이 없습니다. 대신 NetApp SnapCenter를 사용하십시오.</block>
   <block id="a8e7ba92ead6bd5a56abb5430fe0ba56" category="list-text">*클라이언트에게 스냅샷 디렉터리 표시*: 선택 사항(실습에서는 선택된 상태로 두었으며, 선택을 해제하면 공유에서 <block ref="26bef40a7b3e14ad93e80f8f4be79090" prefix=" " category="inline-code"></block> 숨겨집니다)</block>
   <block id="f8013fcad1f7db2cbf2422e638bf6345" category="paragraph">*저장*을 클릭하고 <block ref="3149f7cfc8b673bf880af3bdebe8f7f5" prefix=" " category="inline-code"></block>, <block ref="ecd1cf5febfdccaf7a3f8d1731f7f412" prefix=" " category="inline-code"></block> 및 <block ref="dff642c9077793457a5a71aa6310a28e" prefix=" " category="inline-code"></block>에 대해 반복합니다.</block>
   <block id="d96144930d10a358a3f6d8d1ebec983a" category="inline-image-macro">볼륨 sql1_data 설정 편집,width=450</block>
@@ -6572,9 +6568,419 @@
   <block id="c9dd6bad4c7d561872f2e2d498a990bf" category="inline-link">상호 운용성 매트릭스 툴(IMT)</block>
   <block id="2e744d7458420edb1d67decd482527b8" category="list-text">NetApp:<block ref="e044cdc411e34564fc609d8f08e0201d" category="inline-link-rx"></block></block>
   <block id="dff5ea1c0f4431208a1e86445b6115cf" category="section-title">2026년 11월 9일</block>
-  <block id="2b3c56a48b86120d7fe5c64dfa29d907" category="inline-link-macro">NetApp AFF에서 SMB 3 지속 가용성 공유를 사용하여 Windows Server 2025에 Microsoft SQL Server 2025 배포</block>
-  <block id="88a76713cf7b76c7692d58c125f4b421" category="paragraph">SQL Server SMB 문서를 추가했습니다: <block ref="87713d86ecb117cf408e007449958e4a" category="inline-link-macro-rx"></block></block>
   <block id="87841e293a5b7dec649c737a77757ef3" category="sidebar">NetApp AFF 기반 SQL Server</block>
-  <block id="4885a19799c2ffd6767615a13415ab02" category="sidebar">NetApp AFF 기반 SQL Server 2025 정보</block>
-  <block id="daed062f8c9f45acfab189258d1f4694" category="sidebar">NetApp AFF에 SQL Server 2025 배포</block>
+  <block id="d00ca7db8f5ec2ff422b2362077ef617" category="summary">SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 iSCSI LUN에 데이터베이스를 저장할 수 있습니다. 이점, 솔루션 구성 요소, 설계 원칙, 다중 경로를 통해 경로 및 컨트롤러 장애 발생 시 데이터베이스를 온라인 상태로 유지하는 방법, 그리고 NetApp Console 백업 및 복구가 데이터베이스를 보호하는 방법에 대해 알아보십시오.</block>
+  <block id="46d3b37d71fa8cc42115a457cedc1142" category="doc">iSCSI LUN을 사용하는 NetApp AFF의 SQL Server 2025에 대해 알아보십시오.</block>
+  <block id="69d2ba1211214f0b84d3eb18c36f61bb" category="paragraph">SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 iSCSI LUN에 데이터베이스를 저장할 수 있습니다. 이 구성의 이점, 솔루션 구성 요소 및 설계 원칙, 다중 경로가 경로 및 컨트롤러 장애 시 데이터베이스를 온라인 상태로 유지하는 방법, 그리고 NetApp Console Backup and Recovery가 데이터베이스를 보호하는 방법에 대해 알아보십시오.</block>
+  <block id="bb7249bbac9f1f9117a294d12f3d899e" category="paragraph">iSCSI는 표준 TCP/IP 이더넷 네트워크를 통해 SCSI 블록 명령을 전송합니다. Windows 및 SQL Server에서 iSCSI LUN은 로컬 디스크로 인식됩니다. 즉, 초기화되고 파티션이 나뉘며 NTFS로 포맷되고 드라이브 문자 또는 마운트 지점이 할당됩니다. iSCSI를 통한 블록 스토리지는 SQL Server에서 가장 널리 사용되고 이해하기 쉬운 스토리지 옵션이며, 모든 SQL Server 기능과 모든 타사 툴이 이를 지원합니다.</block>
+  <block id="197b05157e347bf55a0a1ff73513ac30" category="paragraph">AFF 올플래시 시스템의 ONTAP은 iSCSI를 기본적으로 구현합니다. SQL Server 2025, Windows Server 2025 및 Microsoft MPIO 프레임워크와 결합하여 일관적으로 낮은 지연 시간을 제공하고, 경로 및 컨트롤러 장애를 허용하며, NetApp 데이터 보호 기능과 통합되는 스토리지 아키텍처를 제공합니다.</block>
+  <block id="8d82b8267d1820c701cb83a16367cd42" category="inline-link-macro">iSCSI LUN을 사용하여 NetApp AFF에 SQL Server 2025 배포</block>
+  <block id="8bca35778216cd7e253c4a60ceb7af45" category="paragraph">이 구성을 배포하려면 <block ref="ab7fa96e7e851b278887b6b87aa64e50" category="inline-link-macro-rx"></block>을(를) 참조하십시오.</block>
+  <block id="90f45e57c9e93e2ab45667ece9e6dea3" category="section-title">NetApp ONTAP을 사용하는 iSCSI 기반 SQL Server의 이점</block>
+  <block id="92a3b84ecf0fd733b85259c454fcce0b" category="cell">범용 호환성</block>
+  <block id="54f08d53a0fde75ffebe8ee96478a2dc" category="cell">iSCSI LUN은 Windows용 로컬 NTFS 디스크입니다. SQL Server, 해당 툴 및 타사 애플리케이션은 특별한 구성이 필요하지 않으며, 로컬 서비스 계정과 가상 계정은 평소처럼 작동합니다.</block>
+  <block id="284cbe182ec16c08e0fafe11c22ce275" category="cell">표준 이더넷</block>
+  <block id="a40776d12447ce725d7c0291725281be" category="cell">iSCSI는 데이터 센터의 기존 이더넷 네트워크에서 실행됩니다. 파이버 채널 패브릭, HBA 또는 FC 스위치는 필요하지 않습니다.</block>
+  <block id="b596b72f7d88b7d2cb226f5077b9abe9" category="cell">ALUA를 사용하는 MPIO는 HA 쌍의 두 노드 모두에 여러 경로를 사용합니다. 경로 오류, ONTAP 인계/반환 및 무중단 업그레이드는 Windows 다중 경로 드라이버에서 투명하게 처리됩니다.</block>
+  <block id="f038d0505402715fc630823c6b7bef3e" category="cell">AFF 시스템은 일관적으로 낮은 지연 시간을 제공합니다. 여러 iSCSI 세션은 I/O를 여러 네트워크 경로 및 포트에 분산시킵니다.</block>
+  <block id="c4d32dd24a37d4b16f6fcc3e27047134" category="cell">씬 프로비저닝, 인라인 중복 제거, 압축 및 컴팩션은 데이터베이스와 백업에서 사용하는 물리적 용량을 줄여줍니다. SCSI UNMAP은 해제된 블록을 애그리게이트로 반환합니다.</block>
+  <block id="f2cbd7758797cee674c2e851379bdf99" category="cell">NetApp Console Backup and Recovery로 오케스트레이션되는 ONTAP 스냅샷, SnapRestore, FlexClone 및 SnapMirror는 몇 초 만에 백업, 몇 분 만에 복구, 즉각적인 데이터베이스 클론을 제공합니다.</block>
+  <block id="d40034f071b4d59d8edf5d40501b4577" category="cell">ONTAP에서는 볼륨과 LUN을 온라인으로 확장할 수 있으며, Windows에서는 NTFS 볼륨을 온라인으로 확장할 수 있습니다.</block>
+  <block id="3035c432fc87f83d8c96c3d7de6d3542" category="cell">SQL Server 2025를 실행합니다. SQL Server 바이너리와 시스템 데이터베이스는 로컬 디스크에 있고<block ref="d7aa32b0c582222819b91c8e0ccca765" prefix=" " category="inline-code"></block>, 사용자 데이터베이스, 로그, TempDB 및 로그 백업은 4개의 NetApp LUN에 있습니다.</block>
+  <block id="1e8992b06acf27a162ebf2ee849f03e9" category="cell">Microsoft iSCSI 이니시에이터 및 MPIO</block>
+  <block id="99f3333b20efa22ff4905b80ba6ab71d" category="cell">호스트를 SVM의 iSCSI LIF에 연결하고 각 LUN에 대한 경로를 하나의 다중 경로 디스크로 결합합니다.</block>
+  <block id="7da9dfd9d326b58ad40553868e03f037" category="cell">데이터베이스 엔진, 기본 인스턴스<block ref="1170cb78c9cb5739ad3aa617ce7bb623" prefix=" " category="inline-code"></block>.</block>
+  <block id="8f416e08af6be37266b467f48a7ad76d" category="cell">도메인 멤버십, SQL Server 관리자의 Windows 인증, 이름 확인 및 시간 동기화.</block>
+  <block id="6bce741dfa40a003fbc7ff4bfbd3457e" category="cell">두 개의 컨트롤러가 NVMe 스토리지를 공유합니다. 한 컨트롤러에 장애가 발생하거나 업그레이드될 경우, 파트너가 해당 스토리지를 인계받고 파트너의 iSCSI 경로가 활성화됩니다.</block>
+  <block id="b5191763378b1f148c85ebd6d8c39534" category="cell">iSCSI 타겟에 노드당 2개의 iSCSI LIF, 이니시에이터 그룹<block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix=" " category="inline-code"></block> 및 4개의 LUN을 제공하며, 각각은 자체 FlexVol 볼륨에 있습니다.</block>
+  <block id="e8050df3a179f61b3d12b4a03cd201a2" category="cell">NetApp Console 백업 및 복구</block>
+  <block id="615e1a2bfec0775b041e1a8106cfda3c" category="cell">애플리케이션 정합성 보장 스냅샷 백업을 생성하고 복원, 클론 및 복제 기능을 제공합니다.</block>
+  <block id="a1c5c431ea93d975be3f21536c5d5b2b" category="image-alt">솔루션 아키텍처: NetApp AFF를 사용하는 iSCSI LUN의 SQL Server 2025</block>
+  <block id="4ebce9be5680a1b0bc974e677ade9e48" category="paragraph">이 설계는 ONTAP SAN 스토리지의 SQL Server에 대한 NetApp 모범 사례를 따릅니다:</block>
+  <block id="3039b900ad0257805193c3b9bd58eb49" category="list-text">*파일 유형별로 별도의 LUN 및 볼륨을 사용합니다.* 데이터, 트랜잭션 로그, TempDB 및 로그 백업은 별도의 LUN에 배치되며, 각 LUN은 자체 FlexVol 볼륨에 있습니다. 각 볼륨은 자체 크기, QoS, 효율성, 스냅샷 및 복제 설정을 가질 수 있으며, 데이터 볼륨의 스냅샷에는 TempDB가 절대 포함되지 않습니다.</block>
+  <block id="54b29ac904ee41edde33ef80abe4f02b" category="list-text">*노드당 두 개의 iSCSI LIF.* 각 LUN은 네 개의 경로를 통해 접근할 수 있습니다. LUN을 소유한 노드를 통한 두 개의 활성/최적화 경로와 HA 파트너를 통한 두 개의 활성/비최적화 경로입니다.</block>
+  <block id="a6af72a2bf3ea2102f07c27e472f4f6c" category="list-text">*Microsoft DSM을 사용한 MPIO.* NetApp Windows 호스트 유틸리티는 권장 시간 초과 및 다중 경로 정책을 설정합니다.</block>
+  <block id="6102b3b71f769e490cd73a06bc812805" category="list-text">*데이터베이스 볼륨에 대한 씬 프로비저닝 및 예약된 ONTAP 스냅샷 없음.* 백업은 애플리케이션 정합성 보장 상태여야 하며, NetApp Console Backup and Recovery를 통해 생성됩니다.</block>
+  <block id="4b0696e307ce085ebb6fb2262145bcac" category="list-text">*전용 iSCSI 네트워크.* iSCSI에는 전용 NIC 또는 VLAN을 사용하고, 점보 프레임(MTU 9000)을 종단 간 구성하십시오.</block>
+  <block id="12b4208ad4a8804020c4e3ab7a7d1c1f" category="image-alt">스토리지 구성: SQL Server 파일을 Windows 볼륨, LUN, 볼륨 및 노드에 저장</block>
+  <block id="54ba898809926d559750513aaae38f5e" category="section-title">다중 경로가 SQL Server를 보호하는 방법</block>
+  <block id="63f687d62c50350aedcd501ae7351328" category="paragraph">ONTAP은 비대칭 논리 장치 액세스(ALUA)를 사용하여 호스트에 최적의 경로를 알려줍니다. LUN을 소유한 노드의 iSCSI LIF를 통과하는 경로는 *활성/최적화*로 보고됩니다. HA 파트너의 LIF를 통과하는 경로는 *활성/비최적화*로 보고되며, 이러한 경로로 전송되는 I/O는 클러스터 인터커넥트를 통해 전달됩니다. Microsoft DSM은 최적화된 경로(정책 *하위 집합을 사용한 라운드 로빈*)로만 I/O를 전송하고 비최적화 경로는 대기 상태로 유지합니다.</block>
+  <block id="29a6753b5779c27bec13c301d8b20e2d" category="paragraph">경로에 오류가 발생하면 MPIO는 나머지 최적화된 경로에서 작업을 계속합니다. 소유 노드에 오류가 발생하거나 업그레이드를 위해 인계되는 경우 파트너 노드가 애그리게이트를 인계받고, ONTAP이 새로운 ALUA 상태를 보고하며, MPIO는 I/O를 새로운 최적화된 경로로 이동합니다. SQL Server는 짧은 I/O 일시 중단만 경험하며 데이터베이스는 계속 온라인 상태를 유지합니다.</block>
+  <block id="dfb3356bb58d7fd6d828f46bfd059314" category="image-alt">MPIO 및 ALUA를 사용한 iSCSI 다중 경로</block>
+  <block id="acc54d22efcdf3730cf9d8d307d0c29a" category="section-title">NetApp Console 백업 및 복구를 통한 데이터 보호</block>
+  <block id="beba48556c515270b278a3316cf65127" category="paragraph">*NetApp Console*은 스토리지 및 데이터 서비스를 위한 NetApp의 통합 컨트롤 플레인입니다. 이 *백업 및 복구* 서비스는 애플리케이션 정합성 보장 스냅샷을 사용하여 ONTAP의 Microsoft SQL Server 데이터베이스를 보호하며, 이를 보조 ONTAP 시스템 및 오브젝트 스토리지로 복제할 수 있습니다.</block>
+  <block id="5aad755abd249c9dd8582097661e9bea" category="list-text">*NetApp Console* (SaaS): 인벤토리, 정책, 일정, 복원 및 복제, 작업 모니터링, 역할 기반 액세스 제어 및 알림을 위한 웹 인터페이스입니다.</block>
+  <block id="f4e13f6cc75ccd460e41ae629e47a98f" category="list-text">*콘솔 에이전트*: 데이터 센터에 있는 Linux VM으로, 콘솔과 ONTAP 클러스터 및 SQL Server 호스트를 연결합니다. 콘솔과의 통신은 아웃바운드 HTTPS를 통해서만 이루어집니다.</block>
+  <block id="0330f985ff4b996dbe9694bee02a5595" category="list-text">*SQL Server 및 Windows용 SnapCenter 플러그인*: 콘솔을 통해 SQL Server 호스트에 배포됩니다. 인스턴스와 데이터베이스를 검색하고, 데이터베이스 파일을 NetApp LUN에 매핑하며, 백업 중에 SQL Server를 일시 중지합니다. 이 플러그인은 포트 8145에서 수신 대기하며 호스트에 PowerShell 7 및 .NET이 필요합니다.</block>
+  <block id="dd0faa2c6eefeae934bc3370a790f46c" category="list-text">*ONTAP*: 볼륨<block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix=" " category="inline-code"></block> 및<block ref="0867c941ace37c466683434857f5b04f" prefix=" " category="inline-code"></block>의 스냅샷을 생성하고 SnapRestore 및 FlexClone 작업을 수행합니다. SQL Server 자체는 iSCSI를 통해 파일에 계속 액세스합니다.</block>
+  <block id="8d82661a4526cf82aafe1ace5dca1a62" category="image-alt">iSCSI LUN 기반 SQL Server용 NetApp Console 백업 및 복구 아키텍처</block>
+  <block id="122e51bd52fb6203623f5288bc586674" category="section-title">로컬 스냅샷 백업 작동 방식</block>
+  <block id="afa32de2da08f2e245aa6669c59eefe4" category="list-text">NetApp Console은 보호 정책에 따라 예약되거나 요청 시 백업 작업을 시작합니다.</block>
+  <block id="fbe3a7b56a74d03bcb75bf4af6c8e928" category="list-text">이 플러그인은 SQL Server VDI/VSS 인터페이스를 사용하여 데이터베이스의 쓰기 I/O를 몇 초 동안 일시 중지합니다.</block>
+  <block id="c066dd0b42c3e71d285b59c3502caca8" category="list-text">ONTAP은 데이터 및 로그 볼륨의 일관된 스냅샷을 생성합니다 <block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix="(" category="inline-code"></block>,<block ref="0867c941ace37c466683434857f5b04f" prefix=" " category="inline-code"></block>). 데이터는 복사되지 않습니다.</block>
+  <block id="7225356b15cf471edc4fa8ea71b1210a" category="list-text">데이터베이스가 재개되고 백업은 SQL Server 백업 기록<block ref="fe2552ce114315ff0ef9ad5b1de6e028" prefix="(" category="inline-code"></block>) 및 Console 카탈로그에 보존 기간과 함께 기록됩니다.</block>
+  <block id="15b7a3e939b85a25a655bac26be4b68d" category="list-text">트랜잭션 로그 백업은 짧은 간격(예: 15분마다)으로 실행되어 <block ref="89bb07a01ac3af3002ff5e91b65f566c" prefix=" " category="inline-code"></block> 특정 시점 복구를 가능하게 합니다.</block>
+  <block id="1283e5a6569df9b5badfbd28beeb5ec9" category="list-text">선택 사항: 스냅샷은 3-2-1 백업 전략을 위해 SnapMirror를 사용하여 보조 ONTAP 시스템으로 복제되거나 오브젝트 스토리지에 백업됩니다.</block>
+  <block id="59b24357314cc9229dded37143d1a980" category="image-alt">SQL Server용 NetApp Console 로컬 백업 워크플로</block>
+  <block id="8e20573211bec72cea828a05cda6f1e9" category="section-title">SQL Server용 NetApp Console의 이점</block>
+  <block id="2c3c2450a2ff010c02876a6fc042c284" category="list-text">*몇 초 만에 백업 완료.* 스냅샷 백업은 데이터베이스 크기에 관계없이 몇 초 만에 완료됩니다. 백업 윈도우는 사실상 사라집니다.</block>
+  <block id="46da155050113af72a479b8abc7da621" category="list-text">*성능 영향 없음.* 호스트 또는 네트워크를 통해 데이터를 읽거나 복사하지 않습니다. SQL Server는 단 몇 초 동안만 일시 중지됩니다.</block>
+  <block id="3e954a0b4c784a1dd09ee1ff80188f8d" category="list-text">*몇 분 만에 복원 가능.* 데이터베이스 파일은 스냅샷에서 거의 즉시 복원됩니다. 로그 백업과 함께 사용하면 언제든지 원하는 시점으로 복구할 수 있습니다.</block>
+  <block id="098f14b6992d784e3b2b824d94b29e15" category="list-text">*공간 효율적인 백업.* 스냅샷은 변경된 블록만 저장하므로 추가 용량을 거의 차지하지 않고 여러 복원 지점을 유지할 수 있습니다.</block>
+  <block id="806e2cece0078237e602ed2749c98560" category="list-text">*즉시 복제.* FlexClone은(는) 개발, 테스트, 보고 또는 문제 해결을 위해 운영 데이터베이스의 쓰기 가능한 복사본을 몇 초 만에 생성합니다. 데이터가 변경되기 전까지는 추가 용량을 사용하지 않습니다.</block>
+  <block id="24164a74f94a156aa41a2e22b6802352" category="list-text">*하나의 정책으로 3-2-1 보호 기능을 제공합니다.* 로컬 스냅샷, 보조 ONTAP 시스템으로의 복제, 오브젝트 스토리지(예: NetApp StorageGRID 또는 퍼블릭 클라우드)로의 백업이 동일한 보호 정책에서 구성됩니다.</block>
+  <block id="fe8106758b929d1b4ee5ef23beef24db" category="list-text">*유지 관리해야 할 백업 인프라가 없습니다.* 컨트롤 플레인은 서비스 형태로 제공되며, 경량 Console 에이전트만 온프레미스에서 실행됩니다. 설치, 패치 또는 보호해야 할 백업 서버나 카탈로그 데이터베이스가 없습니다.</block>
+  <block id="ee0d5398bbb342a1072fa3efd84f7c4a" category="list-text">*중앙 집중식 관리.* 모든 SQL Server 호스트에 대한 인벤토리, 정책, 일정, 보존, 역할 기반 액세스 제어, 작업 모니터링 및 알림 기능을 하나의 웹 인터페이스에서 제공하며, 자동화를 위한 REST API도 지원합니다.</block>
+  <block id="110d15e472f80d3c04a951dd56357356" category="list-text">*SnapCenter에서의 원활한 전환.* 기존 SnapCenter 구성을 NetApp Console로 가져올 수 있습니다.</block>
+  <block id="c160ad37945c72d87f9487e373f96302" category="list-text">*랜섬웨어 복원력.* ONTAP 스냅샷은 읽기 전용이지만, 권한이 있는 사용자는 잠금 해제된 스냅샷을 삭제할 수 있습니다. 삭제를 방지하려면 보존 기간이 있는 ONTAP 변조 방지 스냅샷 잠금 기능을 사용하고, 지원되는 경우 자율형 랜섬웨어 보호 기능과 함께 사용하십시오.</block>
+  <block id="82825d9d3142cee081c7d4a295323fd5" category="summary">NetApp AFF 시스템의 iSCSI LUN에 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 로그 백업을 배치하여 Windows Server 2025에 SQL Server 2025를 배포합니다. 이 절차에는 ONTAP SVM, 이니시에이터 그룹 및 LUN, Windows iSCSI 이니시에이터, MPIO 및 디스크에 대한 iSCSI 구성과 SQL Server 설치가 포함됩니다.</block>
+  <block id="87a4f5af9f7f6f7ebf6f6a9e5ec91c25" category="paragraph">이 절차에서는 단일 Windows Server 2025 호스트에 독립 실행형 SQL Server 2025 인스턴스를 배포하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 로그 백업을 iSCSI LUN에 저장합니다. 동일한 스토리지 설계는 SQL Server 장애 조치 클러스터 인스턴스(FCI) 및 Always On 가용성 그룹에도 적용되지만, 클러스터별 구성은 다루지 않습니다. SQL Server 성능 튜닝 및 크기 조정 또한 이 절차의 범위를 벗어납니다. 이점, 솔루션 구성 요소, 설계 원칙, 다중 경로 작동 방식에 대한 설명 및 NetApp Console 백업 및 복구를 사용한 데이터 보호에 대한 자세한 내용은 <block ref="40072446b7f8b916ce6977f066fb4144" category="inline-link-macro-rx"></block>를 참조하십시오.</block>
+  <block id="70e397b7ee91fb91b7523cc611c1540b" category="list-text">ONTAP 클러스터, SVM, iSCSI LIF, 이니시에이터 그룹 및 LUN을 구성하는 *스토리지 관리자*.</block>
+  <block id="1ddc89a83086f38f019d8df53f4b099b" category="list-text">Windows Server 2025 호스트, iSCSI 이니시에이터, MPIO 및 디스크를 준비하는 *Windows 관리자*.</block>
+  <block id="109fd29f2764732411e439b7152b0666" category="cell">NetApp AFF A50 HA 페어, 클러스터<block ref="61763985ee975379cf39f9e8e90af6ef" prefix=" " category="inline-code"></block> (노드<block ref="ef26dd2e7a697cb984cbe8299e743638" prefix=" " category="inline-code"></block>,<block ref="7a82c04871bdfe63921ce68284df2e0c" prefix=" " category="inline-code"></block>), ONTAP 9.19.1</block>
+  <block id="7991c062f32dc3f39d1c544a58b542c5" category="cell"><block ref="0f9995c41e025956b46b86899a2f358e" prefix="" category="inline-code"></block></block>
+  <block id="03a235a6bcbd3a18ae38bfc5644fd5b0" category="cell">iSCSI 타겟 이름</block>
+  <block id="ebf058350ebad696d273878b503ed2d0" category="cell"><block ref="5685db22e3cffde13103d45eed5f61fc" prefix="" category="inline-code"></block> (별칭<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block>)</block>
+  <block id="08f5df90a27c724935a56eb55c6ba7bb" category="cell">iSCSI LIF</block>
+  <block id="446e3d45640b092fe8b5f9d224623759" category="cell">192.168.175.134 및 192.168.175.135(노드<block ref="ef26dd2e7a697cb984cbe8299e743638" prefix=" " category="inline-code"></block>), 192.168.175.136 및 192.168.175.137(노드<block ref="7a82c04871bdfe63921ce68284df2e0c" prefix=" " category="inline-code"></block>), 서브넷 /24, 브로드캐스트 도메인<block ref="7656d036234fcc74520ae37e9ca83f9b" prefix=" " category="inline-code"></block></block>
+  <block id="d0172b5e6dbe2fceb2f08ced0e56539d" category="cell">호스트 iSCSI 이니시에이터</block>
+  <block id="ed8a1ec2e4653a8a1bee4442fd5006d3" category="cell"><block ref="c45f6932e9ce13c3daaf760a478ae653" prefix="" category="inline-code"></block>, iSCSI IP 주소 192.168.175.44</block>
+  <block id="ce80429f47c6d1e3421c806a1dea10e4" category="cell">이니시에이터 그룹</block>
+  <block id="cfab9d4d6db91bd15f0531aede42390b" category="cell"><block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix="" category="inline-code"></block>, 호스트 OS *Windows*</block>
+  <block id="9c51981ba402de2937c2effb7a3e45ba" category="cell">SQL Server 2025 Enterprise Edition, 기본 인스턴스<block ref="1170cb78c9cb5739ad3aa617ce7bb623" prefix=" " category="inline-code"></block></block>
+  <block id="b26e74ed6e2892c7e2bb95e414d460c6" category="cell">LUN</block>
+  <block id="bd7a9717d29c5ddcab1bc175eda1e298" category="cell">볼륨</block>
+  <block id="f2c6151d6c0d99f3666129b97e2100f5" category="cell">드라이브</block>
+  <block id="3c9e061b023f35f1f3b95e38b478ba98" category="cell"><block ref="dfb9d43d4da78ba585b1c35841ea07b8" prefix="" category="inline-code"></block></block>
+  <block id="6f04271b200271d036095307e82d9db8" category="cell"><block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix="" category="inline-code"></block></block>
+  <block id="21964423cf01ad74768512e9dc96f614" category="cell">520 GiB</block>
+  <block id="a5845bd87558b89513e1bd6668f82678" category="cell"><block ref="be292f40d00f9e2ee34c55ad060f5e81" prefix="" category="inline-code"></block> (데이터)</block>
+  <block id="bd5727defa5741c497f19f96da91e534" category="cell">사용자 데이터베이스 데이터 파일 <block ref="937f38432beb92fdba3d47780720bdf7" prefix="(" category="inline-code"></block>,<block ref="4442d437b1e8cc735e4bd36be19ff09e" prefix=" " category="inline-code"></block>) 위치:<block ref="0f029e32fc6b4e7fdd554bf75eb28e08" prefix=" " category="inline-code"></block></block>
+  <block id="5eded45a731e94eca845f77459d9b26a" category="cell"><block ref="ba0218a7315eeb67c5e430aa642fa1e9" prefix="" category="inline-code"></block></block>
+  <block id="e4c2ecbe069ae7875bbc03d9f7f92810" category="cell"><block ref="0867c941ace37c466683434857f5b04f" prefix="" category="inline-code"></block></block>
+  <block id="272fce320d1d39a47ad589ea9ebc2af6" category="cell">250 GiB</block>
+  <block id="58119c19db32b06e07b4859606d66521" category="cell"><block ref="436b49c01e3f50a85f494ad0883c3179" prefix="" category="inline-code"></block> (로그)</block>
+  <block id="fc85d29b30bfec5220744ab730dac4bd" category="cell">사용자 데이터베이스 트랜잭션 로그 파일 <block ref="cb15b9539ae0d984ff8740c68b52561c" prefix="(" category="inline-code"></block>) in<block ref="f885b03746c72a0d0b715f4a25ca0248" prefix=" " category="inline-code"></block></block>
+  <block id="5d0eba81059db9800ed610b579734bed" category="cell"><block ref="598e739fc2313e02b005aaabe5c8992c" prefix="" category="inline-code"></block></block>
+  <block id="99b050a7e332727438d0cbc74ba3adef" category="cell"><block ref="5c5d35efb3b15ce33bf245fbfe739af9" prefix="" category="inline-code"></block></block>
+  <block id="67442f351d8c8cc5def8c6836a5e8821" category="cell">150 GiB</block>
+  <block id="96e9d805bf82830af95d0513a12f739c" category="cell"><block ref="1795dbe6ce82c40261d933fcdd607daa" prefix="" category="inline-code"></block> (tempdb)</block>
+  <block id="74516d166c11d3ee1bd2f0866db7a7ab" category="cell"><block ref="1b588b633b9d33fb133f4bd39ef56974" prefix=" " category="inline-code"></block> 및 <block ref="fe65deede8968795d0d459bedf3ff10b" prefix=" " category="inline-code"></block>의 TempDB 데이터 및 로그 파일</block>
+  <block id="b9593e9e44f70b4f0b22cfe164a74504" category="cell"><block ref="8930a142402d0a07005d96970e3b89c7" prefix="" category="inline-code"></block></block>
+  <block id="63ff3c1752eb1b2c00bc6547f561e70d" category="cell"><block ref="9e009e013fb3740369b3f82ec4ab8668" prefix="" category="inline-code"></block></block>
+  <block id="0edbcf83e4e2aea2841ddd3b140c6d4b" category="cell">300 GiB</block>
+  <block id="1fa9005b373af7e68e45998461b19d32" category="cell"><block ref="bb50f32a65ec9424482f1c340bb5ebae" prefix="" category="inline-code"></block> (로그 백업)</block>
+  <block id="590d920550359f067b2316081c5bdd7d" category="cell">네이티브 SQL Server 백업 파일 <block ref="5030a024be59c18a2cddf887ae389093" prefix="(" category="inline-code"></block>,<block ref="d19cf29da96e6d78382d934869ac10da" prefix=" " category="inline-code"></block>) 내<block ref="89bb07a01ac3af3002ff5e91b65f566c" prefix=" " category="inline-code"></block></block>
+  <block id="e540195904ff4f35ec6487b5c522536f" category="admonition">볼륨당 하나의 LUN을 사용하고 데이터, 로그, TempDB 및 백업용으로 볼륨을 분리하십시오. 이렇게 하면 볼륨별로 서로 다른 QoS, 스냅샷, 효율성 및 복제 설정을 적용할 수 있습니다. 또한 지속적으로 변경되는 TempDB를 사용자 데이터베이스의 스냅샷에서 제외할 수 있습니다.</block>
+  <block id="e9d14901d30f335e9da148af5a821634" category="admonition">부하를 분산하려면 추가 보조 데이터 파일(.ndf)을 위해 다른 컨트롤러의 추가 LUN을 사용하십시오.</block>
+  <block id="4d9eb9a83cc112f439154b10077aa9f5" category="list-text">iSCSI 라이센스가 설치되어 있습니다. ONTAP One에 포함되어 있습니다.</block>
+  <block id="0ba9a7fc08e3a854e2ee5c02d1ef7878" category="list-text">SVM이 존재합니다. 이 절차에서는 기존 SVM<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block>을 사용하며, 여기에 iSCSI를 추가합니다. SAN 전용 SVM을 생성하려면 menu:Cluster[Storage VMs &gt; Add]를 사용하고 *iSCSI*를 액세스 프로토콜로 선택합니다.</block>
+  <block id="bc5543e632a0a628f1f04a750f111b77" category="list-text">iSCSI LIF용 데이터 네트워크 포트, 브로드캐스트 도메인 및 (선택적으로) VLAN이 구성됩니다. 실습 환경에서는 브로드캐스트 도메인<block ref="7656d036234fcc74520ae37e9ca83f9b" prefix=" " category="inline-code"></block>이 점보 프레임을 사용합니다.</block>
+  <block id="991287de5a2d0240670b19964b67baae" category="list-text">클러스터, 호스트 및 Active Directory 간의 시간은 NTP를 통해 동기화됩니다.</block>
+  <block id="3f5ee5831228c363e09f4d82c5a383a4" category="list-text">SQL Server 호스트에는 iSCSI 서브넷 또는 VLAN에 iSCSI 전용 NIC가 하나 이상, 가급적 두 개 이상 있어야 합니다.</block>
+  <block id="c2d2c0bce8c2dc25f226d07951d48592" category="list-text">MTU는 종단 간(호스트 NIC, 스위치, ONTAP 포트) 동일합니다. 호스트에서 <block ref="0cf8fb7227d7e7ca53a16f9b678880ab" prefix=" " category="inline-code"></block>(으)로 점보 프레임을 확인하십시오.</block>
+  <block id="697ea025ecb303d4f40d1bf3a8b4bde0" category="inline-link">NetApp 상호 운용성 매트릭스 툴(IMT)</block>
+  <block id="238448fb476c77ade1d8287fda60686f" category="list-text">Windows Server 2025에서 지원되는 버전의 NetApp Windows 호스트 유틸리티를 사용할 수 있습니다(<block ref="f93341e63c1888be05256ff042174623" category="inline-link-rx"></block> 참조).</block>
+  <block id="a2a301d28bbb1e1991f880fe558c8044" category="admonition">SMB 파일 공유와 달리 LUN은 SQL Server 서비스에 도메인 계정이 필요하지 않습니다. 기본 가상 계정 <block ref="9fa960199cf8ab6d2d53d06ba5927ce1" prefix="(" category="inline-code"></block>)을 사용할 수 있습니다. 예를 들어 파일 공유에 백업하거나 Kerberos 인증을 위해 인스턴스에 네트워크 액세스가 필요한 경우에는 여전히 도메인 계정 또는 gMSA를 사용하는 것이 좋습니다.</block>
+  <block id="13eb578cf9e88d5d1ca6f6608a9f3a92" category="section-title">1단계: 스토리지 VM에서 iSCSI를 활성화합니다</block>
+  <block id="a2b2bb7a7922501629d2aa604e85d68f" category="paragraph">SVM에 iSCSI 프로토콜을 추가하고 HA 쌍의 각 노드에 두 개의 iSCSI LIF를 생성합니다.</block>
+  <block id="667bb550ce6a0a3b69c52fae2fd77ada" category="list-text">SVM에서 iSCSI를 활성화하고 System Manager 또는 CLI를 사용하여 iSCSI LIF를 생성합니다:</block>
+  <block id="2382bbf3a3390299ac847658404a3350" category="list-text">menu:Cluster[Storage VMs]로 이동하여 SVM<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block>을 클릭하고 *설정* 탭을 엽니다. *프로토콜* 아래의 *iSCSI* 타일에 *구성되지 않음*이 표시됩니다. *iSCSI* 타일의 톱니바퀴 아이콘을 클릭합니다.</block>
+  <block id="2fef6d33c44fd20fa86dde8ee9c64dfc" category="inline-image-macro">iSCSI가 구성되지 않은 스토리지 VM a50-sql 설정,width=800</block>
+  <block id="bebe699a6406f3dd84c35be4df01abce" category="paragraph"><block ref="bebe699a6406f3dd84c35be4df01abce" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="9118db08a821619045baf6f0bfb00778" category="list-text">*iSCSI 구성* 대화 상자에서 iSCSI 네트워크 인터페이스를 생성합니다. System Manager는 노드당 두 개의 네트워크 인터페이스를 권장합니다. 다음 값을 입력하십시오.</block>
+  <block id="0c58fd1d132b7426be99190168f1392e" category="list-text">노드<block ref="ef26dd2e7a697cb984cbe8299e743638" prefix=" " category="inline-code"></block>: IP 주소<block ref="75813d382bd9a9796e98922186e0a9d4" prefix=" " category="inline-code"></block>, 서브넷 마스크<block ref="1ff1de774005f8da13f42943881c655f" prefix=" " category="inline-code"></block>, *브로드캐스트 도메인 및 포트*<block ref="7656d036234fcc74520ae37e9ca83f9b" prefix=" " category="inline-code"></block></block>
+  <block id="88306af01dc5b3137b66ae6186d96f76" category="list-text">*다음 모든 인터페이스에 동일한 서브넷 마스크, 게이트웨이 및 브로드캐스트 도메인 사용*을 선택하십시오.</block>
+  <block id="5d9e417c485e8de6b5e09eb103585762" category="list-text"><block ref="ef26dd2e7a697cb984cbe8299e743638" prefix=" " category="inline-code"></block>의 두 번째 인터페이스:<block ref="5f14ead95e52c0f6f07ade73b357d2e4" prefix=" " category="inline-code"></block></block>
+  <block id="fea869af49d1ffd34f200fa01f36e21e" category="list-text">노드<block ref="7a82c04871bdfe63921ce68284df2e0c" prefix=" " category="inline-code"></block>:<block ref="9213444a2242a1b74be28154b96f73cf" prefix=" " category="inline-code"></block> 및<block ref="2a769166ce6f44958e3f6a6a31502f72" prefix=" " category="inline-code"></block></block>
+  <block id="9f5b169bd1be41255538e399ed1c6615" category="admonition">호스트와 LIF가 동일한 서브넷에 있는 경우 게이트웨이가 필요하지 않습니다. iSCSI 트래픽을 라우팅하지 마십시오.</block>
+  <block id="06fb407d96de836921f7d9e6940351e5" category="inline-image-macro">노드당 두 개의 LIF가 있는 iSCSI 구성 대화 상자,width=800</block>
+  <block id="82bf8c80995ea8a51b26a4ac937dda49" category="paragraph"><block ref="82bf8c80995ea8a51b26a4ac937dda49" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="6a232e8d68ad0e4e19864abe8f7b64c0" category="list-text">System Manager가 iSCSI 서비스와 4개의 LIF를 생성합니다. 이제 *iSCSI* 타일에 *활성화됨*, *대상 노드 이름* <block ref="5685db22e3cffde13103d45eed5f61fc" prefix="(" category="inline-code"></block>) 및 *대상 별칭*<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block>이 표시됩니다. 대상 노드 이름을 기록해 두십시오. 호스트에서 연결을 확인하려면 이 이름이 필요합니다.</block>
+  <block id="366b99d48bc85a85509120dbd6c70fd6" category="inline-image-macro">대상 노드 이름 및 별칭으로 iSCSI 활성화됨,width=800</block>
+  <block id="3fc4a4bb3cf9c59e748e33d340f5e995" category="paragraph"><block ref="3fc4a4bb3cf9c59e748e33d340f5e995" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="88e4ca8bbb95d4efd8da21ae895646e5" category="paragraph">다음 명령은 CLI에서 동일한 구성을 생성합니다. 꺾쇠괄호 안의 자리 표시자 값을 바꾸십시오. <block ref="e9779cac0c8b72bb10932e146af544c5" prefix=" " category="inline-code"></block>의 출력에서 대상 이름을 확인하십시오. 호스트에서 연결을 확인하려면 이 이름이 필요합니다.</block>
+  <block id="aa7cf92fd2349d3d4a7a7b2e5b2a009a" category="admonition">iSCSI LIF는 테이크오버 중에 마이그레이션되지 않습니다. 고가용성은 파트너 노드의 LIF 경로를 통해 제공되므로 HA 쌍의 두 노드 모두에 항상 iSCSI LIF를 생성해야 합니다.</block>
+  <block id="993977631d33d4f24ba0108f984b9161" category="section-title">2단계: Windows 호스트 준비</block>
+  <block id="3a63e16ce8a93085d2a9a81a7d1b33fe" category="paragraph">Microsoft iSCSI 이니시에이터를 시작하고 MPIO 및 NetApp Windows 호스트 유틸리티를 설치합니다. 로컬 관리자로서 SQL Server 호스트<block ref="a510313d4617c90ad449cc16a56aeb37" prefix=" " category="inline-code"></block>에서 다음 단계를 수행합니다.</block>
+  <block id="5206ccb4233b0837f16c61458c8808f7" category="admonition">LUN에 연결하기 *전에* MPIO를 설치하고 구성하십시오. MPIO가 없으면 Windows는 각 LUN에 대한 경로마다 디스크 하나씩을 표시합니다(이 구성에서는 LUN당 4개의 디스크).</block>
+  <block id="d8d86b2edd235c1366f7d9b00d04db7c" category="list-text">[[host-initiator,iSCSI 이니시에이터 시작]] 서버 관리자 또는 PowerShell을 사용하여 iSCSI 이니시에이터를 시작하고 이니시에이터 이름을 가져옵니다:</block>
+  <block id="8627e4dc5f78e8ab96314755b3954d0f" category="open-title">서버 관리자</block>
+  <block id="8fc5c29facd6a244803abbfbe6d170c6" category="list-text">*서버 관리자*에서 menu:툴[iSCSI 이니시에이터]를 엽니다.</block>
+  <block id="01ef67e6ea5a3c8cedbfd3081645dfb9" category="inline-image-macro">iSCSI 이니시에이터가 포함된 서버 관리자 툴 메뉴, width=800</block>
+  <block id="8b7c8486405e3e712c0c752ca286da27" category="paragraph"><block ref="8b7c8486405e3e712c0c752ca286da27" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="2ba93de941dffbe2024e0477e6d4ac23" category="list-text">iSCSI 이니시에이터를 처음 시작할 때 Microsoft iSCSI 서비스가 실행 중이 아니라는 메시지가 표시됩니다. *예*를 클릭하여 서비스를 시작하고 자동으로 시작되도록 설정하십시오.</block>
+  <block id="3a69baf38a7ad56c85ee79fb6c8815ae" category="inline-image-macro">Microsoft iSCSI 서비스가 실행 중이 아님 대화 상자,width=800</block>
+  <block id="705e59f9822a002ee086590cd8a3dec7" category="paragraph"><block ref="705e59f9822a002ee086590cd8a3dec7" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="a1509e196ccf94c1b339adb044d42654" category="list-text">*iSCSI 이니시에이터 속성*에서 *구성* 탭을 엽니다. *이니시에이터 이름*<block ref="c45f6932e9ce13c3daaf760a478ae653" prefix="(" category="inline-code"></block>)을 복사합니다. ONTAP에서 이니시에이터 그룹을 생성하려면 이 정보가 필요합니다.</block>
+  <block id="fd97ed6c55c1a85cb2ee842bc8c206c4" category="inline-image-macro">이니시에이터 이름이 포함된 iSCSI 이니시에이터 속성 구성 탭, width=800</block>
+  <block id="73378d45f5a381f08a28331bae663fc1" category="paragraph"><block ref="73378d45f5a381f08a28331bae663fc1" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="3d265b4e1eeef0ddf17881fa003b18cc" category="open-title">PowerShell</block>
+  <block id="9c81f1176efff4bbbc0f7b25ae7b4c99" category="paragraph">마지막 명령은 이니시에이터 이름을 반환합니다. ONTAP에서 이니시에이터 그룹을 생성하려면 이 이름이 필요합니다.</block>
+  <block id="1da2678b3bf26f786641714b723ccf5b" category="list-text">서버 관리자 또는 PowerShell을 사용하여 멀티패스 I/O를 설치하고 iSCSI 장치에 대한 MPIO 지원을 활성화합니다:</block>
+  <block id="d1f2b24eec6073cafc495d3c94cb3af6" category="list-text">*서버 관리자*에서 menu:관리[역할 및 기능 추가]를 클릭합니다. *기능* 페이지에서 *멀티패스 I/O*를 선택하고 *설치*를 클릭합니다.</block>
+  <block id="8561bb34873415d1b1c799feee5c19c0" category="inline-image-macro">역할 및 기능 추가 마법사 기능 선택 페이지,width=800</block>
+  <block id="b334f1f68b4eb924eb73221acf2024a6" category="paragraph"><block ref="b334f1f68b4eb924eb73221acf2024a6" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="b6baa3bdd736b1dc9deb67912776a871" category="list-text">menu:툴[MPIO]를 열고 *다중 경로 검색* 탭을 선택한 다음 *iSCSI 장치 지원 추가*를 선택하고 *추가*를 클릭합니다. 메시지가 나타나면 서버를 다시 시작하십시오.</block>
+  <block id="ef6f11a17e6f96ba9f183a288f043f1b" category="paragraph">다시 시작한 후 확인란이 선택되고 회색으로 표시됩니다. 이는 MPIO가 모든 iSCSI 장치를 클레임함을 의미합니다. LUN이 연결된 후(<block ref="412410c879bd59d1d1dfee21c51ff02b" category="inline-xref-macro-rx"></block> 참조), <block ref="851121cd9e704862f2fcab49f70df9b5" prefix=" " category="inline-code"></block>은(는) PowerShell 창에 표시된 것처럼 각 NetApp LUN을 한 번씩만 나열합니다.</block>
+  <block id="84e03030b45a88761c82400cdac9ecd0" category="inline-image-macro">iSCSI 지원 및 Get-Disk 출력이 포함된 MPIO 속성 다중 경로 검색,width=800</block>
+  <block id="439549534b83da9162a8d24952dce2c0" category="paragraph"><block ref="439549534b83da9162a8d24952dce2c0" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="92970d9454ab881924faf376db41b041" category="list-text">*NetApp Windows 호스트 유틸리티*를 설치하고(<block ref="a59ffcba1df1ef37d432a025861b3faa" prefix=" " category="inline-code"></block>를 실행하여 *멀티패스 I/O 지원*을 선택), 메시지가 표시되면 서버를 다시 시작하십시오. 호스트 유틸리티는 호스트가 ONTAP 테이크오버 및 기브백을 안정적으로 넘길 수 있도록 NetApp에서 권장하는 Windows 디스크 및 iSCSI 타임아웃과 MPIO 매개변수를 설정합니다.</block>
+  <block id="b6ba7723ebf13e7977779703fad5dbeb" category="section-title">3단계: 이니시에이터 그룹 생성</block>
+  <block id="32a17de27fd94717be0004c45a589e71" category="paragraph">이니시에이터 그룹(igroup)은 LUN에 액세스할 수 있는 호스트를 정의합니다. 호스트당(또는 FCI의 경우 클러스터당) 하나의 igroup을 생성합니다.</block>
+  <block id="7ccf1785212432b7610e13775b4097b1" category="list-text">System Manager 또는 CLI를 사용하여 이니시에이터 그룹을 생성합니다:</block>
+  <block id="4276f9506beaad4c84d808087e17b4c4" category="list-text">System Manager에서 메뉴:Hosts[SAN initiator groups]로 이동하고 *+ Add*를 클릭합니다.</block>
+  <block id="313897e3bd2795d0eb804ec770303d9a" category="inline-image-macro">SAN 이니시에이터 그룹 페이지,width=800</block>
+  <block id="132251e398f2e4e1868b1c2f5399398f" category="paragraph"><block ref="132251e398f2e4e1868b1c2f5399398f" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="3edd4d632ecc87c1a375d2dde0417521" category="list-text">*이니시에이터 그룹 추가* 대화 상자에 다음을 입력합니다.</block>
+  <block id="95f82b776929232ed124c10ed29ad1b2" category="list-text">*이름*:<block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix=" " category="inline-code"></block></block>
+  <block id="2818c8d2c50006c8d32268b1fa738faa" category="list-text">*호스트 운영 체제*: *Windows*</block>
+  <block id="93c094727546b96e775d0ebeafa78e71" category="list-text">*스토리지 VM*:<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block></block>
+  <block id="7c37968a9bc4a7441ef6c91a5257cb1f" category="list-text">*이니시에이터 그룹 구성원*: *호스트 이니시에이터*</block>
+  <block id="2b01c2d1489d6a72bca600ff37cf44c1" category="list-text">*iSCSI 이니시에이터* &gt; *새 이니시에이터*: 호스트의 이니시에이터 이름을 붙여넣습니다,<block ref="c45f6932e9ce13c3daaf760a478ae653" prefix=" " category="inline-code"></block></block>
+  <block id="e16a0ba756511a1059e58ad81f220178" category="inline-image-macro">"이름, 운영 체제 및 IQN이 포함된 이니시에이터 그룹 추가 대화 상자",width=800</block>
+  <block id="d7774dfdd9358bf65cff9c86e0445b01" category="paragraph"><block ref="d7774dfdd9358bf65cff9c86e0445b01" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="e326716c66a8bdbaa21e0f23c9782170" category="list-text">이니시에이터가 목록에 추가됩니다. *저장*을 클릭합니다.</block>
+  <block id="62083b33e0c831c9c3edd59539594320" category="inline-image-macro">이니시에이터 그룹에 추가된 이니시에이터 IQN,width=800</block>
+  <block id="a096170091499565db13a88366bd8dcc" category="paragraph"><block ref="a096170091499565db13a88366bd8dcc" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="91db950d6369cd5828fae8c74c94e410" category="list-text">이니시에이터 그룹<block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix=" " category="inline-code"></block>이 생성되었습니다. 첫 번째 LUN이 매핑될 때까지 연결 상태는 *매핑된 LUN 없음*입니다.</block>
+  <block id="8e2894e5edb594d0616653a3b13a776a" category="inline-image-macro">매핑된 LUN이 없는 이니시에이터 그룹 sql-iscsi-1, width=800</block>
+  <block id="b727b19b75f0e33a80769d1488696c6f" category="paragraph"><block ref="b727b19b75f0e33a80769d1488696c6f" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="2eaa85d0843a831b5a63a791816faa23" category="admonition">System Manager는 프로토콜이 *혼합(iSCSI 및 FC)*인 igroup을 생성합니다. 이는 iSCSI에서 작동합니다. 표준에 iSCSI 전용 igroup이 필요한 경우, *ONTAP CLI* 탭에 표시된 대로 CLI<block ref="32a950ef4be9a95a580310510653dc5b" prefix="(" category="inline-code"></block>)를 사용하여 생성하십시오.</block>
+  <block id="977d03d3d4cdd338da5eec2d1640c5dc" category="section-title">4단계: SQL Server LUN 생성</block>
+  <block id="4c4e8dbcd406e4cce0503732ad6a21a4" category="paragraph">파일 형식별로 LUN을 하나씩 생성합니다. System Manager는 *이름 접두사*로 명명된 FlexVol 볼륨과 접미사<block ref="5d98ec0427152056397e9e35f357be87" prefix=" " category="inline-code"></block>가 포함된 LUN을 생성하고, 해당 LUN을 선택한 igroup에 매핑합니다.</block>
+  <block id="fa8e30f334254e1973a62ab8e429d09c" category="list-text">시스템 관리자 또는 CLI를 사용하여 데이터, 로그, TempDB 및 로그 백업 LUN을 생성합니다:</block>
+  <block id="0146ea62d007eb622fcf0e7fca9f0690" category="list-text">System Manager에서 *스토리지*를 확장하고 *LUN*을 클릭합니다.</block>
+  <block id="0d16c2ed323c6ce9e30890fdd3921e8b" category="inline-image-macro">LUN이 선택된 스토리지 메뉴, width=800</block>
+  <block id="5501902976b97255e9327270122fbfa5" category="paragraph"><block ref="5501902976b97255e9327270122fbfa5" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="eaf1d0fff54d9f4ff01fe4a23b86efe2" category="list-text">*+ 추가*를 클릭하고 데이터 LUN에 대해 다음 값을 입력하십시오:</block>
+  <block id="3bdbd7e1035827c0b9de2b938db85b60" category="list-text">*이름 접두사*:<block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix=" " category="inline-code"></block></block>
+  <block id="7be94383929ff899ecb89d4a05a56481" category="list-text">*LUN 개수*:<block ref="c4ca4238a0b923820dcc509a6f75849b" prefix=" " category="inline-code"></block>, *LUN당 용량*:<block ref="21964423cf01ad74768512e9dc96f614" prefix=" " category="inline-code"></block></block>
+  <block id="8a3027b6f6e9e025d914a0ee2ebbc522" category="list-text">*보호*: *스냅샷 활성화(로컬)* 및 *SnapMirror 활성화(로컬 또는 원격)*를 선택 해제된 상태로 두십시오. 애플리케이션 정합성 보장 백업은 NetApp Console 백업 및 복구를 통해 생성됩니다(<block ref="34bef8ca9fd57759484622d96b741096" category="inline-link-macro-rx"></block> 참조).</block>
+  <block id="26e98775c65438387498c4ea3368504e" category="list-text">*호스트 정보*: *호스트 운영 체제* *Windows*, *LUN 형식* *Windows 2008* (이 형식은 Windows Server 2008 이후의 모든 Windows 버전(Windows Server 2025 포함)에서 올바릅니다.)</block>
+  <block id="e860af6d627a903d7b33960523249c90" category="list-text">*호스트 매핑*: *기존 이니시에이터 그룹*을 선택합니다<block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix=" " category="inline-code"></block></block>
+  <block id="042d40dd6853205b40a056da68325710" category="admonition">볼륨을 생성할 노드를 제어하려면 *수동 배치*를 선택하고 로컬 계층을 선택하십시오. 데이터 및 백업 볼륨은 노드 1에, 로그 및 TempDB 볼륨은 노드 2에 배치하십시오.</block>
+  <block id="914329b999481ad7b08aa2bf37f702e1" category="inline-image-macro">520 GiB 데이터 LUN에 대한 LUN 추가 대화 상자,width=600</block>
+  <block id="2c68688e59f7382b5dd523981e19d63c" category="paragraph"><block ref="2c68688e59f7382b5dd523981e19d63c" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="e9642e52d934f4300758618b535a5be8" category="list-text">*LUN이 추가되었습니다* 메시지가 표시되고, LUN<block ref="dfb9d43d4da78ba585b1c35841ea07b8" prefix=" " category="inline-code"></block>이 볼륨<block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix=" " category="inline-code"></block>에 나열됩니다.</block>
+  <block id="267c6723ee042a8b1b34c93be3986318" category="list-text"><block ref="aaa1c396c737a3dbcedf45725a6e0bc3" category="inline-xref-macro-rx"></block>에 나열된 이름과 크기로 로그, TempDB 및 로그 백업 LUN에 대해 이 단계를 반복하십시오.</block>
+  <block id="2a9a25958c857da79139ec94a0d4417d" category="list-text">이제 4개의 LUN이 모두 SVM<block ref="0f9995c41e025956b46b86899a2f358e" prefix=" " category="inline-code"></block>에 생성되어 igroup<block ref="4dda8ef4b14f74fc75e18981159a99b7" prefix=" " category="inline-code"></block>에 매핑되었습니다.</block>
+  <block id="b3e158ca1733b2e810639a1920b4b5f7" category="inline-image-macro">나열된 4개의 SQL Server LUN 모두,width=800</block>
+  <block id="253dcec974492a65c96ea80b1b6c7271" category="paragraph"><block ref="253dcec974492a65c96ea80b1b6c7271" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="e70201b320b4c25ff9b2ad07e6ade29a" category="paragraph">다음 명령은 데이터 볼륨과 LUN을 생성하고 LUN을 igroup에 매핑합니다. 로그, TempDB 및 로그 백업 LUN에 대해 <block ref="4784dd0ffa42c3d1b43b0afd079dfc17" prefix=" " category="inline-code"></block>, <block ref="7c192459e62b85875b59970db3d2b9ee" prefix=" " category="inline-code"></block> 및 <block ref="ea8d49f93749ae57e0c20950605c6607" prefix=" " category="inline-code"></block>을 반복합니다(<block ref="9572c2b0fedc5321a3805eee5d37ef9e" category="inline-xref-macro-rx"></block> 참조).</block>
+  <block id="d5d7739cc17c5637754e6c2799b0b32b" category="section-title">5단계: 볼륨 및 LUN 설정을 검토합니다</block>
+  <block id="98b9862ef7aa95c856275221075ccfe0" category="paragraph">네 개의 볼륨에 대한 공간 및 스냅샷 설정을 검토하십시오. System Manager는 적절한 기본값을 사용하며, SQL Server LUN의 경우 다음과 같은 설정을 권장합니다.</block>
+  <block id="fffcb4d1e12c96b2f571f77ad25878b8" category="cell">이유</block>
+  <block id="9bdb8096003c40d81ca110c8ba362cac" category="cell">공간 보장(볼륨)</block>
+  <block id="748f09a3f072b66dc09fa7a4be68c2e4" category="cell"><block ref="334c4a4c42fdb79d7ebc3e73b517e6f8" prefix="" category="inline-code"></block> (씬)</block>
+  <block id="e87b7d74d54c9a32a42dcb250110af60" category="cell">용량은 데이터가 기록될 때만 소모됩니다.</block>
+  <block id="ace72ec54e17777d27eb8bdb9d57e782" category="cell">LUN 공간 예약</block>
+  <block id="c1aabca08afb7e9a5d4bf352383d3da2" category="cell"><block ref="075ae3d2fc31640504f814f60e5ef713" prefix="" category="inline-code"></block> (씬)</block>
+  <block id="e3afff7a8bb5f3e79d85133e022557a7" category="cell">씬 볼륨의 씬 LUN.</block>
+  <block id="514aa7792a71ab4ab677eb2385131aae" category="cell">LUN 공간 할당</block>
+  <block id="84e11a15fc9335dfc7156e7044e279a2" category="cell"><block ref="a10311459433adf322f2590a4987c423" prefix="" category="inline-code"></block></block>
+  <block id="5bb63defe497df42965bb6a6ddb70081" category="cell">SCSI UNMAP을 활성화하여 NTFS에서 해제된 공간이 ONTAP으로 반환되도록 하고, 볼륨의 공간이 부족할 때 호스트가 올바르게 대응할 수 있도록 합니다.</block>
+  <block id="56d058c51fcd79545706c62569ba5a19" category="cell"><block ref="334c4a4c42fdb79d7ebc3e73b517e6f8" prefix="" category="inline-code"></block></block>
+  <block id="c5f19d3a93aac338e12d55d110e3c78c" category="cell">애플리케이션 정합성이 보장되지 않는 스냅샷은 SQL Server에 사용할 수 없습니다. 백업은 NetApp Console 백업 및 복구를 통해 생성됩니다.</block>
+  <block id="5755a6275c3ecd99e8159efc58a8ff6c" category="cell">스냅샷 예약</block>
+  <block id="e015722b1e92fc649291988acaa47bbe" category="cell"><block ref="cfcd208495d565ef66e7dff9f98764da" prefix="" category="inline-code"></block> %</block>
+  <block id="c36e5bb07721fde53952fde123f966dc" category="cell">스냅샷 공간은 대신 볼륨 자동 크기 조정으로 모니터링됩니다.</block>
+  <block id="5a5328bccf5dc4ccfc5837669d9fc26b" category="cell"><block ref="4d200fce73a8e1cc965cfc2c43343824" prefix="" category="inline-code"></block>, 볼륨 크기의 최대 약 130%</block>
+  <block id="908a7c85f9987757486aba3a856b9198" category="cell">스냅샷이 공간을 차지할 때 LUN이 오프라인 상태가 되는 것을 방지합니다.</block>
+  <block id="b085b43df3dadd18346f183cffb8749e" category="cell">활성화됨(AFF에서 기본값)</block>
+  <block id="ac02c2903a9b3cfa5bcb5ddce727055c" category="cell">인라인 중복 제거, 압축 및 컴팩션은 SQL Server 성능에 측정 가능한 영향을 미치지 않습니다.</block>
+  <block id="51dfe984b88555c53c32bb0d4fad66b2" category="paragraph">다음 명령을 사용하여 설정을 적용하고 확인하십시오(<block ref="81dbc9c14af7a55489eeda0dfbba0f19" prefix=" " category="inline-code"></block>에 대해 표시됨):</block>
+  <block id="fc51cb96ce82f16f6b244c18a15a7dd3" category="admonition">기존 LUN에서 <block ref="82373a2016779f9c20fdc0d8b48101a7" prefix=" " category="inline-code"></block>을(를) 변경하려면 LUN이 오프라인 상태여야 합니다. 생성 시 또는 호스트가 LUN에 연결하기 전에 설정하십시오.</block>
+  <block id="ba9cbde42f610b53ac97101848c0523d" category="section-title">6단계: 호스트를 iSCSI 타겟에 연결</block>
+  <block id="efb7cc29f10fb359385083a2933dbace" category="paragraph">각 LUN에 4개의 경로가 있도록 4개의 iSCSI LIF 각각에 하나의 iSCSI 세션을 사용하여 Windows 호스트를 SVM에 연결합니다.</block>
+  <block id="a96762815dcce3b14548d06a620c2276" category="list-text">대상 포털을 탐색하고 iSCSI 이니시에이터 또는 PowerShell을 사용하여 iSCSI 세션을 연결합니다:</block>
+  <block id="ea1672c458249f4cd963963cb02f7aef" category="open-title">iSCSI 이니시에이터</block>
+  <block id="68c2a568c2daedcc7c94d9aa666ca8fd" category="list-text">*iSCSI 이니시에이터*(menu:서버 관리자[툴 &gt; iSCSI 이니시에이터])를 열고 *탐색* 탭을 선택한 다음 *포털 탐색...*을 클릭합니다.</block>
+  <block id="2841385dc68a7cd758838fe002fcbd1d" category="inline-image-macro">iSCSI 이니시에이터 속성 탐색 탭,width=500</block>
+  <block id="3674f381ab5bd3805e4761d29d2183b0" category="paragraph"><block ref="3674f381ab5bd3805e4761d29d2183b0" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="26eec80cd6f2b1dc9fa4670e27eeb7ca" category="list-text">SVM의 iSCSI LIF 중 하나의 IP 주소(실습 환경에서는 <block ref="5f14ead95e52c0f6f07ade73b357d2e4" prefix=" " category="inline-code"></block>)와 포트<block ref="d54ce9de9df77c579775a7b6b1a4bdc0" prefix=" " category="inline-code"></block>를 입력하고 *확인*을 클릭합니다. ONTAP은 SVM의 모든 iSCSI LIF를 이니시에이터로 반환하므로(SendTargets 탐색), 포털 하나만으로 충분합니다.</block>
+  <block id="8ba8c462de7e93067c30df6b5776a3dc" category="inline-image-macro">IP 192.168.175.135 및 포트 3260이 있는 대상 포털 탐색 대화 상자,width=500</block>
+  <block id="ee5715d0be1c7ea7ad76b8473c2cf6fc" category="paragraph"><block ref="ee5715d0be1c7ea7ad76b8473c2cf6fc" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="5ab337b4a7edfb5302514967d3f0af7b" category="list-text">해당 포털은 *타겟 포털* 목록에 있습니다.</block>
+  <block id="fa944da48e49396af23a6e7edf062aa6" category="inline-image-macro">타겟 포털 192.168.175.135 포트 3260 나열됨,width=500</block>
+  <block id="04cb0709470efe48e8abf4c55bc9024f" category="paragraph"><block ref="04cb0709470efe48e8abf4c55bc9024f" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="06569c7fcc64f0ce65fdc4030cd209ed" category="list-text">*타겟* 탭을 선택합니다. 타겟<block ref="5685db22e3cffde13103d45eed5f61fc" prefix=" " category="inline-code"></block>이 *비활성* 상태로 표시됩니다. 해당 타겟을 선택하고 *연결*을 클릭합니다.</block>
+  <block id="51609f9b77f5005c7b39b17e93f40fd9" category="inline-image-macro">NetApp 타겟이 비활성화된 타겟 탭, width=500</block>
+  <block id="cd5c7e37afc11bf760398eb2a918afef" category="paragraph"><block ref="cd5c7e37afc11bf760398eb2a918afef" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="26318340a27bbe816e10b25f14725c7c" category="list-text">*대상에 연결* 대화 상자에서 다음을 선택합니다.</block>
+  <block id="227862b0384853e7d153ea99e43cda21" category="list-text">*이 연결을 즐겨찾는 대상 목록에 추가*하여 재시작 후 세션이 자동으로 복원되도록 하십시오.</block>
+  <block id="679556c7bf1af97cc17d50b17e4159fc" category="list-text">*다중 경로 활성화*</block>
+  <block id="bdcc1dfbd229594cd73fe11e319914d9" category="paragraph">*고급...*을 클릭합니다.</block>
+  <block id="9ee3f8c902f2bac4231ee210385d1659" category="inline-image-macro">즐겨찾기 및 다중 경로가 선택된 타겟 연결 대화 상자, width=500</block>
+  <block id="14762e1c1ffabbe5a17a55c2880b42aa" category="paragraph"><block ref="14762e1c1ffabbe5a17a55c2880b42aa" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="c47a6df3360ccc4b51fca99ad1296ef4" category="list-text">*고급 설정*에서 다음을 선택합니다:</block>
+  <block id="927da3a40b4366c6c66e9709d034a03e" category="list-text">*로컬 어댑터*: *Microsoft iSCSI 이니시에이터*</block>
+  <block id="29708c0011e1e68fcaf3e0a68abd112c" category="list-text">*이니시에이터 IP*: 호스트의 iSCSI IP 주소 <block ref="be19c5ce9af858953fb193cc75f9b6f5" prefix="(" category="inline-code"></block>)</block>
+  <block id="333a363745acce89634a8d03526801f1" category="list-text">*타겟 포털 IP*: 첫 번째 iSCSI LIF(실험실 환경<block ref="e381fb75da9804ec283db45ed45ab03f" prefix=" " category="inline-code"></block>)</block>
+  <block id="771e250ae8e4cdaed772abaa9db73894" category="paragraph">보안 정책에서 요구하지 않는 한 CHAP를 해제된 상태로 두십시오. CHAP가 필요한 경우, 먼저 <block ref="984ee77a1967f88e87a8f24544e228a5" prefix=" " category="inline-code"></block>을(를) 사용하여 ONTAP SVM에서 호스트의 이니시에이터 IQN에 대해 일치하는 자격 증명을 구성한 다음, Windows iSCSI 이니시에이터에 해당 자격 증명을 입력하십시오. *확인*을 두 번 클릭하십시오.</block>
+  <block id="ee342d316e3b1b2edb9ff8c9d7a12b8d" category="inline-image-macro">이니시에이터 IP 및 타겟 포털 IP를 사용한 고급 설정, width=500</block>
+  <block id="93628d9196a352bfe2604640661ee7e6" category="paragraph"><block ref="93628d9196a352bfe2604640661ee7e6" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="98f4dc9d24a8de72c6fad41e3b4fda96" category="list-text">타겟의 상태가 *연결됨*으로 변경됩니다.</block>
+  <block id="72b286de3120e8e1cbb025024121822b" category="inline-image-macro">NetApp 타겟이 연결된 타겟 탭, width=500</block>
+  <block id="3903175caeba065fefe1fa6b83423e70" category="paragraph"><block ref="3903175caeba065fefe1fa6b83423e70" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="1bf27a4c0fb2d661a3973b9d78c579f0" category="list-text">하나의 세션은 하나의 경로만 사용합니다. 나머지 iSCSI LIF 각각에 대해 세션을 하나씩 추가합니다: *타겟* 탭에서 타겟을 선택하고 *속성...*을 클릭합니다. *세션* 탭에서 *세션 추가*를 클릭합니다.</block>
+  <block id="95799bc551578336e8a608eb28392b2f" category="list-text">*타겟에 연결* 대화 상자에서 *다중 경로 사용* 및 *이 연결을 즐겨찾는 타겟 목록에 추가*를 선택하고 *고급...*을 클릭한 다음 동일한 *이니시에이터 IP*와 다음 *타겟 포털 IP*를 선택하고 *확인*을 두 번 클릭합니다.</block>
+  <block id="1a1692ac91650b85a23ef5b76b684450" category="admonition">각 세션에 대해 *다중 경로 사용*이 선택되어 있는지 확인하십시오. 스크린샷은 확인란을 선택하기 전의 대화 상자를 보여줍니다.</block>
+  <block id="30b1e91638d6fd282c92124045cb9e59" category="inline-image-macro">세션 추가 대화 상자가 포함된 대상 속성 세션 탭,width=500</block>
+  <block id="f9a0a4def952d5c36df07032f6bcb13e" category="paragraph"><block ref="f9a0a4def952d5c36df07032f6bcb13e" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="8d4c561ee3458ce2f45727a2798ca8f3" category="list-text">*세션* 탭에 각 타겟 포털(192.168.175.134, .135, .136, .137)에 대해 하나씩, 총 4개의 세션이 표시될 때까지 이전 단계를 반복합니다. 호스트에 iSCSI NIC가 두 개 있는 경우 두 이니시에이터 IP 주소 모두에서 세션을 생성합니다.</block>
+  <block id="65faa3cd3d3e43250063339839606280" category="paragraph">다음 명령은 타겟 포털을 탐색하고 각 iSCSI LIF에 대해 멀티패스가 활성화된 영구 세션을 하나씩 생성합니다.</block>
+  <block id="0464450ce490ae156da668598e7d245f" category="list-text">[[connect-verify,경로 검증]]각 LUN이 MPIO에 클레임되고 4개의 경로(그 중 2개는 *활성/최적화*)가 있는지 확인합니다:</block>
+  <block id="3a0bda0d86c8fc80753ff1bbc101c04f" category="paragraph">로드 밸런싱 정책은 *RRWS*(부분집합을 사용한 라운드 로빈)입니다.</block>
+  <block id="48146db7a0491e684e17923b49df657d" category="list-text">ONTAP에서 세션 및 LUN 경로를 확인하십시오:</block>
+  <block id="837900cefa77dfee5d94332e755cdcfd" category="section-title">7단계: 디스크 초기화 및 포맷</block>
+  <block id="4bf6b1c3a9908c47b801f89d1d0a11a3" category="paragraph">Windows에서 4개의 NetApp LUN을 온라인 상태로 전환하고 초기화한 다음, 각 LUN에 드라이브 문자가 할당된 NTFS 볼륨을 하나씩 생성합니다.</block>
+  <block id="e5f08ee0138127fc8bcbbe06b92ef78b" category="list-text">디스크 관리 또는 PowerShell을 사용하여 디스크를 초기화하고 포맷합니다:</block>
+  <block id="0abb6bbc6875b644d4ee2dd40561a3d0" category="open-title">디스크 관리</block>
+  <block id="13a29d5d679866abfe84a7b3f58eb25b" category="list-text">menu:서버 관리자[툴 &gt; 컴퓨터 관리]를 열고 menu:저장소[디스크 관리]를 선택합니다. 4개의 NetApp LUN이 *디스크 1*부터 *디스크 4*(520, 250, 150 및 300GB)로 표시됩니다. Windows Server의 기본 SAN 정책에 따라 새 공유 디스크는 오프라인 상태로 유지되므로 해당 디스크들은 *오프라인*입니다.</block>
+  <block id="68a8b22ac316f7c48eff7e140c5c8bbc" category="inline-image-macro">4개의 오프라인 NetApp 디스크를 사용한 디스크 관리, width=800</block>
+  <block id="704d639d93901cf11878936a672a9c3f" category="paragraph"><block ref="704d639d93901cf11878936a672a9c3f" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="097567493fe9c34d71eb3f2a36774c7f" category="list-text">새 디스크를 각각 마우스 오른쪽 버튼으로 클릭하고 *온라인*을 선택합니다. 그런 다음 디스크 중 하나를 마우스 오른쪽 버튼으로 클릭하고 *디스크 초기화*를 선택합니다.</block>
+  <block id="8905d5acb860d83064e8bea1dabad6c2" category="inline-image-macro">디스크 초기화가 포함된 디스크 관리 컨텍스트 메뉴, width=800</block>
+  <block id="aa54e055bb9a77de958416bc095a7ff4" category="paragraph"><block ref="aa54e055bb9a77de958416bc095a7ff4" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="175f5c8ca3d0640fdb43e5e5f81e66c2" category="list-text">네 개의 디스크를 모두 선택하고 *GPT(GUID 파티션 테이블)*를 선택한 다음 *확인*을 클릭합니다.</block>
+  <block id="59196e9f5b06908277dc79946ab0bce6" category="inline-image-macro">디스크 4개 및 GPT가 있는 디스크 초기화 대화 상자, width=800</block>
+  <block id="73ba2af8a1e880e66f50c06e2e04b7e8" category="paragraph"><block ref="73ba2af8a1e880e66f50c06e2e04b7e8" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="080bb176422913982860f9ec19d3427f" category="list-text">*디스크 1*(520GB)의 할당되지 않은 공간을 마우스 오른쪽 버튼으로 클릭하고 *새 단순 볼륨...*을 선택합니다.</block>
+  <block id="7761733203915933e99cecd926920435" category="inline-image-macro">디스크 1의 컨텍스트 메뉴 새 단순 볼륨,width=800</block>
+  <block id="b2763ca0254c89c514881d336803531c" category="paragraph"><block ref="b2763ca0254c89c514881d336803531c" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="2ebda246de4f07e8ea978c69fb633759" category="list-text">*새 단순 볼륨 마법사*가 시작됩니다. *다음*을 클릭하고 최대 볼륨 크기를 수락하십시오.</block>
+  <block id="e6f48b11ff91511fd105bf21a2eeb20a" category="inline-image-macro">새 단순 볼륨 마법사 시작 페이지,width=800</block>
+  <block id="6d5f5c225bb8d65c3a10190c30547775" category="paragraph"><block ref="6d5f5c225bb8d65c3a10190c30547775" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="19a38e9d40e275030624282865f8b74e" category="list-text">*다음 드라이브 문자 할당*<block ref="3a3ea00cfc35332cedf6e5e9a32e94da" prefix=" " category="inline-code"></block>을 선택하고 *다음*을 클릭합니다.</block>
+  <block id="bc6922e092dc7dd482c8ecbb663cedd2" category="admonition">데이터베이스가 많은 인스턴스의 경우 드라이브 문자를 사용하는 대신 비어 있는 NTFS 폴더(마운트 지점)에 LUN을 마운트할 수 있습니다.</block>
+  <block id="1be37ea2b112112337b321a05687747d" category="inline-image-macro">드라이브 문자 E를 사용하여 드라이브 문자 또는 경로 할당, width=800</block>
+  <block id="3625abc78f88827ce6616c0af4cfe3ad" category="paragraph"><block ref="3625abc78f88827ce6616c0af4cfe3ad" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="f474bfaa9a944c61ce1b3db68a1c651c" category="list-text">*다음 설정으로 이 볼륨을 포맷합니다*를 선택하십시오.</block>
+  <block id="268a23c1cc464cc0a39f0655affe22a4" category="list-text">*파일 시스템*: *NTFS*</block>
+  <block id="ef6cda397f741e7efe0e333e33c0e34b" category="list-text">*할당 단위 크기*: *64K* (SQL Server 데이터, 로그 및 TempDB 볼륨에 권장됩니다. 실습 스크린샷에는 *기본값*이 표시되어 있습니다.)</block>
+  <block id="a903ec3fb396db21d1ac15e3ef3bdaca" category="list-text">*볼륨 라벨*:<block ref="8d777f385d3dfec8815d20f7496026dc" prefix=" " category="inline-code"></block></block>
+  <block id="b5e3edd46fef6c283f0c0c037ca2e427" category="list-text">*빠른 포맷 실행*: 선택됨</block>
+  <block id="5a378b18f7bf0c4cabc6c655cd2f535e" category="paragraph">*다음*을 클릭합니다.</block>
+  <block id="7ee90e98d53fd566d8a118387fcf8b92" category="inline-image-macro">NTFS 및 볼륨 레이블 data로 파티션 포맷,width=800</block>
+  <block id="f68078c8fa4a4c20a19d341f15ed1566" category="paragraph"><block ref="f68078c8fa4a4c20a19d341f15ed1566" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="bf1f3a4a60c760467633f1d23cafa259" category="list-text">설정을 검토하고 *완료*를 클릭하십시오.</block>
+  <block id="7512cf9d2f0fa22af621d5af6b56279e" category="inline-image-macro">새 단순 볼륨 마법사 완료,width=800</block>
+  <block id="ae906ce232dfa01a40fe762e23eb1577" category="paragraph"><block ref="ae906ce232dfa01a40fe762e23eb1577" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="ee6348766b36c3689ce1a38a73a49d93" category="list-text">나머지 디스크에 대해서도 앞의 다섯 단계를 반복하십시오:</block>
+  <block id="380dbc8d9d2c8a17f6ebb0b2c62d3e85" category="cell">디스크</block>
+  <block id="2fd93710037364874693d0231e709aea" category="cell">드라이브 레터</block>
+  <block id="4f0dbbd4761dc25e461d953cdd839278" category="cell">볼륨 라벨</block>
+  <block id="55b609b2658e52d05fb8463e5c8e86be" category="cell">디스크 1</block>
+  <block id="41ba1d5e164f25e65b2b1a381c5e36ed" category="cell">520 GB</block>
+  <block id="d9bb6efd9221564f774a5617ee35650a" category="cell"><block ref="be292f40d00f9e2ee34c55ad060f5e81" prefix="" category="inline-code"></block></block>
+  <block id="3ae5c21d96b7127a320f42ba6a2550e0" category="cell"><block ref="8d777f385d3dfec8815d20f7496026dc" prefix="" category="inline-code"></block></block>
+  <block id="1379e03f20ca5a7b0cd120793e13cd65" category="cell">디스크 2</block>
+  <block id="9e1073c39a940a0a015423c9150e1fbe" category="cell">250 GB</block>
+  <block id="6b0a01c62346f1608fb9c267b232f40c" category="cell"><block ref="436b49c01e3f50a85f494ad0883c3179" prefix="" category="inline-code"></block></block>
+  <block id="5c74215afd7892d2a4b1f676c3f9af1e" category="cell"><block ref="dc1d71bbb5c4d2a5e936db79ef10c19f" prefix="" category="inline-code"></block></block>
+  <block id="6e1801d4db6bd5c6fc51f058574deee4" category="cell">디스크 3</block>
+  <block id="cd1fdb6c973c0fb43ff64828431fcaae" category="cell">150 GB</block>
+  <block id="c34441facdaedfb50c423d353bf83abb" category="cell"><block ref="1795dbe6ce82c40261d933fcdd607daa" prefix="" category="inline-code"></block></block>
+  <block id="a29d0dbc171e4b73489a216492fac593" category="cell"><block ref="51cc3f29f55624d2bdac8721d4e4c249" prefix="" category="inline-code"></block></block>
+  <block id="b7a95d021758ea6fd1d723f47571d23d" category="cell">디스크 4</block>
+  <block id="0f67dbac157f4257347a568b21028cdf" category="cell">300 GB</block>
+  <block id="5ea218a2ad697a3d03499241a56b438b" category="cell"><block ref="bb50f32a65ec9424482f1c340bb5ebae" prefix="" category="inline-code"></block></block>
+  <block id="3e6fb6e7814973a4a9c6dc9b2b9bed35" category="cell"><block ref="d2ea3ff9ca2517b606a8d29cf2f7a61b" prefix="" category="inline-code"></block></block>
+  <block id="35a796100c7fc025087ad1b5b7d08d40" category="list-text">SQL Server용 폴더를 생성합니다:<block ref="0f029e32fc6b4e7fdd554bf75eb28e08" prefix=" " category="inline-code"></block>,<block ref="f885b03746c72a0d0b715f4a25ca0248" prefix=" " category="inline-code"></block>,<block ref="1b588b633b9d33fb133f4bd39ef56974" prefix=" " category="inline-code"></block>,<block ref="fe65deede8968795d0d459bedf3ff10b" prefix=" " category="inline-code"></block> 및 <block ref="89bb07a01ac3af3002ff5e91b65f566c" prefix=" " category="inline-code"></block>.</block>
+  <block id="628c983b0a5d58c02a910de70998bfc5" category="paragraph">다음 명령은 NetApp 디스크를 온라인 상태로 만들고, GPT로 초기화하고, 각 디스크에 64K 할당 단위 크기의 NTFS 볼륨을 하나씩 생성 및 포맷하고, SQL Server용 폴더를 생성합니다.</block>
+  <block id="37699f761e3de3a37f6fa57f3ba05037" category="admonition">이 LUN이 시스템에 연결된 유일한 RAW LUN인 경우에만 이 명령을 실행하십시오. 시스템에 다른 RAW LUN이 연결되어 있는 경우, 폴더를 수동으로 생성하고 볼륨을 포맷해야 합니다.</block>
+  <block id="0f441f85b9c0c2695efe97e50677fdc3" category="admonition">데이터베이스 파일을 드라이브의 루트에 직접 배치하지 마십시오. 폴더를 사용하면 권한 설정, 마운트 지점 지정 및 향후 마이그레이션이 더 쉬워집니다.</block>
+  <block id="6ed29c3d6d62c238b5ae900a0cec6a59" category="section-title">8단계: SQL Server 2025 설치</block>
+  <block id="37ad6ae05841b75c0ca8a8f114c7bba3" category="paragraph">설치 마법사를 사용하여 Windows Server 호스트에 SQL Server 2025를 설치합니다. 바이너리와 시스템 데이터베이스를 로컬 디스크에 설치하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 백업 위치를 NetApp LUN의 폴더로 지정합니다.</block>
+  <block id="909659a059a894f9ec5421874fa20cc9" category="inline-image-macro">파일 탐색기의 SQL Server 2025 설치 미디어,width=800</block>
+  <block id="7b7dab139b56c2fb4182dda612b82231" category="paragraph"><block ref="7b7dab139b56c2fb4182dda612b82231" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="1a8fa30fe27f05c65703f5bc3a2d94a3" category="inline-image-macro">SQL Server 설치 센터,width=800</block>
+  <block id="2043b35440a9f4cfd3533885f2976a97" category="paragraph"><block ref="2043b35440a9f4cfd3533885f2976a97" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="1e89cb1bf05fdf418334323c2054644d" category="list-text">*에디션* 페이지에서 *제품 키 입력*을 선택하고 제품 키를 입력하거나 무료 에디션(평가판, 엔터프라이즈 개발자, 스탠다드 개발자 또는 익스프레스)을 선택합니다. 자신에게 해당하는 라이선스 유형(실습 환경에서는 *Software Assurance 또는 SQL 소프트웨어 구독이 포함된 SQL Server 라이선스가 있습니다*)을 선택하고 *다음*을 클릭합니다.</block>
+  <block id="a14909aef564883499133a7e71b780c0" category="inline-image-macro">에디션 페이지(제품 키 삭제됨),width=800</block>
+  <block id="8012ee70b68bb45bf7ade52606e590e8" category="paragraph"><block ref="8012ee70b68bb45bf7ade52606e590e8" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="f72c96d35ca1a9deb0d267cf63cc2b67" category="inline-image-macro">라이선스 약관 페이지,width=800</block>
+  <block id="7b826cf520b8753783cec213f5f67860" category="paragraph"><block ref="7b826cf520b8753783cec213f5f67860" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="9fb63771d8541833114c1c51cfc6fd55" category="inline-image-macro">Microsoft Update 페이지, width=800</block>
+  <block id="fe2bb1c90702e8f4b7c2a1ca637d5a0f" category="paragraph"><block ref="fe2bb1c90702e8f4b7c2a1ca637d5a0f" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="184212a20a4950cf7491aadc968e8fd7" category="list-text">설치할 SQL Server 기능과 인스턴스를 선택하십시오. 바이너리 파일은 로컬 디스크에 유지되고, 데이터베이스 파일만 NetApp LUN에 저장됩니다.</block>
+  <block id="858a9977ed2ebadf29459353096f7305" category="list-text">*기능 선택* 페이지에서 *데이터베이스 엔진 서비스*와 필요한 추가 기능을 선택합니다. *인스턴스 루트 디렉터리*와 *공유 기능 디렉터리*는 로컬 디스크에 그대로 둡니다<block ref="d7aa32b0c582222819b91c8e0ccca765" prefix=" " category="inline-code"></block>.</block>
+  <block id="daa99015671b2fad1f0f00e9e3cbaf41" category="inline-image-macro">데이터베이스 엔진 서비스가 포함된 기능 선택 페이지, width=800</block>
+  <block id="2b6fc7d513e4e71cf4f67bba80fd7183" category="paragraph"><block ref="2b6fc7d513e4e71cf4f67bba80fd7183" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="25d09705435568c4907640a0cd7f8993" category="inline-image-macro">인스턴스 구성 페이지,width=800</block>
+  <block id="4ac423fe18b7ecbb684390e1ff9d0805" category="paragraph"><block ref="4ac423fe18b7ecbb684390e1ff9d0805" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="b61439be4431bbc6e4a741dabdae85bb" category="list-text">SQL Server 데이터베이스 엔진 및 SQL Server 에이전트의 서비스 계정을 검토하십시오.</block>
+  <block id="d6487413d08b7a5b5fc563edfec6cb12" category="list-text">*서버 구성* 페이지의 *서비스 계정* 탭에서 서비스 계정을 검토하십시오. 이 실습에서는 데이터베이스 엔진에 대한 기본 가상 계정<block ref="9fa960199cf8ab6d2d53d06ba5927ce1" prefix="(" category="inline-code"></block>을 사용합니다). 데이터베이스가 로컬 NTFS 볼륨에 있으므로 추가 권한은 필요하지 않습니다. SQL Server Agent 작업이나 로그 백업을 사용하는 경우 *SQL Server Agent*의 *시작 유형*을 *자동*으로 설정하십시오.</block>
+  <block id="2116f6634c07679d619cbd5e9aac67f6" category="admonition">*SQL Server 데이터베이스 엔진 서비스에 볼륨 유지 관리 작업 수행 권한 부여*를 선택합니다(스크린샷에서는 선택 해제됨). 이렇게 하면 파일 초기화가 즉시 수행되어 데이터베이스 생성, 파일 크기 증가 및 복원 속도가 크게 향상됩니다.</block>
+  <block id="7d0d9b71959305e2ecd37d5ef353ab7e" category="inline-image-macro">서버 구성 - 서비스 계정,width=800</block>
+  <block id="18d0f186079a8154ceee0a9a703673fb" category="paragraph"><block ref="18d0f186079a8154ceee0a9a703673fb" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="9d3647d7ce76d42d0b0f3e24588302fb" category="list-text">인증 모드와 SQL Server 관리자를 설정하고, 사용자 데이터베이스, 트랜잭션 로그, 백업 및 TempDB 파일에 대한 NetApp LUN의 폴더를 입력합니다.</block>
+  <block id="394605c9b4fc9dc2f46369a3e1824db9" category="inline-image-macro">데이터베이스 엔진 구성 - 인증, width=800</block>
+  <block id="805409161a888eab7c76135f4d580ad3" category="paragraph"><block ref="805409161a888eab7c76135f4d580ad3" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="ca2a190a910e519b63d76ea66a8ed70a" category="list-text">*데이터 디렉터리* 탭에서 NetApp LUN의 폴더를 입력합니다:</block>
+  <block id="e9d97e14906eec410b0e0e3f13706ee5" category="cell"><block ref="0f029e32fc6b4e7fdd554bf75eb28e08" prefix="" category="inline-code"></block></block>
+  <block id="c1f4640b3fe4111b89fa5ef07608d8b3" category="cell"><block ref="f885b03746c72a0d0b715f4a25ca0248" prefix="" category="inline-code"></block></block>
+  <block id="bcb36740d371acbeda374b8dc76e0d3b" category="cell"><block ref="89bb07a01ac3af3002ff5e91b65f566c" prefix="" category="inline-code"></block></block>
+  <block id="03db1c8f2f822b75a93e66e7069c423a" category="inline-image-macro">"E:\data, F:\log 및 H:\backup이 포함된 데이터 디렉터리",width=800</block>
+  <block id="1b76873202de55cd8fb9fcfbb3ae180e" category="paragraph"><block ref="1b76873202de55cd8fb9fcfbb3ae180e" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="444dc44fd90b93c770f82f8e72260497" category="list-text">*TempDB* 탭에서 기본 데이터 및 로그 디렉터리는 설치 프로그램에서 설정합니다. *데이터 디렉터리*에서 해당 항목을 선택하고 *제거*를 클릭한 다음 *추가...*를 클릭합니다.</block>
+  <block id="28e70e9ab1a565730e8e1eac07f78573" category="inline-image-macro">기본 디렉터리가 있는 TempDB 탭,width=800</block>
+  <block id="8f11a1c1f68122b26a94304521c72cae" category="paragraph"><block ref="8f11a1c1f68122b26a94304521c72cae" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="30d0f49453b6532afdf26566655b3234" category="list-text">*폴더 찾아보기* 대화 상자에서 드라이브 *tempdb (G:)*와 폴더<block ref="1b588b633b9d33fb133f4bd39ef56974" prefix=" " category="inline-code"></block>를 선택합니다. 폴더가 아직 없으면 *새 폴더 만들기*를 사용하여 생성합니다. *확인*을 클릭합니다.</block>
+  <block id="f032dbff95107910e9c4325ea6dcd312" category="inline-image-macro">G:의 tempdb 데이터 및 로그 폴더가 있는 폴더 찾아보기,width=800</block>
+  <block id="504585452ddf0b7baf6ec1028cfc3e2e" category="paragraph"><block ref="504585452ddf0b7baf6ec1028cfc3e2e" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="fabe0260c2e10cad3f0993af53d108b3" category="list-text">*로그 디렉터리*를 <block ref="fe65deede8968795d0d459bedf3ff10b" prefix=" " category="inline-code"></block>(으)로 설정하십시오(*...* 클릭). 이 실습 환경에서는 8개의 TempDB 데이터 파일을 사용합니다.</block>
+  <block id="623d8b7dc28a662f62d1b1674d1347ea" category="inline-image-macro">G:\tempdb\data 및 G:\tempdb\log에 구성된 TempDB,width=800</block>
+  <block id="20b2cc942419ef3c4850b73040b3bcc1" category="paragraph"><block ref="20b2cc942419ef3c4850b73040b3bcc1" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="25412ee0f5c0ff79744b079f309c306b" category="inline-image-macro">설치 준비 완료 요약, width=800</block>
+  <block id="c88ea97296dd5611c3eaecee0b122821" category="paragraph"><block ref="c88ea97296dd5611c3eaecee0b122821" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="1bc00d42a08ab2d60a4ab19dd64d7162" category="inline-image-macro">설치 완료,width=800</block>
+  <block id="13987a311d9d42978f7b870c4a221ac8" category="paragraph"><block ref="13987a311d9d42978f7b870c4a221ac8" category="inline-image-macro-rx" type="image"></block></block>
+  <block id="249518266bd0e4b4127dbe83a85861b1" category="section-title">9단계: 설치를 확인합니다</block>
+  <block id="a22595fc5d661a5c43f7abfd7283da0d" category="paragraph">테스트 데이터베이스를 생성하고, 해당 데이터베이스의 데이터 및 로그 파일이 NetApp LUN에 있는지, 그리고 스토리지 경로가 정상인지 확인합니다.</block>
+  <block id="9abb466fee8d5ca963e30af56aeed040" category="list-text">SSMS를 시작하고 Windows 인증을 사용하여 인스턴스<block ref="a510313d4617c90ad449cc16a56aeb37" prefix="(" category="inline-code"></block>)에 연결합니다. 테스트 데이터베이스를 생성합니다. 해당 데이터 및 로그 파일은 기본적으로 <block ref="0f029e32fc6b4e7fdd554bf75eb28e08" prefix=" " category="inline-code"></block> 및 <block ref="f885b03746c72a0d0b715f4a25ca0248" prefix=" " category="inline-code"></block>에 저장됩니다.</block>
+  <block id="b749f323e5c242765866c75a5e91b487" category="list-text">즉시 파일 초기화가 활성화되어 있는지 확인하십시오:</block>
+  <block id="710d391c061219e95eb8e4993477b8d1" category="list-text">호스트 및 ONTAP에서 스토리지를 확인합니다:</block>
+  <block id="6843583b7544b4e1f4a0e311b26264c8" category="list-text">선택 사항: 고가용성을 테스트합니다. 테스트 데이터베이스에 대해 워크로드를 실행하고 데이터 볼륨을 소유한 노드의 ONTAP 테이크오버 및 기브백을 수행합니다 <block ref="d1a13c33791422523bf2fbe8c2c1ece5" prefix="(" category="inline-code"></block> /<block ref="032b9566ac005b60cb077281c9a7f2be" prefix=" " category="inline-code"></block>). 워크로드는 몇 초간 일시 중지되었다가 다시 시작되며 데이터베이스는 온라인 상태를 유지합니다.</block>
+  <block id="01e12de62fa77fda2815719aed8ff892" category="paragraph-title">다음 단계</block>
+  <block id="ae03c60064ce1f196b38542b4a41eb78" category="paragraph">애플리케이션 정합성 보장 스냅샷 백업으로 데이터베이스를 보호하십시오. 아키텍처, 백업 워크플로 및 이점에 대해서는 <block ref="34bef8ca9fd57759484622d96b741096" category="inline-link-macro-rx"></block>을 참조하십시오.</block>
+  <block id="2ba505bce6eb3ca25edbdfb91cd664f8" category="admonition">예를 들어 데이터 및 로그 백업은 노드 1에, 로그 및 TempDB는 노드 2에 저장하는 등 두 노드의 애그리게이트에 볼륨을 분산합니다. 이렇게 하면 두 컨트롤러의 리소스를 모두 활용할 수 있습니다.</block>
+  <block id="98ca598ad82a2e0a423cf577b3f4aff8" category="section-title">PowerShell 스크립트를 사용하여 호스트를 한 번에 구성하십시오</block>
+  <block id="6af273791ef48c63f34ac627c42a0932" category="paragraph">다음 스크립트에는 이 절차에 따른 전체 호스트 구성이 포함되어 있습니다. 관리자 권한 PowerShell 세션에서 실행하십시오. MPIO 부분은 재시작이 필요합니다.</block>
+  <block id="39fba8b8961f73933a9a33aa0a5ba221" category="admonition">각 부분을 별도로 실행하십시오. 파트 1은 호스트를 재부팅해야 하므로 재부팅 후에는 나머지 부분이 진행되지 않습니다.</block>
+  <block id="0ca59f4a2783da3f4b4aee78fc7ef430" category="admonition">이 LUN들이 시스템에 연결된 유일한 RAW LUN인 경우에만 3부의 명령을 실행하십시오. 시스템에 다른 RAW LUN이 연결되어 있는 경우, 폴더를 수동으로 생성하고 볼륨을 포맷해야 합니다.</block>
+  <block id="0abe2bf261d0e67218108321d4d12f80" category="inline-link">ONTAP 기반 Microsoft SQL Server</block>
+  <block id="f27a6702540fe0dd8e4d866fea5be40a" category="list-text">NetApp:<block ref="f3fb0b145ff136b8a05a5c660ab939ba" category="inline-link-rx"></block></block>
+  <block id="53406d96a5f4726851003f28cf19b334" category="inline-link">ONTAP SAN 스토리지 관리</block>
+  <block id="b5fac3cd86b8220e79894bdcec99f78a" category="list-text">NetApp:<block ref="a727bca5822bcf3a576f75a1a8cece4b" category="inline-link-rx"></block></block>
+  <block id="bc5ec30cd3249636e4dc6b792074194d" category="inline-link">ONTAP SAN 호스트 구성</block>
+  <block id="f0609d07f5184a9c6efdbf2999c584ec" category="list-text">NetApp:<block ref="55a646cf7272459ac58f783ae404875d" category="inline-link-rx"></block></block>
+  <block id="33a68bb421f766681add791745f98cd3" category="inline-link">NetApp Windows 호스트 유틸리티</block>
+  <block id="6fd55068b372c4328ea474bf2f6b722a" category="list-text">NetApp:<block ref="c098de5d75adf9b8daa94776fcd75a7a" category="inline-link-rx"></block></block>
+  <block id="6013f655f0cf2d59e415bf7809c91142" category="inline-link">MPIO PowerShell 모듈</block>
+  <block id="ee1644fef054fcff5d8f8ff096b96bc6" category="list-text">Microsoft:<block ref="951e5318cdc225dc9e018d8c30ae9a61" category="inline-link-rx"></block></block>
+  <block id="7f6e43bac59d3955bb9bc90f20286059" category="inline-link">SQL Server 설치</block>
+  <block id="c46f882511db7664a53602697a98a022" category="list-text">Microsoft:<block ref="86d65a6c3559d504b8a86c05314fe853" category="inline-link-rx"></block></block>
+  <block id="bef219d35a4468480b0ce759221cdceb" category="inline-link">NetApp Backup and Recovery 설명서</block>
+  <block id="a242e07baa5a1714829930c5304953ee" category="list-text">NetApp:<block ref="2065490f97920374dc3207f730ad1ecb" category="inline-link-rx"></block></block>
+  <block id="805c9517e95d3e9efc4b46738ab825fc" category="inline-link">NetApp SnapCenter</block>
+  <block id="a8f312cf47829fa296cc85e7ce4c29fb" category="cell">ONTAP 스냅샷, SnapRestore, FlexClone 및 SnapMirror는 <block ref="27ce80d966d32ea83e1910263f431eb7" category="inline-link-rx"></block>에서 오케스트레이션되어 몇 초 만에 백업, 몇 분 만에 복원, 즉각적인 데이터베이스 클론을 제공합니다.</block>
+  <block id="8112dfb7ebafb3f00ed42003d617caee" category="summary">Windows Server 2025에 SQL Server 2025를 배포하고, 사용자 데이터베이스, 트랜잭션 로그, TempDB 및 백업을 NetApp AFF 시스템의 SMB 3 상시 사용 가능 공유에 저장합니다. 이 절차에는 ONTAP SVM, 볼륨 및 공유 구성과 SQL Server 설치가 포함됩니다.</block>
+  <block id="94b5f192ba902db02d1408bec63d4340" category="list-text">*보호*: *스냅샷 사용(로컬)* 옵션을 해제된 상태로 두십시오. 애플리케이션 정합성 보장 백업은 NetApp SnapCenter에서 생성합니다(<block ref="4c1fa64d0dfe5b1b91276f2754412741" category="inline-xref-macro-rx"></block> 참조).</block>
+  <block id="8789ff4926a937a9912e09c6d7421b85" category="list-text">*스냅샷 예약*: 해제됨. 애플리케이션 정합성 보장이 되지 않는 스냅샷은 SQL Server에 사용할 수 없으므로 대신 NetApp SnapCenter를 사용하십시오(<block ref="4c1fa64d0dfe5b1b91276f2754412741" category="inline-xref-macro-rx"></block> 참조).</block>
+  <block id="915ff3f4971afffdc671ac4bb1e52630" category="section-title">2026년 11월 23일</block>
+  <block id="cce97218b4c862254efb874a82a02c86" category="inline-link-macro">NetApp AFF에서 iSCSI를 사용하는 Windows Server 2025 기반 Microsoft SQL Server 2025</block>
+  <block id="5e4e01b01d60ef361b6e71349a2477a4" category="paragraph">SQL Server iSCSI 문서를 추가했습니다: <block ref="b756ce56fb27007c8ec2655e1ba8bbb5" category="inline-link-macro-rx"></block></block>
+  <block id="9b3c614278fb2bd977845bdb8a2f042e" category="inline-link-macro">NetApp AFF에서 SMB 3 지속적 가용성 공유를 사용하는 Windows Server 2025 기반 Microsoft SQL Server 2025</block>
+  <block id="9c7c35db476e8c73eb8ea5e49e391ec8" category="paragraph">SQL Server SMB 문서를 추가했습니다: <block ref="d13e1924dbd0e18221eca772ad243a79" category="inline-link-macro-rx"></block></block>
+  <block id="908c489bec6a906f6958938cf8558804" category="sidebar">SMB를 사용하는 NetApp AFF의 SQL Server 2025에 대해 알아보십시오.</block>
+  <block id="cd80b91165cda12d90776c9a68dd46a1" category="sidebar">SMB를 사용하여 NetApp AFF에 SQL Server 2025 배포</block>
+  <block id="60459d3c33943a5f5f5482a5c0f42e26" category="sidebar">iSCSI를 사용하는 NetApp AFF에서 SQL Server 2025에 대해 알아보십시오.</block>
+  <block id="463cc940e5111a782358fd89f8141133" category="sidebar">iSCSI를 사용하여 NetApp AFF에 SQL Server 2025 배포</block>
+  <block id="7132634e9b963307efb4930831529366" category="sidebar">SMB 기반 SQL Server 2025 정보</block>
+  <block id="7b3f74e4d76d782036bb88aedfdb3d05" category="sidebar">NetApp AFF에 SMB를 사용하여 SQL Server 2025 배포</block>
+  <block id="cf9a2e45d1fcb356c977a0ce2db89367" category="sidebar">iSCSI를 지원하는 SQL Server 2025에 대한 정보</block>
+  <block id="2f7b47f79d7ef09e530383fba425cc64" category="sidebar">iSCSI를 사용하여 SQL Server 2025 배포</block>
+  <block id="bc9f86ef95e04b674e06185052a84f99" category="sidebar">AWS FSx ONTAP 기반 SQL Server</block>
 </blocks>

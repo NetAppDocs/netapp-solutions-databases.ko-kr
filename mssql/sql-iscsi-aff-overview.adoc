@@ -1,0 +1,172 @@
+---
+sidebar: sidebar 
+permalink: mssql/sql-iscsi-aff-overview.html 
+keywords: Microsoft SQL server, iSCSI, AFF, ONTAP, MPIO, ALUA, NetApp Console 
+summary: SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 iSCSI LUN에 데이터베이스를 저장할 수 있습니다. 이점, 솔루션 구성 요소, 설계 원칙, 다중 경로를 통해 경로 및 컨트롤러 장애 발생 시 데이터베이스를 온라인 상태로 유지하는 방법, 그리고 NetApp Console 백업 및 복구가 데이터베이스를 보호하는 방법에 대해 알아보십시오. 
+---
+= iSCSI LUN을 사용하는 NetApp AFF의 SQL Server 2025에 대해 알아보십시오.
+:allow-uri-read: 
+
+
+[role="lead"]
+SQL Server 2025는 ONTAP을 실행하는 NetApp AFF 시스템의 iSCSI LUN에 데이터베이스를 저장할 수 있습니다. 이 구성의 이점, 솔루션 구성 요소 및 설계 원칙, 다중 경로가 경로 및 컨트롤러 장애 시 데이터베이스를 온라인 상태로 유지하는 방법, 그리고 NetApp Console Backup and Recovery가 데이터베이스를 보호하는 방법에 대해 알아보십시오.
+
+iSCSI는 표준 TCP/IP 이더넷 네트워크를 통해 SCSI 블록 명령을 전송합니다. Windows 및 SQL Server에서 iSCSI LUN은 로컬 디스크로 인식됩니다. 즉, 초기화되고 파티션이 나뉘며 NTFS로 포맷되고 드라이브 문자 또는 마운트 지점이 할당됩니다. iSCSI를 통한 블록 스토리지는 SQL Server에서 가장 널리 사용되고 이해하기 쉬운 스토리지 옵션이며, 모든 SQL Server 기능과 모든 타사 툴이 이를 지원합니다.
+
+AFF 올플래시 시스템의 ONTAP은 iSCSI를 기본적으로 구현합니다. SQL Server 2025, Windows Server 2025 및 Microsoft MPIO 프레임워크와 결합하여 일관적으로 낮은 지연 시간을 제공하고, 경로 및 컨트롤러 장애를 허용하며, NetApp 데이터 보호 기능과 통합되는 스토리지 아키텍처를 제공합니다.
+
+이 구성을 배포하려면 link:sql-iscsi-aff.html["iSCSI LUN을 사용하여 NetApp AFF에 SQL Server 2025 배포"]을(를) 참조하십시오.
+
+
+
+[[benefits-of-sql-server-on-iscsi-with-netapp-ontap]]
+[[why]]
+== NetApp ONTAP을 사용하는 iSCSI 기반 SQL Server의 이점
+
+[cols="1,3"]
+|===
+| 혜택 | 설명 
+
+
+| 범용 호환성 | iSCSI LUN은 Windows용 로컬 NTFS 디스크입니다. SQL Server, 해당 툴 및 타사 애플리케이션은 특별한 구성이 필요하지 않으며, 로컬 서비스 계정과 가상 계정은 평소처럼 작동합니다. 
+
+
+| 표준 이더넷 | iSCSI는 데이터 센터의 기존 이더넷 네트워크에서 실행됩니다. 파이버 채널 패브릭, HBA 또는 FC 스위치는 필요하지 않습니다. 
+
+
+| 고가용성 | ALUA를 사용하는 MPIO는 HA 쌍의 두 노드 모두에 여러 경로를 사용합니다. 경로 오류, ONTAP 인계/반환 및 무중단 업그레이드는 Windows 다중 경로 드라이버에서 투명하게 처리됩니다. 
+
+
+| 성능 | AFF 시스템은 일관적으로 낮은 지연 시간을 제공합니다. 여러 iSCSI 세션은 I/O를 여러 네트워크 경로 및 포트에 분산시킵니다. 
+
+
+| 스토리지 효율성 | 씬 프로비저닝, 인라인 중복 제거, 압축 및 컴팩션은 데이터베이스와 백업에서 사용하는 물리적 용량을 줄여줍니다. SCSI UNMAP은 해제된 블록을 애그리게이트로 반환합니다. 
+
+
+| 통합 데이터 보호 | NetApp Console Backup and Recovery로 오케스트레이션되는 ONTAP 스냅샷, SnapRestore, FlexClone 및 SnapMirror는 몇 초 만에 백업, 몇 분 만에 복구, 즉각적인 데이터베이스 클론을 제공합니다. 
+
+
+| 온라인 용량 관리 | ONTAP에서는 볼륨과 LUN을 온라인으로 확장할 수 있으며, Windows에서는 NTFS 볼륨을 온라인으로 확장할 수 있습니다. 
+|===
+
+
+[[solution-components]]
+[[architecture]]
+== 솔루션 구성 요소
+
+이 솔루션은 다음과 같은 구성 요소로 구성됩니다:
+
+[cols="1,3"]
+|===
+| 구성 요소 | 역할 
+
+
+| Windows Server 2025 호스트 (`{host}`) | SQL Server 2025를 실행합니다. SQL Server 바이너리와 시스템 데이터베이스는 로컬 디스크에 있고 `C:`, 사용자 데이터베이스, 로그, TempDB 및 로그 백업은 4개의 NetApp LUN에 있습니다. 
+
+
+| Microsoft iSCSI 이니시에이터 및 MPIO | 호스트를 SVM의 iSCSI LIF에 연결하고 각 LUN에 대한 경로를 하나의 다중 경로 디스크로 결합합니다. 
+
+
+| SQL Server 2025 | 데이터베이스 엔진, 기본 인스턴스 `MSSQLSERVER`. 
+
+
+| Active Directory 및 DNS | 도메인 멤버십, SQL Server 관리자의 Windows 인증, 이름 확인 및 시간 동기화. 
+
+
+| NetApp AFF A50 HA 페어 | 두 개의 컨트롤러가 NVMe 스토리지를 공유합니다. 한 컨트롤러에 장애가 발생하거나 업그레이드될 경우, 파트너가 해당 스토리지를 인계받고 파트너의 iSCSI 경로가 활성화됩니다. 
+
+
+| SVM `{svm}` | iSCSI 타겟에 노드당 2개의 iSCSI LIF, 이니시에이터 그룹 `{igroup}` 및 4개의 LUN을 제공하며, 각각은 자체 FlexVol 볼륨에 있습니다. 
+
+
+| NetApp Console 백업 및 복구 | 애플리케이션 정합성 보장 스냅샷 백업을 생성하고 복원, 클론 및 복제 기능을 제공합니다. 
+|===
+image::sql25_iscsi_bp_001.svg[솔루션 아키텍처: NetApp AFF를 사용하는 iSCSI LUN의 SQL Server 2025]
+
+
+
+[[design-principles]]
+[[design]]
+== 설계 원칙
+
+이 설계는 ONTAP SAN 스토리지의 SQL Server에 대한 NetApp 모범 사례를 따릅니다:
+
+* *파일 유형별로 별도의 LUN 및 볼륨을 사용합니다.* 데이터, 트랜잭션 로그, TempDB 및 로그 백업은 별도의 LUN에 배치되며, 각 LUN은 자체 FlexVol 볼륨에 있습니다. 각 볼륨은 자체 크기, QoS, 효율성, 스냅샷 및 복제 설정을 가질 수 있으며, 데이터 볼륨의 스냅샷에는 TempDB가 절대 포함되지 않습니다.
+* *볼륨이 두 노드에 분산됩니다.* 데이터 및 백업 볼륨은 노드 1에 있고, 로그 및 TempDB 볼륨은 노드 2에 있으므로 두 컨트롤러 모두 유용한 작업을 수행할 수 있습니다.
+* *노드당 두 개의 iSCSI LIF.* 각 LUN은 네 개의 경로를 통해 접근할 수 있습니다. LUN을 소유한 노드를 통한 두 개의 활성/최적화 경로와 HA 파트너를 통한 두 개의 활성/비최적화 경로입니다.
+* *Microsoft DSM을 사용한 MPIO.* NetApp Windows 호스트 유틸리티는 권장 시간 초과 및 다중 경로 정책을 설정합니다.
+* *데이터베이스 볼륨에 대한 씬 프로비저닝 및 예약된 ONTAP 스냅샷 없음.* 백업은 애플리케이션 정합성 보장 상태여야 하며, NetApp Console Backup and Recovery를 통해 생성됩니다.
+* *전용 iSCSI 네트워크.* iSCSI에는 전용 NIC 또는 VLAN을 사용하고, 점보 프레임(MTU 9000)을 종단 간 구성하십시오.
+
+
+image::sql25_iscsi_bp_002.svg[스토리지 구성: SQL Server 파일을 Windows 볼륨, LUN, 볼륨 및 노드에 저장]
+
+
+
+[[how-multipathing-protects-sql-server]]
+[[mpio]]
+== 다중 경로가 SQL Server를 보호하는 방법
+
+ONTAP은 비대칭 논리 장치 액세스(ALUA)를 사용하여 호스트에 최적의 경로를 알려줍니다. LUN을 소유한 노드의 iSCSI LIF를 통과하는 경로는 *활성/최적화*로 보고됩니다. HA 파트너의 LIF를 통과하는 경로는 *활성/비최적화*로 보고되며, 이러한 경로로 전송되는 I/O는 클러스터 인터커넥트를 통해 전달됩니다. Microsoft DSM은 최적화된 경로(정책 *하위 집합을 사용한 라운드 로빈*)로만 I/O를 전송하고 비최적화 경로는 대기 상태로 유지합니다.
+
+경로에 오류가 발생하면 MPIO는 나머지 최적화된 경로에서 작업을 계속합니다. 소유 노드에 오류가 발생하거나 업그레이드를 위해 인계되는 경우 파트너 노드가 애그리게이트를 인계받고, ONTAP이 새로운 ALUA 상태를 보고하며, MPIO는 I/O를 새로운 최적화된 경로로 이동합니다. SQL Server는 짧은 I/O 일시 중단만 경험하며 데이터베이스는 계속 온라인 상태를 유지합니다.
+
+image::sql25_iscsi_bp_003.svg[MPIO 및 ALUA를 사용한 iSCSI 다중 경로]
+
+
+
+[[data-protection-with-netapp-console-backup-and-recovery]]
+[[console]]
+== NetApp Console 백업 및 복구를 통한 데이터 보호
+
+*NetApp Console*은 스토리지 및 데이터 서비스를 위한 NetApp의 통합 컨트롤 플레인입니다. 이 *백업 및 복구* 서비스는 애플리케이션 정합성 보장 스냅샷을 사용하여 ONTAP의 Microsoft SQL Server 데이터베이스를 보호하며, 이를 보조 ONTAP 시스템 및 오브젝트 스토리지로 복제할 수 있습니다.
+
+
+
+[[architecture]]
+[[console-architecture]]
+=== 아키텍처
+
+이 솔루션은 다음과 같은 구성 요소로 구성됩니다:
+
+* *NetApp Console* (SaaS): 인벤토리, 정책, 일정, 복원 및 복제, 작업 모니터링, 역할 기반 액세스 제어 및 알림을 위한 웹 인터페이스입니다.
+* *콘솔 에이전트*: 데이터 센터에 있는 Linux VM으로, 콘솔과 ONTAP 클러스터 및 SQL Server 호스트를 연결합니다. 콘솔과의 통신은 아웃바운드 HTTPS를 통해서만 이루어집니다.
+* *SQL Server 및 Windows용 SnapCenter 플러그인*: 콘솔을 통해 SQL Server 호스트에 배포됩니다. 인스턴스와 데이터베이스를 검색하고, 데이터베이스 파일을 NetApp LUN에 매핑하며, 백업 중에 SQL Server를 일시 중지합니다. 이 플러그인은 포트 8145에서 수신 대기하며 호스트에 PowerShell 7 및 .NET이 필요합니다.
+* *ONTAP*: 볼륨 `sql_iscsi_1_data` 및 `sql_iscsi_1_log`의 스냅샷을 생성하고 SnapRestore 및 FlexClone 작업을 수행합니다. SQL Server 자체는 iSCSI를 통해 파일에 계속 액세스합니다.
+
+
+image::sql25_iscsi_bp_056.svg[iSCSI LUN 기반 SQL Server용 NetApp Console 백업 및 복구 아키텍처]
+
+
+
+[[how-a-local-snapshot-backup-works]]
+[[console-workflow]]
+=== 로컬 스냅샷 백업 작동 방식
+
+. NetApp Console은 보호 정책에 따라 예약되거나 요청 시 백업 작업을 시작합니다.
+. 이 플러그인은 SQL Server VDI/VSS 인터페이스를 사용하여 데이터베이스의 쓰기 I/O를 몇 초 동안 일시 중지합니다.
+. ONTAP은 데이터 및 로그 볼륨의 일관된 스냅샷을 생성합니다 (`sql_iscsi_1_data`, `sql_iscsi_1_log`). 데이터는 복사되지 않습니다.
+. 데이터베이스가 재개되고 백업은 SQL Server 백업 기록(`msdb`) 및 Console 카탈로그에 보존 기간과 함께 기록됩니다.
+. 트랜잭션 로그 백업은 짧은 간격(예: 15분마다)으로 실행되어  `H:\backup` 특정 시점 복구를 가능하게 합니다.
+. 선택 사항: 스냅샷은 3-2-1 백업 전략을 위해 SnapMirror를 사용하여 보조 ONTAP 시스템으로 복제되거나 오브젝트 스토리지에 백업됩니다.
+
+
+image::sql25_iscsi_bp_057.svg[SQL Server용 NetApp Console 로컬 백업 워크플로]
+
+
+
+[[benefits-of-netapp-console-for-sql-server]]
+[[console-benefits]]
+=== SQL Server용 NetApp Console의 이점
+
+* *몇 초 만에 백업 완료.* 스냅샷 백업은 데이터베이스 크기에 관계없이 몇 초 만에 완료됩니다. 백업 윈도우는 사실상 사라집니다.
+* *성능 영향 없음.* 호스트 또는 네트워크를 통해 데이터를 읽거나 복사하지 않습니다. SQL Server는 단 몇 초 동안만 일시 중지됩니다.
+* *몇 분 만에 복원 가능.* 데이터베이스 파일은 스냅샷에서 거의 즉시 복원됩니다. 로그 백업과 함께 사용하면 언제든지 원하는 시점으로 복구할 수 있습니다.
+* *공간 효율적인 백업.* 스냅샷은 변경된 블록만 저장하므로 추가 용량을 거의 차지하지 않고 여러 복원 지점을 유지할 수 있습니다.
+* *즉시 복제.* FlexClone은(는) 개발, 테스트, 보고 또는 문제 해결을 위해 운영 데이터베이스의 쓰기 가능한 복사본을 몇 초 만에 생성합니다. 데이터가 변경되기 전까지는 추가 용량을 사용하지 않습니다.
+* *하나의 정책으로 3-2-1 보호 기능을 제공합니다.* 로컬 스냅샷, 보조 ONTAP 시스템으로의 복제, 오브젝트 스토리지(예: NetApp StorageGRID 또는 퍼블릭 클라우드)로의 백업이 동일한 보호 정책에서 구성됩니다.
+* *유지 관리해야 할 백업 인프라가 없습니다.* 컨트롤 플레인은 서비스 형태로 제공되며, 경량 Console 에이전트만 온프레미스에서 실행됩니다. 설치, 패치 또는 보호해야 할 백업 서버나 카탈로그 데이터베이스가 없습니다.
+* *중앙 집중식 관리.* 모든 SQL Server 호스트에 대한 인벤토리, 정책, 일정, 보존, 역할 기반 액세스 제어, 작업 모니터링 및 알림 기능을 하나의 웹 인터페이스에서 제공하며, 자동화를 위한 REST API도 지원합니다.
+* *SnapCenter에서의 원활한 전환.* 기존 SnapCenter 구성을 NetApp Console로 가져올 수 있습니다.
+* *랜섬웨어 복원력.* ONTAP 스냅샷은 읽기 전용이지만, 권한이 있는 사용자는 잠금 해제된 스냅샷을 삭제할 수 있습니다. 삭제를 방지하려면 보존 기간이 있는 ONTAP 변조 방지 스냅샷 잠금 기능을 사용하고, 지원되는 경우 자율형 랜섬웨어 보호 기능과 함께 사용하십시오.
+
